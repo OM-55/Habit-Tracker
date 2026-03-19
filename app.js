@@ -73,6 +73,7 @@ function switchView(view) {
     
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
+    if (view === 'reminders') renderFullReminders();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
 }
 
@@ -335,6 +336,33 @@ function renderReminders() {
 function formatDate(ds) {
     const d = new Date(ds);
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}
+
+function renderFullReminders() {
+    const list = document.getElementById('full-reminders-list');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    const sorted = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
+    sorted.forEach(rem => {
+        const div = document.createElement('div');
+        div.className = 'reminder-item full-width-rem';
+        div.innerHTML = `
+            <div class="rem-info">
+                <span class="rem-date">${formatDate(rem.date)}</span>
+                <span class="rem-title">${rem.title}</span>
+            </div>
+            <button class="delete-btn" onclick="deleteReminder('${rem.id}')">×</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+async function deleteReminder(id) {
+    reminders = reminders.filter(r => r.id !== id);
+    saveAndSync();
+    renderReminders();
+    renderFullReminders();
 }
 
 // --- Common ---

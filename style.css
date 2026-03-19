@@ -179,6 +179,17 @@ body {
 .dashboard-card { display: flex; flex-direction: column; gap: 1.5rem; }
 .card-header h3 { font-size: 1.3rem; font-weight: 600; }
 
+.scrollable-list { 
+    max-height: 200px; /* ~3 habits */
+    overflow-y: auto; 
+    padding-right: 0.5rem;
+}
+.scrollable-list.academy-list {
+    max-height: 320px; /* ~5 subjects */
+}
+.scrollable-list::-webkit-scrollbar { width: 4px; }
+.scrollable-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
 .preview-list { display: flex; flex-direction: column; gap: 1rem; }
 .preview-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid var(--glass-border); }
 .preview-item .label { font-weight: 400; color: var(--text-white); }
@@ -232,14 +243,38 @@ body {
 }
 #add-habit-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px var(--primary-glow); }
 
+.circular-plus {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    font-size: 1.8rem !important;
+    line-height: 1 !important;
+    border: 1px solid var(--glass-border) !important;
+    background: var(--primary) !important;
+    color: white !important;
+    cursor: pointer;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.circular-plus:hover {
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
 /* Split View Layout */
 .split-view { 
     display: flex; 
     gap: 3rem; 
     align-items: flex-start;
+    height: calc(100vh - 120px);
 }
 .split-left { flex: 0 0 65%; }
+.sticky-column { position: sticky; top: 0; }
 .split-right { flex: 0 0 35%; border-left: 1px solid var(--glass-border); padding-left: 3rem; height: 100%; }
+.scroll-column { overflow-y: auto; padding-right: 1rem; }
 
 /* Reminders Styling */
 .reminders-card { border-left: 4px solid var(--primary); }
@@ -270,6 +305,60 @@ body {
     transition: 0.2s;
 }
 .icon-btn-small:hover { background: var(--primary); color: white; border-color: var(--primary); }
+/* Modal Refinement */
+.dark-modal {
+    background: rgba(20, 20, 25, 0.95) !important;
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    padding: 2.5rem !important;
+    width: 450px !important;
+}
+.full-input {
+    width: 100% !important;
+    padding: 1.2rem !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px !important;
+    color: white !important;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+.full-input:focus { border-color: var(--primary) !important; outline: none; background: rgba(255,255,255,0.08) !important; }
+
+.modern-btn {
+    padding: 1rem 2rem !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+}
+.text-btn {
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-dim) !important;
+    cursor: pointer;
+    font-weight: 500;
+}
+.text-btn:hover { color: white !important; }
+
+.reminders-full-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+.full-width-rem {
+    width: 100%;
+    justify-content: space-between;
+}
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.delete-btn:hover { color: #ff5f56; transform: scale(1.2); }
 
 .save-day-btn { background: var(--primary); padding: 1.4rem; border-radius: 100px; font-weight: 600; font-size: 1.2rem; margin-top: 2rem; width: 100%; border: none; color: white; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 25px var(--primary-glow); }
 .save-day-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px var(--primary-glow); }

@@ -55,7 +55,10 @@
                     <span class="icon">✨</span> Daily Rituals
                 </button>
                 <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
-                    <span class="icon">📚</span> Attendance
+                    <span class="icon">🎓</span> Attendance
+                </button>
+                <button id="nav-reminders" class="nav-item" onclick="switchView('reminders')">
+                    <span class="icon">🔔</span> Reminders
                 </button>
             </nav>
         </aside>
@@ -73,9 +76,8 @@
                     <div class="dashboard-card glass-card">
                         <div class="card-header">
                             <h3>Daily Rituals</h3>
-                            <button id="add-habit-btn" onclick="openModal()">+</button>
                         </div>
-                        <div id="habits-preview-list" class="preview-list">
+                        <div id="habits-preview-list" class="preview-list scrollable-list">
                             <!-- Top 3 habits injected here -->
                         </div>
                         <button class="text-link" onclick="switchView('habits')">View all →</button>
@@ -85,23 +87,23 @@
                     <div class="dashboard-card glass-card">
                         <div class="card-header">
                             <h3>Academy</h3>
-                            <span class="badge" id="overall-attendance-badge">0% Overall</span>
                         </div>
-                        <div id="attendance-preview-list" class="preview-list">
+                        <div id="attendance-preview-list" class="preview-list scrollable-list academy-list">
                             <!-- Subject percentages injected here -->
                         </div>
                         <button class="text-link" onclick="switchView('attendance')">Open tracker →</button>
                     </div>
 
-                    <!-- Reminders Section (NEW) -->
+                    <!-- Reminders Section -->
                     <div class="dashboard-card glass-card reminders-card">
                         <div class="card-header">
                             <h3>Reminders</h3>
                             <button id="add-reminder-btn" class="icon-btn-small" onclick="openReminderModal()">+</button>
                         </div>
-                        <div id="reminders-list" class="preview-list">
+                        <div id="reminders-list" class="preview-list scrollable-list">
                             <!-- Reminders injected here -->
                         </div>
+                        <button class="text-link" onclick="switchView('reminders')">Open list →</button>
                     </div>
                 </div>
             </section>
@@ -128,7 +130,7 @@
 
             <!-- Attendance View (STRECHED/SPLIT) -->
             <section id="attendance-view" class="view split-view hidden">
-                <div class="split-left">
+                <div class="split-left sticky-column">
                     <header class="section-header">
                         <div class="header-top">
                             <h2>Class Tracker</h2>
@@ -161,13 +163,26 @@
                     </div>
                 </div>
 
-                <div class="split-right">
+                <div class="split-right scroll-column">
                     <header class="section-header">
                         <h2>Academy Summary</h2>
                     </header>
                     <div id="attendance-summary" class="summary-list">
                         <!-- Stats injected here -->
                     </div>
+                </div>
+            </section>
+
+            <!-- Reminders View (NEW) -->
+            <section id="reminders-view" class="view hidden">
+                <header class="section-header no-border">
+                    <div class="header-top">
+                        <h2>Reminders</h2>
+                        <button class="icon-btn circular-plus" onclick="openReminderModal()">+</button>
+                    </div>
+                </header>
+                <div id="full-reminders-list" class="reminders-full-list">
+                    <!-- Full reminders list injected here -->
                 </div>
             </section>
         </main>
@@ -216,21 +231,21 @@
 
     <!-- Reminder Modal -->
     <div id="reminder-modal" class="modal hidden">
-        <div class="modal-content centered-modal">
+        <div class="modal-content glass-card centered-modal dark-modal">
             <h3 id="rem-modal-title">New Reminder</h3>
             <div class="modal-body">
                 <div class="input-group">
-                    <label for="rem-title">Reminder Title</label>
-                    <input type="text" id="rem-title" placeholder="e.g., Physics Midterm" autocomplete="off">
+                    <label for="rem-title">What's the reminder?</label>
+                    <input type="text" id="rem-title" placeholder="e.g., Physics Midterm" autocomplete="off" class="full-input">
                 </div>
                 <div class="input-group">
-                    <label for="rem-date">Date</label>
-                    <input type="date" id="rem-date">
+                    <label for="rem-date">When?</label>
+                    <input type="date" id="rem-date" class="full-input">
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="secondary" onclick="closeReminderModal()">Cancel</button>
-                <button class="primary" onclick="saveReminder()">Save Reminder</button>
+                <button class="text-btn secondary" onclick="closeReminderModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveReminder()">Save Reminder</button>
             </div>
         </div>
     </div>
