@@ -98,7 +98,6 @@
                     <div class="dashboard-card glass-card reminders-card">
                         <div class="card-header">
                             <h3>Reminders</h3>
-                            <button id="add-reminder-btn" class="icon-btn-small" onclick="openReminderModal()">+</button>
                         </div>
                         <div id="reminders-list" class="preview-list scrollable-list">
                             <!-- Reminders injected here -->
@@ -188,23 +187,23 @@
         </main>
     </div>
 
-    <!-- Habit Modal -->
+    <!-- Add Habit Modal -->
     <div id="habit-modal" class="modal hidden">
-        <div class="modal-content centered-modal">
-            <h3 id="modal-title">New Habit</h3>
+        <div class="modal-content glass-card centered-modal dark-modal">
+            <h3>New Ritual</h3>
             <div class="modal-body">
                 <div class="input-group">
-                    <label for="habit-name">What's the habit?</label>
-                    <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off">
+                    <label for="habit-name">Ritual Name</label>
+                    <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off" class="full-input">
                 </div>
                 <div class="input-group">
                     <label for="habit-goal">Daily Goal (optional)</label>
-                    <input type="text" id="habit-goal" placeholder="e.g., 10 minutes">
+                    <input type="text" id="habit-goal" placeholder="e.g., 10 minutes" class="full-input">
                 </div>
             </div>
             <div class="modal-actions">
-                <button class="secondary" onclick="closeModal()">Cancel</button>
-                <button class="primary" onclick="saveHabit()">Save Habit</button>
+                <button class="text-btn secondary" onclick="closeModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveHabit()">Save Ritual</button>
             </div>
         </div>
     </div>

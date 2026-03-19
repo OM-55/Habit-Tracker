@@ -8,7 +8,7 @@ const TIMETABLE = {
     "Monday": ["AP Lab", "AC Lab", "Workshop", "EG"],
     "Tuesday": ["Math", "Physics", "EG"],
     "Wednesday": ["Math", "Chemistry", "DSA 1", "DSA 2", "DSA 3", "DSA 4"],
-    "Thursday": ["ACAD", "ACAT", "IKS Lecture"],
+    "Thursday": ["ACAD", "IKS Lecture"],
     "Friday": ["IKS Practical", "Python 1", "Python 2"]
 };
 
@@ -104,9 +104,8 @@ function renderDashboard() {
     const aList = document.getElementById('attendance-preview-list');
     if (aList) {
         aList.innerHTML = '';
-        const allSubjects = Array.from(new Set(Object.values(TIMETABLE).flat()));
-
-        allSubjects.slice(0, 5).forEach(sub => {
+        const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
+        baseSubs.forEach(sub => {
             const stats = getSubjectStats(sub);
             const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(0) : 0;
             const div = document.createElement('div');
@@ -116,7 +115,7 @@ function renderDashboard() {
         });
         
         let totalC = 0; let totalA = 0;
-        const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "ACAT", "IKS Lecture", "IKS Practical", "Python"];
+        const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
         baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
         const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
         document.getElementById('overall-attendance-badge').innerText = `${overall}% Overall`;
@@ -203,12 +202,14 @@ async function saveAttendanceDay() {
     });
 
     saveAndSync(); renderAttendanceSummary(); renderSubjects(); renderDashboard();
+    
+    // Auto-progress to next day
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const currIdx = days.indexOf(selectedDay);
-    if (currIdx !== -1 && currIdx < 4) {
-        selectDay(days[currIdx + 1]);
-        alert('Daily Ritual saved. Moving to next session!');
-    } else alert('Daily Ritual saved.');
+    const nextIdx = (currIdx + 1) % days.length;
+    selectDay(days[nextIdx]);
+    
+    alert(`Attendance saved. Moved to ${days[nextIdx]}!`);
 }
 
 function renderAttendanceSummary() {
@@ -216,7 +217,7 @@ function renderAttendanceSummary() {
     if (!summary) return;
     summary.innerHTML = `<div class="card-header"><h3>Academy Summary</h3></div>`;
 
-    const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "ACAT", "IKS Lecture", "IKS Practical", "Python"];
+    const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
 
     baseSubs.forEach(sub => {
         const stats = getSubjectStats(sub);
@@ -335,7 +336,10 @@ function renderReminders() {
 
 function formatDate(ds) {
     const d = new Date(ds);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
 function renderFullReminders() {
