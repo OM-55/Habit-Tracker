@@ -15,7 +15,7 @@ const TIMETABLE = {
 // State
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
 let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
-let manualStats = JSON.parse(localStorage.getItem('manualStats')) || {}; // { Subject: { total: X, attended: Y } }
+let manualStats = JSON.parse(localStorage.getItem('manualStats')) || {}; 
 let currentPin = '';
 const CORRECT_PIN = '1116';
 let currentEditingHabitId = null;
@@ -77,16 +77,13 @@ function selectDay(day) {
     document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
     const btn = document.getElementById(`day-${day}`);
     if (btn) btn.classList.add('active');
-    
     const el = document.getElementById('selected-date-display');
     if (el) el.innerText = `${selectedDay} Session`;
-    
     renderSubjects();
 }
 
 // --- Dashboard ---
 function renderDashboard() {
-    // Habits Preview (Top 3 streaks)
     const hList = document.getElementById('habits-preview-list');
     if (hList) {
         hList.innerHTML = '';
@@ -94,59 +91,38 @@ function renderDashboard() {
         sortedHabits.forEach(h => {
             const div = document.createElement('div');
             div.className = 'preview-item';
-            div.innerHTML = `<span>${h.name}</span> <span class="streak">🔥 ${calculateStreak(h)}</span>`;
+            div.innerHTML = `<span class="label">${h.name}</span> <span class="val">🔥 ${calculateStreak(h)}</span>`;
             hList.appendChild(div);
         });
     }
 
-    // Attendance Preview
     const aList = document.getElementById('attendance-preview-list');
     if (aList) {
         aList.innerHTML = '';
-        const allSubjects = Array.from(new Set(Object.values(TIMETABLE).flat().map(s => s.includes('DSA') ? 'DSA' : (s.includes('Python') ? 'Python' : s))));
-        let totalClassesAll = 0; let totalAttendedAll = 0;
+        const allSubjects = Array.from(new Set(Object.values(TIMETABLE).flat()));
 
-        allSubjects.slice(0, 4).forEach(sub => {
+        allSubjects.slice(0, 5).forEach(sub => {
             const stats = getSubjectStats(sub);
-            totalClassesAll += stats.total; totalAttendedAll += stats.attended;
             const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(0) : 0;
             const div = document.createElement('div');
             div.className = 'preview-item';
-            div.innerHTML = `<span>${sub}</span> <span class="streak">${perc}%</span>`;
+            div.innerHTML = `<span class="label">${sub}</span> <span class="val">${perc}%</span>`;
             aList.appendChild(div);
         });
         
-        const overallPerc = totalClassesAll > 0 ? (totalAttendedAll / totalClassesAll * 100).toFixed(0) : 0;
-        document.getElementById('overall-attendance-badge').innerText = `${overallPerc}% Overall`;
+        let totalC = 0; let totalA = 0;
+        allSubjects.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
+        const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
+        document.getElementById('overall-attendance-badge').innerText = `${overall}% Overall`;
     }
 }
 
 function getSubjectStats(sub) {
     const manual = manualStats[sub] || { total: 0, attended: 0 };
-    const logs = attendance.filter(a => {
-        if (sub === 'DSA') return a.subject.includes('DSA');
-        if (sub === 'Python') return a.subject.includes('Python');
-        return a.subject === sub;
-    });
+    const logs = attendance.filter(a => a.subject === sub);
     const loggedTotal = logs.filter(l => l.classHappened).length;
     const loggedAttended = logs.filter(l => l.attended).length;
     return { total: manual.total + loggedTotal, attended: manual.attended + loggedAttended };
-}
-
-// --- Lock & Edit Mode ---
-function toggleEditMode() {
-    editMode = document.getElementById('edit-mode-toggle').checked;
-    renderSubjects();
-    renderAttendanceSummary();
-}
-
-function isDayLocked(day) {
-    if (editMode) return false;
-    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const todayIndex = new Date().getDay();
-    const targetIndex = dayNames.indexOf(day);
-    // Lock if target day is BEFORE today (current week logic)
-    return targetIndex < todayIndex;
 }
 
 // --- Attendance ---
@@ -161,21 +137,24 @@ function renderSubjects() {
         const div = document.createElement('div');
         div.className = 'subject-row';
         div.dataset.subject = sub;
-        let displayName = sub.includes('DSA') ? "DSA" : (sub.includes('Python') ? "Python" : sub);
+        
+        // Clean Display: No "DSA DSA 1", just "DSA 1"
+        // If sub contains a number or space, it might already be specific. 
+        // Requirements: "if there is 1, 2, 3, 4, write DSA 1, DSA 2..."
+        let label = sub; 
         
         div.innerHTML = `
             <div class="subject-info">
-                <span class="subject-name">${displayName}</span>
-                <span class="subject-slot">${sub.includes(' ') ? sub : ''}</span>
+                <span class="subject-name">${label}</span>
             </div>
-            <div class="check-inputs">
-                <label class="custom-check">
+            <div class="check-inputs" style="display:flex;gap:1.5rem">
+                <label class="toggle-control" style="font-size:0.8rem">
                     <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${locked ? 'disabled' : ''}>
-                    <span class="checkmark"></span> Class
+                    <span class="toggle-slider" style="width:36px;height:18px"></span> Class
                 </label>
-                <label class="custom-check">
+                <label class="toggle-control" style="font-size:0.8rem">
                     <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
-                    <span class="checkmark"></span> Attended
+                    <span class="toggle-slider" style="width:36px;height:18px"></span> Attended
                 </label>
             </div>
         `;
@@ -217,38 +196,34 @@ async function saveAttendanceDay() {
     });
 
     saveAndSync(); renderAttendanceSummary(); renderSubjects(); renderDashboard();
-    
-    // Auto-progression (Always move to next day on Save Click)
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const currIdx = days.indexOf(selectedDay);
     if (currIdx !== -1 && currIdx < 4) {
         selectDay(days[currIdx + 1]);
-        alert('Day progress saved. Moving to the next session.');
-    } else {
-        alert('Day progress saved.');
-    }
+        alert('Daily Ritual saved. Moving to next session!');
+    } else alert('Daily Ritual saved.');
 }
 
 function renderAttendanceSummary() {
     const summary = document.getElementById('attendance-summary');
     if (!summary) return;
-    summary.innerHTML = `<div class="card-header"><h3>Subject Breakdown</h3></div>`;
+    summary.innerHTML = `<div class="card-header"><h3>Academy Summary</h3></div>`;
 
-    const allSubs = Array.from(new Set(Object.values(TIMETABLE).flat().map(s => s.includes('DSA') ? 'DSA' : (s.includes('Python') ? 'Python' : s))));
+    const allSubs = Array.from(new Set(Object.values(TIMETABLE).flat()));
+
     allSubs.forEach(sub => {
         const stats = getSubjectStats(sub);
         const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(1) : 0;
         const card = document.createElement('div');
         card.className = 'glass-card stat-card';
-        card.style.marginBottom = '1rem';
-        
+        card.style.marginBottom = '1.2rem';
         const manual = manualStats[sub] || { total: 0, attended: 0 };
         
         card.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
                 <strong>${sub}</strong> <span style="color:var(--primary)">${perc}%</span>
             </div>
-            <div style="font-size:0.8rem;color:var(--text-dim); display:flex; justify-content:space-between;">
+            <div style="font-size:0.9rem;color:var(--text-dim);">
                 ${editMode ? `
                     <div class="edit-stat-group">
                         T: <input type="number" value="${manual.total}" onchange="updateManualStat('${sub}', 'total', this.value)">
@@ -258,8 +233,8 @@ function renderAttendanceSummary() {
                     <span>Total: ${stats.total} | Attended: ${stats.attended}</span>
                 `}
             </div>
-            <div class="progress-bar" style="height:4px;margin-top:0.8rem">
-                <div class="progress-fill" style="width:${perc}%"></div>
+            <div class="progress-bar" style="height:5px;margin-top:1rem;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden">
+                <div class="progress-fill" style="width:${perc}%;height:100%;transition:0.3s;background:var(--primary)"></div>
             </div>
         `;
         summary.appendChild(card);
@@ -270,6 +245,20 @@ function updateManualStat(sub, type, val) {
     if (!manualStats[sub]) manualStats[sub] = { total: 0, attended: 0 };
     manualStats[sub][type] = parseInt(val) || 0;
     saveAndSync(); renderAttendanceSummary(); renderDashboard();
+}
+
+function toggleEditMode() {
+    editMode = document.getElementById('edit-mode-toggle').checked;
+    renderSubjects();
+    renderAttendanceSummary();
+}
+
+function isDayLocked(day) {
+    if (editMode) return false;
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const todayIndex = new Date().getDay();
+    const targetIndex = dayNames.indexOf(day);
+    return targetIndex < todayIndex;
 }
 
 // --- Lock Screen ---
@@ -301,25 +290,35 @@ function calculateStreak(h) {
     while (h.completedDates.includes(d.toISOString().split('T')[0])) { s++; d.setDate(d.getDate()-1); }
     return s;
 }
+
 function renderHabits() {
     const l = document.getElementById('habit-list'); if (!l) return; l.innerHTML = '';
     const today = new Date().toISOString().split('T')[0];
     habits.forEach(h => {
         const isDone = h.completedDates.includes(today);
         const card = document.createElement('div'); card.className = 'habit-card glass-card';
-        card.innerHTML = `<div class="habit-check ${isDone?'done':''}" onclick="toggleHabit('${h.id}')"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg></div>
-            <div class="habit-info" onclick="openCalendarFor('${h.id}')"><h4>${h.name}</h4><p>${h.goal||''}</p></div>
-            <div class="badge">🔥 ${calculateStreak(h)}</div>`;
+        card.innerHTML = `
+            <div class="habit-check ${isDone?'done':''}" onclick="toggleHabit('${h.id}')">
+                <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div class="habit-info">
+                <h4 onclick="openCalendarFor('${h.id}')">${h.name}</h4>
+                <p>${h.goal||''}</p>
+            </div>
+            <div class="habit-streak">🔥 ${calculateStreak(h)}</div>
+        `;
         l.appendChild(card);
     });
     updateStats();
 }
+
 function toggleHabit(id) {
     const today = new Date().toISOString().split('T')[0];
     const h = habits.find(x => x.id === id);
     if (h.completedDates.includes(today)) h.completedDates = h.completedDates.filter(d => d !== today); else h.completedDates.push(today);
     saveAndSync(); renderHabits(); renderDashboard();
 }
+
 function updateStats() {
     const total = habits.length; const today = new Date().toISOString().split('T')[0];
     const done = habits.filter(h => h.completedDates.includes(today)).length;
@@ -330,7 +329,7 @@ function updateStats() {
     }
 }
 
-// --- Calendar & Modal ---
+// --- Modal & Calendar ---
 function openModal(id = null) {
     currentEditingHabitId = id;
     const modal = document.getElementById('habit-modal');
