@@ -29,7 +29,7 @@ let editMode = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('unlocked') === 'true') unlockApp();
+    unlockApp();
     
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const todayIndex = new Date().getDay();
@@ -268,12 +268,11 @@ function isDayLocked(day) {
     return targetIndex < todayIndex;
 }
 
-// --- Lock Screen ---
-function inputPin(n) { if (currentPin.length < 4) { currentPin += n; updateDots(); if (currentPin.length === 4) setTimeout(checkPin, 300); } }
-function updateDots() { document.querySelectorAll('.dot').forEach((d, i) => i < currentPin.length ? d.classList.add('filled') : d.classList.remove('filled')); }
-function clearPin() { currentPin = ''; updateDots(); }
-function checkPin() { if (currentPin === CORRECT_PIN) { sessionStorage.setItem('unlocked','true'); unlockApp(); } else { alert('Incorrect'); clearPin(); } }
-function unlockApp() { document.getElementById('lock-screen').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); }
+function unlockApp() { 
+    const lock = document.getElementById('lock-screen');
+    if (lock) lock.classList.add('hidden'); 
+    document.getElementById('app-container').classList.remove('hidden'); 
+}
 
 // --- Sync ---
 async function saveAndSync() {

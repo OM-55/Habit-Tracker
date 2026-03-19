@@ -11,38 +11,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta name="theme-color" content="#0a0a0a">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3248/3248443.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png-flaticon.com/512/3248/3248443.png">
 </head>
 <body>
-    <!-- Lock Screen -->
-    <div id="lock-screen" class="overlay">
-        <div class="lock-panel">
-            <h1>Stellar Habits</h1>
-            <p>Access Secure Space</p>
-            <div class="pin-display">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
-            <div class="pin-pad">
-                <button onclick="inputPin(1)">1</button>
-                <button onclick="inputPin(2)">2</button>
-                <button onclick="inputPin(3)">3</button>
-                <button onclick="inputPin(4)">4</button>
-                <button onclick="inputPin(5)">5</button>
-                <button onclick="inputPin(6)">6</button>
-                <button onclick="inputPin(7)">7</button>
-                <button onclick="inputPin(8)">8</button>
-                <button onclick="inputPin(9)">9</button>
-                <button onclick="inputPin(0)">0</button>
-                <button onclick="clearPin()" class="action">Clear</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Dashboard with Sidebar -->
-    <div id="app-container" class="hidden">
+    <!-- Main App Container -->
+    <div id="app-container" class="app-layout">
         <aside id="sidebar">
             <div class="sidebar-header">
                 <h1>Stellar</h1>
