@@ -47,7 +47,7 @@
             <div class="sidebar-header">
                 <h1>Stellar</h1>
             </div>
-            <nav>
+            <nav id="main-nav">
                 <button id="nav-habits" class="nav-item active" onclick="switchView('habits')">
                     <span class="icon">✨</span> Habits
                 </button>
@@ -81,58 +81,28 @@
             <!-- Attendance View -->
             <section id="attendance-view" class="view hidden">
                 <header>
-                    <h2>Class Tracker</h2>
+                    <div class="header-top">
+                        <h2>Class Tracker</h2>
+                        <div id="selected-date-display" class="date-badge"></div>
+                    </div>
+                    
+                    <!-- Day Selector -->
+                    <div class="day-selector">
+                        <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">Mon</button>
+                        <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">Tue</button>
+                        <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">Wed</button>
+                        <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">Thu</button>
+                        <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">Fri</button>
+                    </div>
                 </header>
 
                 <div class="attendance-grid">
                     <!-- Daily Input Card -->
                     <div class="glass-card input-card">
-                        <h3>Today's Attendance</h3>
-                        <p class="date-label" id="attendance-date"></p>
-                        
-                        <div class="subject-row" data-subject="Math">
-                            <span class="subject-name">Math</span>
-                            <div class="check-inputs">
-                                <label class="custom-check">
-                                    <input type="checkbox" class="class-happened">
-                                    <span class="checkmark"></span> Class
-                                </label>
-                                <label class="custom-check">
-                                    <input type="checkbox" class="attended">
-                                    <span class="checkmark"></span> Attended
-                                </label>
-                            </div>
+                        <div id="subjects-container">
+                            <!-- Today's subjects injected here -->
                         </div>
-
-                        <div class="subject-row" data-subject="Physics">
-                            <span class="subject-name">Physics</span>
-                            <div class="check-inputs">
-                                <label class="custom-check">
-                                    <input type="checkbox" class="class-happened">
-                                    <span class="checkmark"></span> Class
-                                </label>
-                                <label class="custom-check">
-                                    <input type="checkbox" class="attended">
-                                    <span class="checkmark"></span> Attended
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="subject-row" data-subject="Chemistry">
-                            <span class="subject-name">Chemistry</span>
-                            <div class="check-inputs">
-                                <label class="custom-check">
-                                    <input type="checkbox" class="class-happened">
-                                    <span class="checkmark"></span> Class
-                                </label>
-                                <label class="custom-check">
-                                    <input type="checkbox" class="attended">
-                                    <span class="checkmark"></span> Attended
-                                </label>
-                            </div>
-                        </div>
-
-                        <button class="primary save-day-btn" onclick="saveAttendanceDay()">Save Day</button>
+                        <button id="save-attendance-btn" class="primary save-day-btn" onclick="saveAttendanceDay()">Save Day</button>
                     </div>
 
                     <!-- Summary Stats -->
