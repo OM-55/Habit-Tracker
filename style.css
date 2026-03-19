@@ -168,7 +168,14 @@ body {
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 
 /* Dashboard Grid */
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; }
+.dashboard-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 2rem; 
+}
+@media (min-width: 1400px) {
+    .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
+}
 .dashboard-card { display: flex; flex-direction: column; gap: 1.5rem; }
 .card-header h3 { font-size: 1.3rem; font-weight: 600; }
 
@@ -225,7 +232,45 @@ body {
 }
 #add-habit-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px var(--primary-glow); }
 
-/* Buttons */
+/* Split View Layout */
+.split-view { 
+    display: flex; 
+    gap: 3rem; 
+    align-items: flex-start;
+}
+.split-left { flex: 0 0 65%; }
+.split-right { flex: 0 0 35%; border-left: 1px solid var(--glass-border); padding-left: 3rem; height: 100%; }
+
+/* Reminders Styling */
+.reminders-card { border-left: 4px solid var(--primary); }
+.reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1rem 1.2rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 14px;
+    border: 1px solid var(--glass-border);
+}
+.rem-date {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    min-width: 60px;
+    text-align: center;
+}
+.rem-title { font-size: 0.95rem; color: var(--text-white); }
+
+.icon-btn-small {
+    width: 28px; height: 28px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+    border-radius: 50%; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+.icon-btn-small:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
 .save-day-btn { background: var(--primary); padding: 1.4rem; border-radius: 100px; font-weight: 600; font-size: 1.2rem; margin-top: 2rem; width: 100%; border: none; color: white; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 25px var(--primary-glow); }
 .save-day-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px var(--primary-glow); }
 
@@ -238,4 +283,7 @@ body {
     #app-main { margin-left: 0; padding: 1.5rem; padding-bottom: 100px; max-width: 100%; }
     .header-top h2 { font-size: 1.8rem; }
     #sidebar nav { padding: 0 1rem; }
+    .split-view { flex-direction: column; gap: 2rem; }
+    .split-left, .split-right { flex: 0 0 100%; border: none; padding: 0; }
+    .dashboard-grid { grid-template-columns: 1fr; }
 }

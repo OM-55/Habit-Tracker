@@ -15,6 +15,7 @@ const TIMETABLE = {
 // State
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
 let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
+let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
 let manualStats = JSON.parse(localStorage.getItem('manualStats')) || {}; 
 let currentPin = '';
 const CORRECT_PIN = '1116';
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     switchView('dashboard');
     renderHabits();
     renderAttendanceSummary();
+    renderReminders();
     selectDay(selectedDay);
     updateStats();
     fetchInitialData();
@@ -48,6 +50,7 @@ async function fetchInitialData() {
         const { data: h } = await supabaseClient.from('habits').select('*').eq('user_id', 'default_user');
         const { data: a } = await supabaseClient.from('attendance').select('*').eq('user_id', 'default_user');
         const { data: m } = await supabaseClient.from('manual_stats').select('*').eq('user_id', 'default_user');
+        const { data: r } = await supabaseClient.from('reminders').select('*').eq('user_id', 'default_user');
         if (h) { habits = h; renderHabits(); renderDashboard(); }
         if (a) { attendance = a; renderAttendanceSummary(); renderSubjects(); renderDashboard(); }
         if (m) {
@@ -55,6 +58,7 @@ async function fetchInitialData() {
             m.forEach(row => { manualStats[row.subject] = { total: row.total, attended: row.attended }; });
             renderAttendanceSummary(); renderDashboard();
         }
+        if (r) { reminders = r; renderReminders(); }
     } catch (e) { console.error('Fetch failed', e); }
 }
 
@@ -67,7 +71,7 @@ function switchView(view) {
     const navBtn = document.getElementById(`nav-${view}`);
     if (navBtn) navBtn.classList.add('active');
     
-    if (view === 'dashboard') renderDashboard();
+    if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
 }
@@ -111,7 +115,8 @@ function renderDashboard() {
         });
         
         let totalC = 0; let totalA = 0;
-        allSubjects.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
+        const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "ACAT", "IKS Lecture", "IKS Practical", "Python"];
+        baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
         const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
         document.getElementById('overall-attendance-badge').innerText = `${overall}% Overall`;
     }
@@ -119,7 +124,8 @@ function renderDashboard() {
 
 function getSubjectStats(sub) {
     const manual = manualStats[sub] || { total: 0, attended: 0 };
-    const logs = attendance.filter(a => a.subject === sub);
+    // Multi-slot matching: "DSA" matches "DSA 1", "DSA 2", etc.
+    const logs = attendance.filter(a => a.subject === sub || a.subject.startsWith(sub + " "));
     const loggedTotal = logs.filter(l => l.classHappened).length;
     const loggedAttended = logs.filter(l => l.attended).length;
     return { total: manual.total + loggedTotal, attended: manual.attended + loggedAttended };
@@ -209,9 +215,9 @@ function renderAttendanceSummary() {
     if (!summary) return;
     summary.innerHTML = `<div class="card-header"><h3>Academy Summary</h3></div>`;
 
-    const allSubs = Array.from(new Set(Object.values(TIMETABLE).flat()));
+    const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "ACAT", "IKS Lecture", "IKS Practical", "Python"];
 
-    allSubs.forEach(sub => {
+    baseSubs.forEach(sub => {
         const stats = getSubjectStats(sub);
         const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(1) : 0;
         const card = document.createElement('div');
@@ -272,15 +278,63 @@ function unlockApp() { document.getElementById('lock-screen').classList.add('hid
 async function saveAndSync() {
     localStorage.setItem('habits', JSON.stringify(habits));
     localStorage.setItem('attendance', JSON.stringify(attendance));
+    localStorage.setItem('reminders', JSON.stringify(reminders));
     localStorage.setItem('manualStats', JSON.stringify(manualStats));
     if (supabaseClient) {
         try {
             await supabaseClient.from('habits').upsert(habits.map(h => ({ ...h, user_id: 'default_user' })));
             await supabaseClient.from('attendance').upsert(attendance.map(a => ({ ...a, user_id: 'default_user' })));
+            await supabaseClient.from('reminders').upsert(reminders.map(r => ({ ...r, user_id: 'default_user' })));
             const mData = Object.keys(manualStats).map(s => ({ subject: s, total: manualStats[s].total, attended: manualStats[s].attended, user_id: 'default_user' }));
             await supabaseClient.from('manual_stats').upsert(mData);
         } catch (e) { console.error('Sync failed', e); }
     }
+}
+
+// --- Reminders ---
+function openReminderModal() { document.getElementById('reminder-modal').classList.remove('hidden'); }
+function closeReminderModal() { document.getElementById('reminder-modal').classList.add('hidden'); }
+
+async function saveReminder() {
+    const title = document.getElementById('rem-title').value.trim();
+    const date = document.getElementById('rem-date').value;
+    if (!title || !date) return;
+    reminders.push({ id: Date.now().toString(), title, date, user_id: 'default_user' });
+    saveAndSync(); renderReminders(); closeReminderModal();
+}
+
+function renderReminders() {
+    const list = document.getElementById('reminders-list');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    // Sort ascending
+    const sorted = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Upcoming logic: show top 3 dates, but if multiple on same date, show all
+    const grouped = {};
+    sorted.forEach(r => { if (!grouped[r.date]) grouped[r.date] = []; grouped[r.date].push(r); });
+    
+    const dates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+    let count = 0;
+    
+    dates.forEach(date => {
+        if (count < 3) {
+            const items = grouped[date];
+            items.forEach(rem => {
+                const div = document.createElement('div');
+                div.className = 'reminder-item';
+                div.innerHTML = `<span class="rem-date">${formatDate(date)}</span> <span class="rem-title">${rem.title}</span>`;
+                list.appendChild(div);
+            });
+            count++;
+        }
+    });
+}
+
+function formatDate(ds) {
+    const d = new Date(ds);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
 // --- Common ---

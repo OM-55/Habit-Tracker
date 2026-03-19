@@ -73,7 +73,7 @@
                     <div class="dashboard-card glass-card">
                         <div class="card-header">
                             <h3>Daily Rituals</h3>
-                            <span class="badge">Top Streaks</span>
+                            <button id="add-habit-btn" onclick="openModal()">+</button>
                         </div>
                         <div id="habits-preview-list" class="preview-list">
                             <!-- Top 3 habits injected here -->
@@ -92,6 +92,17 @@
                         </div>
                         <button class="text-link" onclick="switchView('attendance')">Open tracker →</button>
                     </div>
+
+                    <!-- Reminders Section (NEW) -->
+                    <div class="dashboard-card glass-card reminders-card">
+                        <div class="card-header">
+                            <h3>Reminders</h3>
+                            <button id="add-reminder-btn" class="icon-btn-small" onclick="openReminderModal()">+</button>
+                        </div>
+                        <div id="reminders-list" class="preview-list">
+                            <!-- Reminders injected here -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -100,7 +111,7 @@
                 <header class="section-header no-border">
                     <div class="header-top">
                         <h2>Daily Rituals</h2>
-                        <button id="add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
+                        <button id="view-add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
                     </div>
                     <div id="today-stats" class="stats-banner glass-card">
                         <p><span id="completed-count">0</span> / <span id="total-count">0</span> Done Today</p>
@@ -115,43 +126,46 @@
                 </div>
             </section>
 
-            <!-- Attendance View -->
-            <section id="attendance-view" class="view hidden">
-                <header class="section-header">
-                    <div class="header-top">
-                        <h2>Class Tracker</h2>
-                        <div class="controls-group">
-                            <label class="toggle-control">
-                                <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
-                                <span class="toggle-slider"></span>
-                                <span class="toggle-label">Edit Mode</span>
-                            </label>
-                            <div id="selected-date-display" class="date-badge"></div>
+            <!-- Attendance View (STRECHED/SPLIT) -->
+            <section id="attendance-view" class="view split-view hidden">
+                <div class="split-left">
+                    <header class="section-header">
+                        <div class="header-top">
+                            <h2>Class Tracker</h2>
+                            <div class="controls-group">
+                                <label class="toggle-control">
+                                    <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">Edit Mode</span>
+                                </label>
+                                <div id="selected-date-display" class="date-badge"></div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="day-selector-container">
-                        <div class="day-selector">
-                            <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">Mon</button>
-                            <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">Tue</button>
-                            <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">Wed</button>
-                            <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">Thu</button>
-                            <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">Fri</button>
+                        
+                        <div class="day-selector-container">
+                            <div class="day-selector">
+                                <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">Mon</button>
+                                <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">Tue</button>
+                                <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">Wed</button>
+                                <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">Thu</button>
+                                <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">Fri</button>
+                            </div>
                         </div>
-                    </div>
-                </header>
+                    </header>
 
-                <div class="attendance-grid">
-                    <!-- Daily Input Card -->
-                    <div class="glass-card input-card">
+                    <div class="attendance-tracker-card glass-card">
                         <div id="subjects-container">
                             <!-- Today's subjects injected here -->
                         </div>
                         <button id="save-attendance-btn" class="primary save-day-btn" onclick="saveAttendanceDay()">Save Day</button>
                     </div>
+                </div>
 
-                    <!-- Summary Stats -->
-                    <div id="attendance-summary" class="summary-container">
+                <div class="split-right">
+                    <header class="section-header">
+                        <h2>Academy Summary</h2>
+                    </header>
+                    <div id="attendance-summary" class="summary-list">
                         <!-- Stats injected here -->
                     </div>
                 </div>
@@ -196,6 +210,27 @@
             </div>
             <div class="modal-actions">
                 <button class="primary" onclick="closeCalendar()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reminder Modal -->
+    <div id="reminder-modal" class="modal hidden">
+        <div class="modal-content centered-modal">
+            <h3 id="rem-modal-title">New Reminder</h3>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="rem-title">Reminder Title</label>
+                    <input type="text" id="rem-title" placeholder="e.g., Physics Midterm" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="rem-date">Date</label>
+                    <input type="date" id="rem-date">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeReminderModal()">Cancel</button>
+                <button class="primary" onclick="saveReminder()">Save Reminder</button>
             </div>
         </div>
     </div>
