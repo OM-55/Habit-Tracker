@@ -4,28 +4,73 @@ const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let supabaseClient = null;
 if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-    // Note: The global 'supabase' object is provided by the CDN script in index.html
     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
 // State Management
 let habits = JSON.parse(localStorage.getItem('habits')) || [];
+let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
 let currentPin = '';
 const CORRECT_PIN = '1116';
 let currentEditingHabitId = null;
 let calendarMonth = new Date().getMonth();
 let calendarYear = new Date().getFullYear();
 let activeHabitForCalendar = null;
+let currentView = 'habits';
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if already unlocked (session based)
     if (sessionStorage.getItem('unlocked') === 'true') {
         unlockApp();
     }
+    
+    // Set date for attendance
+    const today = new Date();
+    document.getElementById('attendance-date').innerText = today.toDateString();
+    
     renderHabits();
+    renderAttendanceSummary();
     updateStats();
+    
+    // Initial fetch from backend
+    fetchInitialData();
 });
+
+async function fetchInitialData() {
+    if (!supabaseClient) return;
+    
+    try {
+        const { data: remoteHabits, error: hError } = await supabaseClient.from('habits').select('*').eq('user_id', 'default_user');
+        const { data: remoteAttendance, error: aError } = await supabaseClient.from('attendance').select('*').eq('user_id', 'default_user');
+        
+        if (remoteHabits) {
+            habits = remoteHabits;
+            localStorage.setItem('habits', JSON.stringify(habits));
+            renderHabits();
+        }
+        
+        if (remoteAttendance) {
+            attendance = remoteAttendance;
+            localStorage.setItem('attendance', JSON.stringify(attendance));
+            renderAttendanceSummary();
+        }
+    } catch (err) {
+        console.error('Initial fetch failed:', err);
+    }
+}
+
+// --- Navigation Logic ---
+function switchView(view) {
+    currentView = view;
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.getElementById(`${view}-view`).classList.remove('hidden');
+    
+    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`nav-${view}`).classList.add('active');
+    
+    if (view === 'habits') renderHabits();
+    if (view === 'attendance') renderAttendanceSummary();
+}
 
 // --- Lock Screen Logic ---
 function inputPin(num) {
@@ -66,7 +111,7 @@ function checkPin() {
 
 function unlockApp() {
     document.getElementById('lock-screen').classList.add('hidden');
-    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('app-container').classList.remove('hidden');
 }
 
 // --- Habit Management ---
@@ -111,7 +156,7 @@ async function saveHabit() {
             id: Date.now().toString(),
             name,
             goal,
-            completedDates: [], // Array of ISO strings (YYYY-MM-DD)
+            completedDates: [],
             createdAt: new Date().toISOString()
         };
         habits.push(newHabit);
@@ -146,6 +191,7 @@ function toggleHabit(id) {
 
 function renderHabits() {
     const list = document.getElementById('habit-list');
+    if (!list) return;
     list.innerHTML = '';
     const today = new Date().toISOString().split('T')[0];
 
@@ -176,19 +222,13 @@ function renderHabits() {
     updateStats();
 }
 
-// --- Logic ---
 function calculateStreak(habit) {
     if (habit.completedDates.length === 0) return 0;
-    
     const dates = [...habit.completedDates].sort().reverse();
     let streak = 0;
     let checkDate = new Date();
     const today = checkDate.toISOString().split('T')[0];
-    
-    // If not done today, start checking from yesterday
-    if (!habit.completedDates.includes(today)) {
-        checkDate.setDate(checkDate.getDate() - 1);
-    }
+    if (!habit.completedDates.includes(today)) checkDate.setDate(checkDate.getDate() - 1);
 
     while (true) {
         const dateStr = checkDate.toISOString().split('T')[0];
@@ -203,68 +243,142 @@ function calculateStreak(habit) {
 }
 
 function updateStats() {
+    const completedCount = document.getElementById('completed-count');
+    if (!completedCount) return;
+    
     const total = habits.length;
     const today = new Date().toISOString().split('T')[0];
     const done = habits.filter(h => h.completedDates.includes(today)).length;
 
-    document.getElementById('completed-count').innerText = done;
+    completedCount.innerText = done;
     document.getElementById('total-count').innerText = total;
-    
     const progress = total > 0 ? (done / total) * 100 : 0;
     document.getElementById('daily-progress').style.width = `${progress}%`;
 }
 
-async function saveAndSync() {
-    localStorage.setItem('habits', JSON.stringify(habits));
-    
-    if (supabaseClient) {
-        // Simple sync logic: Upsert all habits for this 'user'
-        // In a real app, you'd handle specific user IDs
-        const { error } = await supabaseClient
-            .from('habits')
-            .upsert(habits.map(h => ({ ...h, user_id: 'default_user' })));
+// --- Attendance Logic ---
+async function saveAttendanceDay() {
+    const today = new Date().toISOString().split('T')[0];
+    const rows = document.querySelectorAll('.subject-row');
+    let hasEntries = false;
+
+    rows.forEach(row => {
+        const subject = row.getAttribute('data-subject');
+        const classHappened = row.querySelector('.class-happened').checked;
+        const attended = row.querySelector('.attended').checked;
+
+        if (classHappened) {
+            // Check if entry already exists for this day and subject
+            const existing = attendance.find(a => a.date === today && a.subject === subject);
+            if (!existing) {
+                attendance.push({
+                    id: Date.now() + Math.random().toString(),
+                    date: today,
+                    subject,
+                    classHappened,
+                    attended,
+                    createdAt: new Date().toISOString()
+                });
+                hasEntries = true;
+            } else {
+                alert(`Entry for ${subject} already exists for today.`);
+            }
+        }
         
-        if (error) console.error('Sync error:', error);
+        // Reset checkboxes
+        row.querySelector('.class-happened').checked = false;
+        row.querySelector('.attended').checked = false;
+    });
+
+    if (hasEntries) {
+        saveAndSync();
+        renderAttendanceSummary();
+        alert('Attendance saved successfully!');
     }
 }
 
-// --- Calendar Logic ---
+function renderAttendanceSummary() {
+    const summary = document.getElementById('attendance-summary');
+    if (!summary) return;
+    summary.innerHTML = '<h3>Attendance Summary</h3>';
+
+    const subjects = ['Math', 'Physics', 'Chemistry'];
+    
+    subjects.forEach(subject => {
+        const totalClasses = attendance.filter(a => a.subject === subject && a.classHappened).length;
+        const attendedClasses = attendance.filter(a => a.subject === subject && a.attended).length;
+        const percentage = totalClasses > 0 ? ((attendedClasses / totalClasses) * 100).toFixed(1) : 0;
+
+        const card = document.createElement('div');
+        card.className = 'subject-stat-card';
+        card.innerHTML = `
+            <div class="stat-header">
+                <h4>${subject}</h4>
+                <div class="percentage">${percentage}%</div>
+            </div>
+            <div class="stat-details">
+                <span><strong>Total:</strong> ${totalClasses}</span>
+                <span><strong>Attended:</strong> ${attendedClasses}</span>
+            </div>
+            <div class="progress-bar" style="height: 6px; margin-top: 1rem;">
+                <div style="width: ${percentage}%; background: ${percentage >= 75 ? 'var(--success)' : 'var(--error)'}; height: 100%; border-radius: 4px;"></div>
+            </div>
+        `;
+        summary.appendChild(card);
+    });
+}
+
+// --- Sync & Persistence ---
+async function saveAndSync() {
+    localStorage.setItem('habits', JSON.stringify(habits));
+    localStorage.setItem('attendance', JSON.stringify(attendance));
+    
+    if (supabaseClient) {
+        try {
+            // Upsert Habits
+            await supabaseClient.from('habits').upsert(habits.map(h => ({ ...h, user_id: 'default_user' })));
+            
+            // Upsert Attendance
+            // Flatten attendance for table storage if needed, or store as is
+            await supabaseClient.from('attendance').upsert(attendance.map(a => ({ ...a, user_id: 'default_user' })));
+        } catch (err) {
+            console.error('Sync failed:', err);
+        }
+    }
+}
+
+// --- Calendar Logic (Keep existing) ---
 function openCalendarFor(habitId) {
     activeHabitForCalendar = habits.find(h => h.id === habitId);
     renderCalendar();
     document.getElementById('calendar-modal').classList.remove('hidden');
 }
 
-function closeCalendar() {
-    document.getElementById('calendar-modal').classList.add('hidden');
-}
+function closeCalendar() { document.getElementById('calendar-modal').classList.add('hidden'); }
 
 function renderCalendar() {
     const monthYear = document.getElementById('calendar-month-year');
     const grid = document.getElementById('calendar-grid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
     const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
     const today = new Date().toISOString().split('T')[0];
-
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     monthYear.innerText = `${monthNames[calendarMonth]} ${calendarYear}`;
 
-    // Fill empty days
     for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'calendar-day muted';
         grid.appendChild(empty);
     }
 
-    // Fill actual days
     for (let day = 1; day <= daysInMonth; day++) {
         const dateObj = new Date(calendarYear, calendarMonth, day);
         const dateStr = dateObj.toISOString().split('T')[0];
         const isDone = activeHabitForCalendar.completedDates.includes(dateStr);
         const isToday = dateStr === today;
-
         const dayEl = document.createElement('div');
         dayEl.className = `calendar-day ${isDone ? 'completed' : ''} ${isToday ? 'today' : ''}`;
         dayEl.innerText = day;
@@ -281,23 +395,16 @@ function toggleCalendarDate(dateStr) {
     }
     saveAndSync();
     renderCalendar();
-    renderHabits(); // Update main view too
+    renderHabits();
 }
 
-function prevMonth() {
-    calendarMonth--;
-    if (calendarMonth < 0) {
-        calendarMonth = 11;
-        calendarYear--;
-    }
-    renderCalendar();
+function prevMonth() { 
+    calendarMonth--; 
+    if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+    renderCalendar(); 
 }
-
-function nextMonth() {
-    calendarMonth++;
-    if (calendarMonth > 11) {
-        calendarMonth = 0;
-        calendarYear++;
-    }
-    renderCalendar();
+function nextMonth() { 
+    calendarMonth++; 
+    if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+    renderCalendar(); 
 }

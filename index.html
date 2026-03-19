@@ -41,25 +41,108 @@
         </div>
     </div>
 
-    <!-- Main Dashboard -->
-    <main id="app" class="hidden">
-        <header>
-            <div class="header-top">
-                <h2>My Rituals</h2>
-                <button id="add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
+    <!-- Main Dashboard with Sidebar -->
+    <div id="app-container" class="hidden">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h1>Stellar</h1>
             </div>
-            <div id="today-stats">
-                <p><span id="completed-count">0</span> / <span id="total-count">0</span> Habits Done Today</p>
-                <div class="progress-bar">
-                    <div id="daily-progress" style="width: 0%"></div>
-                </div>
-            </div>
-        </header>
+            <nav>
+                <button id="nav-habits" class="nav-item active" onclick="switchView('habits')">
+                    <span class="icon">✨</span> Habits
+                </button>
+                <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
+                    <span class="icon">📚</span> Attendance
+                </button>
+            </nav>
+        </aside>
 
-        <section id="habit-list">
-            <!-- Habits will be injected here -->
-        </section>
-    </main>
+        <main id="app-main">
+            <!-- Habits View -->
+            <section id="habits-view" class="view">
+                <header>
+                    <div class="header-top">
+                        <h2>My Rituals</h2>
+                        <button id="add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
+                    </div>
+                    <div id="today-stats" class="glass-card">
+                        <p><span id="completed-count">0</span> / <span id="total-count">0</span> Habits Done Today</p>
+                        <div class="progress-bar">
+                            <div id="daily-progress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </header>
+
+                <div id="habit-list">
+                    <!-- Habits injected here -->
+                </div>
+            </section>
+
+            <!-- Attendance View -->
+            <section id="attendance-view" class="view hidden">
+                <header>
+                    <h2>Class Tracker</h2>
+                </header>
+
+                <div class="attendance-grid">
+                    <!-- Daily Input Card -->
+                    <div class="glass-card input-card">
+                        <h3>Today's Attendance</h3>
+                        <p class="date-label" id="attendance-date"></p>
+                        
+                        <div class="subject-row" data-subject="Math">
+                            <span class="subject-name">Math</span>
+                            <div class="check-inputs">
+                                <label class="custom-check">
+                                    <input type="checkbox" class="class-happened">
+                                    <span class="checkmark"></span> Class
+                                </label>
+                                <label class="custom-check">
+                                    <input type="checkbox" class="attended">
+                                    <span class="checkmark"></span> Attended
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="subject-row" data-subject="Physics">
+                            <span class="subject-name">Physics</span>
+                            <div class="check-inputs">
+                                <label class="custom-check">
+                                    <input type="checkbox" class="class-happened">
+                                    <span class="checkmark"></span> Class
+                                </label>
+                                <label class="custom-check">
+                                    <input type="checkbox" class="attended">
+                                    <span class="checkmark"></span> Attended
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="subject-row" data-subject="Chemistry">
+                            <span class="subject-name">Chemistry</span>
+                            <div class="check-inputs">
+                                <label class="custom-check">
+                                    <input type="checkbox" class="class-happened">
+                                    <span class="checkmark"></span> Class
+                                </label>
+                                <label class="custom-check">
+                                    <input type="checkbox" class="attended">
+                                    <span class="checkmark"></span> Attended
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="primary save-day-btn" onclick="saveAttendanceDay()">Save Day</button>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div id="attendance-summary">
+                        <!-- Stats injected here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <!-- Habit Modal -->
     <div id="habit-modal" class="modal hidden">
