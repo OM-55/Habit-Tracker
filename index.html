@@ -48,7 +48,10 @@
                 <h1>Stellar</h1>
             </div>
             <nav id="main-nav">
-                <button id="nav-habits" class="nav-item active" onclick="switchView('habits')">
+                <button id="nav-dashboard" class="nav-item active" onclick="switchView('dashboard')">
+                    <span class="icon">📊</span> Dashboard
+                </button>
+                <button id="nav-habits" class="nav-item" onclick="switchView('habits')">
                     <span class="icon">✨</span> Habits
                 </button>
                 <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
@@ -58,17 +61,51 @@
         </aside>
 
         <main id="app-main">
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view">
+                <header class="section-header">
+                    <h2>Summary</h2>
+                    <p class="subtitle">Overview of your progress</p>
+                </header>
+
+                <div class="dashboard-grid">
+                    <!-- Habits Quick Preview -->
+                    <div class="dashboard-card glass-card">
+                        <div class="card-header">
+                            <h3>Rituals</h3>
+                            <span class="badge">Top Streaks</span>
+                        </div>
+                        <div id="habits-preview-list" class="preview-list">
+                            <!-- Top 3 habits injected here -->
+                        </div>
+                        <button class="text-link" onclick="switchView('habits')">View All Rituals →</button>
+                    </div>
+
+                    <!-- Attendance Quick Preview -->
+                    <div class="dashboard-card glass-card">
+                        <div class="card-header">
+                            <h3>Academy</h3>
+                            <span class="badge" id="overall-attendance-badge">0% Overall</span>
+                        </div>
+                        <div id="attendance-preview-list" class="preview-list">
+                            <!-- Subject percentages injected here -->
+                        </div>
+                        <button class="text-link" onclick="switchView('attendance')">Complete Tracker →</button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Habits View -->
-            <section id="habits-view" class="view">
-                <header>
+            <section id="habits-view" class="view hidden">
+                <header class="section-header no-border">
                     <div class="header-top">
                         <h2>My Rituals</h2>
                         <button id="add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
                     </div>
-                    <div id="today-stats" class="glass-card">
-                        <p><span id="completed-count">0</span> / <span id="total-count">0</span> Habits Done Today</p>
-                        <div class="progress-bar">
-                            <div id="daily-progress" style="width: 0%"></div>
+                    <div id="today-stats" class="stats-banner glass-card">
+                        <p><span id="completed-count">0</span> / <span id="total-count">0</span> Done Today</p>
+                        <div class="progress-bar mini">
+                            <div id="daily-progress" class="progress-fill" style="width: 0%"></div>
                         </div>
                     </div>
                 </header>
@@ -80,19 +117,27 @@
 
             <!-- Attendance View -->
             <section id="attendance-view" class="view hidden">
-                <header>
+                <header class="section-header">
                     <div class="header-top">
                         <h2>Class Tracker</h2>
-                        <div id="selected-date-display" class="date-badge"></div>
+                        <div class="controls-group">
+                            <label class="toggle-control">
+                                <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Edit Mode</span>
+                            </label>
+                            <div id="selected-date-display" class="date-badge"></div>
+                        </div>
                     </div>
                     
-                    <!-- Day Selector -->
-                    <div class="day-selector">
-                        <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">Mon</button>
-                        <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">Tue</button>
-                        <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">Wed</button>
-                        <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">Thu</button>
-                        <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">Fri</button>
+                    <div class="day-selector-container">
+                        <div class="day-selector">
+                            <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">Mon</button>
+                            <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">Tue</button>
+                            <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">Wed</button>
+                            <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">Thu</button>
+                            <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">Fri</button>
+                        </div>
                     </div>
                 </header>
 
@@ -106,7 +151,7 @@
                     </div>
 
                     <!-- Summary Stats -->
-                    <div id="attendance-summary">
+                    <div id="attendance-summary" class="summary-container">
                         <!-- Stats injected here -->
                     </div>
                 </div>
@@ -116,15 +161,17 @@
 
     <!-- Habit Modal -->
     <div id="habit-modal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content centered-modal">
             <h3 id="modal-title">New Habit</h3>
-            <div class="input-group">
-                <label for="habit-name">What's the habit?</label>
-                <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off">
-            </div>
-            <div class="input-group">
-                <label for="habit-goal">Daily Goal (optional)</label>
-                <input type="text" id="habit-goal" placeholder="e.g., 10 minutes">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="habit-name">What's the habit?</label>
+                    <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="habit-goal">Daily Goal (optional)</label>
+                    <input type="text" id="habit-goal" placeholder="e.g., 10 minutes">
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="secondary" onclick="closeModal()">Cancel</button>
@@ -133,7 +180,7 @@
         </div>
     </div>
 
-    <!-- Calendar View Modal -->
+    <!-- Calendar View Modal (Keep existing) -->
     <div id="calendar-modal" class="modal hidden">
         <div class="modal-content calendar-container">
             <div class="calendar-header">
