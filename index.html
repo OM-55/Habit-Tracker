@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stellar Habits</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3248/3248443.png">
+</head>
+<body>
+    <!-- Lock Screen -->
+    <div id="lock-screen" class="overlay">
+        <div class="lock-panel">
+            <h1>Stellar Habits</h1>
+            <p>Access Secure Space</p>
+            <div class="pin-display">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+            <div class="pin-pad">
+                <button onclick="inputPin(1)">1</button>
+                <button onclick="inputPin(2)">2</button>
+                <button onclick="inputPin(3)">3</button>
+                <button onclick="inputPin(4)">4</button>
+                <button onclick="inputPin(5)">5</button>
+                <button onclick="inputPin(6)">6</button>
+                <button onclick="inputPin(7)">7</button>
+                <button onclick="inputPin(8)">8</button>
+                <button onclick="inputPin(9)">9</button>
+                <button onclick="inputPin(0)">0</button>
+                <button onclick="clearPin()" class="action">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <main id="app" class="hidden">
+        <header>
+            <div class="header-top">
+                <h2>My Rituals</h2>
+                <button id="add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
+            </div>
+            <div id="today-stats">
+                <p><span id="completed-count">0</span> / <span id="total-count">0</span> Habits Done Today</p>
+                <div class="progress-bar">
+                    <div id="daily-progress" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+
+        <section id="habit-list">
+            <!-- Habits will be injected here -->
+        </section>
+    </main>
+
+    <!-- Habit Modal -->
+    <div id="habit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">New Habit</h3>
+            <div class="input-group">
+                <label for="habit-name">What's the habit?</label>
+                <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label for="habit-goal">Daily Goal (optional)</label>
+                <input type="text" id="habit-goal" placeholder="e.g., 10 minutes">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeModal()">Cancel</button>
+                <button class="primary" onclick="saveHabit()">Save Habit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View Modal -->
+    <div id="calendar-modal" class="modal hidden">
+        <div class="modal-content calendar-container">
+            <div class="calendar-header">
+                <button onclick="prevMonth()">&lt;</button>
+                <h3 id="calendar-month-year">March 2026</h3>
+                <button onclick="nextMonth()">&gt;</button>
+            </div>
+            <div class="calendar-days">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- Days will be injected here -->
+            </div>
+            <div class="modal-actions">
+                <button class="primary" onclick="closeCalendar()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
