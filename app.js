@@ -18,7 +18,7 @@ let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
 let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
 let manualStats = JSON.parse(localStorage.getItem('manualStats')) || {}; 
 let currentPin = '';
-const CORRECT_PIN = '1116';
+const CORRECT_PIN = '1';
 let currentEditingHabitId = null;
 let calendarMonth = new Date().getMonth();
 let calendarYear = new Date().getFullYear();
@@ -115,7 +115,6 @@ function renderDashboard() {
         });
         
         let totalC = 0; let totalA = 0;
-        const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
         baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
         const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
         document.getElementById('overall-attendance-badge').innerText = `${overall}% Overall`;
