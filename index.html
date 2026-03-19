@@ -60,6 +60,7 @@
                     <div class="dashboard-card glass-card">
                         <div class="card-header">
                             <h3>Academy</h3>
+                            <span id="overall-attendance-badge" class="badge">0% Overall</span>
                         </div>
                         <div id="attendance-preview-list" class="preview-list scrollable-list academy-list">
                             <!-- Subject percentages injected here -->
@@ -85,7 +86,7 @@
                 <header class="section-header no-border">
                     <div class="header-top">
                         <h2>Daily Rituals</h2>
-                        <button id="view-add-habit-btn" class="icon-btn" onclick="openModal()">+</button>
+                        <button id="view-add-habit-btn" class="circular-plus" onclick="openModal()">+</button>
                     </div>
                     <div id="today-stats" class="stats-banner glass-card">
                         <p><span id="completed-count">0</span> / <span id="total-count">0</span> Done Today</p>
@@ -154,7 +155,11 @@
                     </div>
                 </header>
                 <div id="full-reminders-list" class="reminders-full-list">
-                    <!-- Full reminders list injected here -->
+                    <!-- Global reminders list injected here -->
+                </div>
+                <div class="reminders-actions">
+                    <button class="text-btn secondary" onclick="renderPastReminders()">View Past Reminders</button>
+                    <button class="text-btn primary" onclick="renderFullReminders()">View Active</button>
                 </div>
             </section>
         </main>
@@ -164,17 +169,17 @@
     <div id="habit-modal" class="modal hidden">
         <div class="modal-content glass-card centered-modal dark-modal">
             <h3>New Ritual</h3>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label for="habit-name">Ritual Name</label>
+            <div class="modal-body" style="margin: 2rem 0;">
+                <div class="input-group" style="margin-bottom: 2rem;">
+                    <label for="habit-name" style="display: block; margin-bottom: 0.8rem; color: var(--text-dim); font-size: 0.9rem;">Ritual Name</label>
                     <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off" class="full-input">
                 </div>
-                <div class="input-group">
-                    <label for="habit-goal">Daily Goal (optional)</label>
+                <div class="input-group" style="margin-bottom: 2.5rem;">
+                    <label for="habit-goal" style="display: block; margin-bottom: 0.8rem; color: var(--text-dim); font-size: 0.9rem;">Daily Goal (optional)</label>
                     <input type="text" id="habit-goal" placeholder="e.g., 10 minutes" class="full-input">
                 </div>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" style="margin-top: 1rem;">
                 <button class="text-btn secondary" onclick="closeModal()">Cancel</button>
                 <button class="primary modern-btn" onclick="saveHabit()">Save Ritual</button>
             </div>

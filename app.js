@@ -115,7 +115,8 @@ function renderDashboard() {
         let totalC = 0; let totalA = 0;
         baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
         const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
-        document.getElementById('overall-attendance-badge').innerText = `${overall}% Overall`;
+        const badge = document.getElementById('overall-attendance-badge');
+        if (badge) badge.innerText = `${overall}% Overall`;
     }
 }
 
@@ -150,15 +151,21 @@ function renderSubjects() {
             <div class="subject-info">
                 <span class="subject-name">${label}</span>
             </div>
-            <div class="check-inputs" style="display:flex;gap:1.5rem">
-                <label class="toggle-control" style="font-size:0.8rem">
-                    <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${locked ? 'disabled' : ''}>
-                    <span class="toggle-slider" style="width:36px;height:18px"></span> Class
-                </label>
-                <label class="toggle-control" style="font-size:0.8rem">
-                    <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
-                    <span class="toggle-slider" style="width:36px;height:18px"></span> Attended
-                </label>
+            <div class="check-inputs">
+                <div class="toggle-group">
+                    <span class="toggle-label">Class</span>
+                    <label class="toggle-control">
+                        <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${locked ? 'disabled' : ''}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-group">
+                    <span class="toggle-label">Attended</span>
+                    <label class="toggle-control">
+                        <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
         `;
         container.appendChild(div);
@@ -185,28 +192,42 @@ function handleMutual(cb, sub) {
 }
 
 async function saveAttendanceDay() {
-    const today = new Date().toLocaleDateString('en-CA');
-    const rows = document.querySelectorAll('.subject-row');
-    let added = 0;
-    rows.forEach(row => {
-        const sub = row.dataset.subject;
-        if (row.querySelector('.class-happened').checked) {
-            if (!attendance.find(a => a.date === today && a.subject === sub)) {
-                attendance.push({ id: Date.now()+Math.random().toString(), date: today, subject: sub, classHappened: true, attended: row.querySelector('.attended').checked, user_id: 'default_user' });
-                added++;
+    try {
+        const today = new Date().toLocaleDateString('en-CA');
+        const rows = document.querySelectorAll('.subject-row');
+        rows.forEach(row => {
+            const sub = row.dataset.subject;
+            const happened = row.querySelector('.class-happened').checked;
+            const attended = row.querySelector('.attended').checked;
+            
+            if (happened) {
+                const existing = attendance.find(a => a.date === today && a.subject === sub);
+                if (!existing) {
+                    attendance.push({ id: Date.now()+Math.random().toString(), date: today, subject: sub, classHappened: true, attended, user_id: 'default_user' });
+                } else {
+                    existing.attended = attended;
+                }
             }
-        }
-    });
+        });
 
-    saveAndSync(); renderAttendanceSummary(); renderSubjects(); renderDashboard();
-    
-    // Auto-progress to next day
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    const currIdx = days.indexOf(selectedDay);
-    const nextIdx = (currIdx + 1) % days.length;
-    selectDay(days[nextIdx]);
-    
-    alert(`Attendance saved. Moved to ${days[nextIdx]}!`);
+        await saveAndSync(); 
+        renderAttendanceSummary(); 
+        renderDashboard();
+        
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const currIdx = days.indexOf(selectedDay);
+        if (currIdx !== -1) {
+            const nextIdx = (currIdx + 1) % days.length;
+            selectedDay = days[nextIdx];
+            selectDay(selectedDay);
+            alert(`Attendance saved. Moved to ${selectedDay}!`);
+        } else {
+            alert("Attendance saved!");
+        }
+    } catch (err) {
+        console.error("Save failed:", err);
+        alert("Action failed. Check console.");
+    }
 }
 
 function renderAttendanceSummary() {
@@ -229,14 +250,7 @@ function renderAttendanceSummary() {
                 <strong>${sub}</strong> <span style="color:var(--primary)">${perc}%</span>
             </div>
             <div style="font-size:0.9rem;color:var(--text-dim);">
-                ${editMode ? `
-                    <div class="edit-stat-group">
-                        T: <input type="number" value="${manual.total}" onchange="updateManualStat('${sub}', 'total', this.value)">
-                        A: <input type="number" value="${manual.attended}" onchange="updateManualStat('${sub}', 'attended', this.value)">
-                    </div>
-                ` : `
-                    <span>Total: ${stats.total} | Attended: ${stats.attended}</span>
-                `}
+                <span>Total: ${stats.total} | Attended: ${stats.attended}</span>
             </div>
             <div class="progress-bar" style="height:5px;margin-top:1rem;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden">
                 <div class="progress-fill" style="width:${perc}%;height:100%;transition:0.3s;background:var(--primary)"></div>
@@ -297,7 +311,7 @@ async function saveReminder() {
     const title = document.getElementById('rem-title').value.trim();
     const date = document.getElementById('rem-date').value;
     if (!title || !date) return;
-    reminders.push({ id: Date.now().toString(), title, date, user_id: 'default_user' });
+    reminders.push({ id: Date.now().toString(), title, date, completed: false, user_id: 'default_user' });
     saveAndSync(); renderReminders(); closeReminderModal();
 }
 
@@ -318,14 +332,14 @@ function renderReminders() {
     
     dates.forEach(date => {
         if (count < 3) {
-            const items = grouped[date];
+            const items = grouped[date].filter(r => !r.completed);
             items.forEach(rem => {
                 const div = document.createElement('div');
                 div.className = 'reminder-item';
                 div.innerHTML = `<span class="rem-date">${formatDate(date)}</span> <span class="rem-title">${rem.title}</span>`;
                 list.appendChild(div);
             });
-            count++;
+            if (items.length > 0) count++;
         }
     });
 }
@@ -343,19 +357,50 @@ function renderFullReminders() {
     if (!list) return;
     list.innerHTML = '';
     
-    const sorted = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
-    sorted.forEach(rem => {
+    const active = reminders.filter(r => !r.completed).sort((a, b) => new Date(a.date) - new Date(b.date));
+    active.forEach(rem => {
         const div = document.createElement('div');
         div.className = 'reminder-item full-width-rem';
         div.innerHTML = `
-            <div class="rem-info">
-                <span class="rem-date">${formatDate(rem.date)}</span>
-                <span class="rem-title">${rem.title}</span>
+            <div class="rem-left">
+                <input type="checkbox" onchange="completeReminder('${rem.id}')" class="rem-check">
+                <div class="rem-info">
+                    <span class="rem-date">${formatDate(rem.date)}</span>
+                    <span class="rem-title">${rem.title}</span>
+                </div>
             </div>
             <button class="delete-btn" onclick="deleteReminder('${rem.id}')">×</button>
         `;
         list.appendChild(div);
     });
+}
+
+function renderPastReminders() {
+    const list = document.getElementById('full-reminders-list');
+    if (!list) return;
+    list.innerHTML = `<div class="card-header" style="margin-bottom:1rem"><h3>Past Reminders</h3></div>`;
+    
+    const past = reminders.filter(r => r.completed).sort((a, b) => new Date(b.date) - new Date(a.date));
+    past.forEach(rem => {
+        const div = document.createElement('div');
+        div.className = 'reminder-item full-width-rem completed';
+        div.innerHTML = `
+            <div class="rem-info">
+                <span class="rem-date">${formatDate(rem.date)}</span>
+                <span class="rem-title" style="text-decoration:line-through">${rem.title}</span>
+            </div>
+            <button class="delete-btn" onclick="deleteReminder('${rem.id}')">×</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+async function completeReminder(id) {
+    const rem = reminders.find(r => r.id === id);
+    if (rem) rem.completed = true;
+    saveAndSync();
+    renderReminders();
+    renderFullReminders();
 }
 
 async function deleteReminder(id) {
