@@ -50,8 +50,8 @@
                         <div class="card-header">
                             <h3>Daily Rituals</h3>
                         </div>
-                        <div id="habits-preview-list" class="preview-list scrollable-list">
-                            <!-- Top 3 habits injected here -->
+                        <div id="habits-preview-list" class="ritual-cards-container">
+                            <!-- Ritual cards injected here -->
                         </div>
                         <button class="text-link" onclick="switchView('habits')">View all →</button>
                     </div>
@@ -179,9 +179,9 @@
                     <input type="text" id="habit-goal" placeholder="e.g., 10 minutes" class="full-input">
                 </div>
             </div>
-            <div class="modal-actions" style="margin-top: 1rem;">
+            <div class="modal-actions" style="margin-top: 1rem; display: flex; gap: 16px; justify-content: space-between;">
                 <button class="text-btn secondary" onclick="closeModal()">Cancel</button>
-                <button class="primary modern-btn" onclick="saveHabit()">Save Ritual</button>
+                <button class="primary modern-btn" onclick="saveHabit()" style="flex: 1;">Save Ritual</button>
             </div>
         </div>
     </div>

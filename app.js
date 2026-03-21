@@ -1,8 +1,12 @@
 // Supabase Configuration
 const SUPABASE_URL = 'YOUR_SUPABASE_URL';
 const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const USER_ID = 'default_user'; // For now: fixed user ID
+
 let supabaseClient = null;
-if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+}
 
 const TIMETABLE = {
     "Monday": ["AP Lab", "AC Lab", "Workshop", "EG"],
@@ -13,10 +17,10 @@ const TIMETABLE = {
 };
 
 // State
-let habits = JSON.parse(localStorage.getItem('habits')) || [];
-let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
-let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
-let manualStats = JSON.parse(localStorage.getItem('manualStats')) || {}; 
+let habits = [];
+let attendance = [];
+let reminders = [];
+let manualStats = {};
 let currentEditingHabitId = null;
 let calendarMonth = new Date().getMonth();
 let calendarYear = new Date().getFullYear();
@@ -26,7 +30,7 @@ let selectedDay = "";
 let editMode = false;
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     unlockApp();
     
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -34,30 +38,53 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedDay = (todayIndex >= 1 && todayIndex <= 5) ? dayNames[todayIndex] : "Monday";
     
     switchView('dashboard');
-    renderHabits();
-    renderAttendanceSummary();
-    renderReminders();
+    await fetchInitialData();
     selectDay(selectedDay);
-    updateStats();
-    fetchInitialData();
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW Registered', reg))
+            .catch(err => console.error('SW Failed', err));
+    }
 });
 
 async function fetchInitialData() {
-    if (!supabaseClient) return;
+    if (!supabaseClient) {
+        console.warn('Supabase client not initialized. Using local state.');
+        // Fallback to localStorage if available (for migration/testing)
+        habits = JSON.parse(localStorage.getItem('habits')) || [];
+        attendance = JSON.parse(localStorage.getItem('attendance')) || [];
+        reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+        manualStats = JSON.parse(localStorage.getItem('manualStats')) || {};
+        renderHabits();
+        renderAttendanceSummary();
+        renderReminders();
+        renderDashboard();
+        return;
+    }
+
     try {
-        const { data: h } = await supabaseClient.from('habits').select('*').eq('user_id', 'default_user');
-        const { data: a } = await supabaseClient.from('attendance').select('*').eq('user_id', 'default_user');
-        const { data: m } = await supabaseClient.from('manual_stats').select('*').eq('user_id', 'default_user');
-        const { data: r } = await supabaseClient.from('reminders').select('*').eq('user_id', 'default_user');
-        if (h) { habits = h; renderHabits(); renderDashboard(); }
-        if (a) { attendance = a; renderAttendanceSummary(); renderSubjects(); renderDashboard(); }
+        const { data: h } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
+        const { data: a } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
+        const { data: m } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
+        const { data: r } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
+
+        if (h) habits = h;
+        if (a) attendance = a;
         if (m) {
             manualStats = {};
             m.forEach(row => { manualStats[row.subject] = { total: row.total, attended: row.attended }; });
-            renderAttendanceSummary(); renderDashboard();
         }
-        if (r) { reminders = r; renderReminders(); }
-    } catch (e) { console.error('Fetch failed', e); }
+        if (r) reminders = r;
+
+        renderHabits();
+        renderAttendanceSummary();
+        renderReminders();
+        renderDashboard();
+    } catch (e) {
+        console.error('Fetch failed', e);
+    }
 }
 
 // --- Navigation ---
@@ -90,11 +117,24 @@ function renderDashboard() {
     const hList = document.getElementById('habits-preview-list');
     if (hList) {
         hList.innerHTML = '';
-        const sortedHabits = [...habits].sort((a, b) => calculateStreak(b) - calculateStreak(a)).slice(0, 3);
+        const today = new Date().toISOString().split('T')[0];
+        // Sort by streak and take top 5
+        const sortedHabits = [...habits].sort((a, b) => calculateStreak(b) - calculateStreak(a)).slice(0, 5);
+        
         sortedHabits.forEach(h => {
+            const isDone = h.completedDates.includes(today);
             const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `<span class="label">${h.name}</span> <span class="val">🔥 ${calculateStreak(h)}</span>`;
+            div.className = `ritual-card-mini ${isDone ? 'completed' : ''}`;
+            div.onclick = () => toggleHabit(h.id);
+            div.innerHTML = `
+                <div class="ritual-info">
+                    <span class="ritual-name">${h.name}</span>
+                    <span class="ritual-streak">🔥 ${calculateStreak(h)} streak</span>
+                </div>
+                <div class="habit-check ${isDone ? 'done' : ''}">
+                    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                </div>
+            `;
             hList.appendChild(div);
         });
     }
@@ -139,17 +179,14 @@ function renderSubjects() {
     
     subjects.forEach(sub => {
         const div = document.createElement('div');
-        div.className = 'subject-row';
+        div.className = 'subject-row glass-card';
+        div.style.marginBottom = '1rem';
         div.dataset.subject = sub;
-        
-        // Clean Display: No "DSA DSA 1", just "DSA 1"
-        // If sub contains a number or space, it might already be specific. 
-        // Requirements: "if there is 1, 2, 3, 4, write DSA 1, DSA 2..."
-        let label = sub; 
         
         div.innerHTML = `
             <div class="subject-info">
-                <span class="subject-name">${label}</span>
+                <span class="subject-name">${sub}</span>
+                <span class="subject-slot">Standard Session</span>
             </div>
             <div class="check-inputs">
                 <div class="toggle-group">
@@ -159,7 +196,7 @@ function renderSubjects() {
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div class="toggle-group">
+                <div class="toggle-group" style="margin-left: 1.5rem;">
                     <span class="toggle-label">Attended</span>
                     <label class="toggle-control">
                         <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
@@ -210,7 +247,7 @@ async function saveAttendanceDay() {
             }
         });
 
-        await saveAndSync(); 
+        await saveAndSync('attendance', attendance); 
         renderAttendanceSummary(); 
         renderDashboard();
         
@@ -263,7 +300,7 @@ function renderAttendanceSummary() {
 function updateManualStat(sub, type, val) {
     if (!manualStats[sub]) manualStats[sub] = { total: 0, attended: 0 };
     manualStats[sub][type] = parseInt(val) || 0;
-    saveAndSync(); renderAttendanceSummary(); renderDashboard();
+    saveAndSync('manual_stats', manualStats); renderAttendanceSummary(); renderDashboard();
 }
 
 function toggleEditMode() {
@@ -287,19 +324,28 @@ function unlockApp() {
 }
 
 // --- Sync ---
-async function saveAndSync() {
-    localStorage.setItem('habits', JSON.stringify(habits));
-    localStorage.setItem('attendance', JSON.stringify(attendance));
-    localStorage.setItem('reminders', JSON.stringify(reminders));
-    localStorage.setItem('manualStats', JSON.stringify(manualStats));
-    if (supabaseClient) {
-        try {
-            await supabaseClient.from('habits').upsert(habits.map(h => ({ ...h, user_id: 'default_user' })));
-            await supabaseClient.from('attendance').upsert(attendance.map(a => ({ ...a, user_id: 'default_user' })));
-            await supabaseClient.from('reminders').upsert(reminders.map(r => ({ ...r, user_id: 'default_user' })));
-            const mData = Object.keys(manualStats).map(s => ({ subject: s, total: manualStats[s].total, attended: manualStats[s].attended, user_id: 'default_user' }));
+async function saveAndSync(table, data) {
+    if (!supabaseClient) {
+        localStorage.setItem('habits', JSON.stringify(habits));
+        localStorage.setItem('attendance', JSON.stringify(attendance));
+        localStorage.setItem('reminders', JSON.stringify(reminders));
+        localStorage.setItem('manualStats', JSON.stringify(manualStats));
+        return;
+    }
+
+    try {
+        if (table === 'rituals') {
+            await supabaseClient.from('rituals').upsert(data.map(h => ({ ...h, user_id: USER_ID })));
+        } else if (table === 'attendance') {
+            await supabaseClient.from('attendance').upsert(data.map(a => ({ ...a, user_id: USER_ID })));
+        } else if (table === 'reminders') {
+            await supabaseClient.from('reminders').upsert(data.map(r => ({ ...r, user_id: USER_ID })));
+        } else if (table === 'manual_stats') {
+            const mData = Object.keys(data).map(s => ({ subject: s, total: data[s].total, attended: data[s].attended, user_id: USER_ID }));
             await supabaseClient.from('manual_stats').upsert(mData);
-        } catch (e) { console.error('Sync failed', e); }
+        }
+    } catch (e) {
+        console.error(`Sync failed for ${table}`, e);
     }
 }
 
@@ -312,7 +358,7 @@ async function saveReminder() {
     const date = document.getElementById('rem-date').value;
     if (!title || !date) return;
     reminders.push({ id: Date.now().toString(), title, date, completed: false, user_id: 'default_user' });
-    saveAndSync(); renderReminders(); closeReminderModal();
+    saveAndSync('reminders', reminders); renderReminders(); closeReminderModal();
 }
 
 function renderReminders() {
@@ -398,14 +444,14 @@ function renderPastReminders() {
 async function completeReminder(id) {
     const rem = reminders.find(r => r.id === id);
     if (rem) rem.completed = true;
-    saveAndSync();
+    saveAndSync('reminders', reminders);
     renderReminders();
     renderFullReminders();
 }
 
 async function deleteReminder(id) {
     reminders = reminders.filter(r => r.id !== id);
-    saveAndSync();
+    saveAndSync('reminders', reminders);
     renderReminders();
     renderFullReminders();
 }
@@ -443,7 +489,7 @@ function toggleHabit(id) {
     const today = new Date().toISOString().split('T')[0];
     const h = habits.find(x => x.id === id);
     if (h.completedDates.includes(today)) h.completedDates = h.completedDates.filter(d => d !== today); else h.completedDates.push(today);
-    saveAndSync(); renderHabits(); renderDashboard();
+    saveAndSync('rituals', habits); renderHabits(); renderDashboard();
 }
 
 function updateStats() {
@@ -470,7 +516,7 @@ async function saveHabit() {
     const name = document.getElementById('habit-name').value.trim(); if (!name) return;
     if (currentEditingHabitId) { const h = habits.find(x => x.id === currentEditingHabitId); h.name = name; h.goal = document.getElementById('habit-goal').value; }
     else { habits.push({ id: Date.now().toString(), name, goal: document.getElementById('habit-goal').value, completedDates: [], createdAt: new Date().toISOString() }); }
-    saveAndSync(); renderHabits(); renderDashboard(); closeModal();
+    saveAndSync('rituals', habits); renderHabits(); renderDashboard(); closeModal();
 }
 function openCalendarFor(id) { activeHabitForCalendar = habits.find(h => h.id === id); renderCalendar(); document.getElementById('calendar-modal').classList.remove('hidden'); }
 function closeCalendar() { document.getElementById('calendar-modal').classList.add('hidden'); }
@@ -485,7 +531,7 @@ function renderCalendar() {
         const el = document.createElement('div'); el.className = `calendar-day ${isSet ? 'completed' : ''}`;
         el.innerText = d; el.onclick = () => {
             if (isSet) activeHabitForCalendar.completedDates = activeHabitForCalendar.completedDates.filter(x => x !== dateStr); else activeHabitForCalendar.completedDates.push(dateStr);
-            saveAndSync(); renderCalendar(); renderHabits(); renderDashboard();
+            saveAndSync('rituals', habits); renderCalendar(); renderHabits(); renderDashboard();
         };
         grid.appendChild(el);
     }
