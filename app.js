@@ -669,8 +669,8 @@ function updateStats() {
         const statsBox = document.getElementById('today-stats');
         statsBox.innerHTML = `
             <div class="stats-text-row">
-                <span style="font-size: 1.3rem; font-weight: 800;">${done} / ${total}</span>
-                <span style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Done Today</span>
+                <span style="font-size: 1.2rem; font-weight: 800;">${done} / ${total}</span>
+                <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Done Today</span>
             </div>
             <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
         `;
