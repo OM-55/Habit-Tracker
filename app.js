@@ -927,40 +927,35 @@ function renderStocks() {
 }
 
 function renderStocksDashboard() {
-    const list = document.getElementById('dashboard-stocks');
-    const pnlHeader = document.getElementById('total-pnl');
+    const list = document.getElementById('stocks-summary');
     if (!list) return;
     list.innerHTML = '';
-
-    let totalInvested = 0;
-    let totalCurrent = 0;
-
-    stocks.slice(0, 3).forEach(s => {
-        const invested = s.buyPrice * s.quantity;
-        const current = (s.currentPrice || s.buyPrice) * s.quantity;
-        totalInvested += invested;
-        totalCurrent += current;
-
-        const profit = current - invested;
-        const isProfit = profit >= 0;
-
-        const row = document.createElement('div');
-        row.className = `stock-mini-row ${isProfit ? 'profit' : 'loss'}`;
-        row.innerHTML = `
-            <span class="name">${s.name.toUpperCase()}</span>
-            <span class="pnl">${isProfit ? '+' : '-'}${Math.abs(((profit/invested)*100)).toFixed(1)}%</span>
-        `;
-        list.appendChild(row);
-    });
-
-    if (pnlHeader && stocks.length > 0) {
-        const totalProfit = totalCurrent - totalInvested;
-        const totalPercent = totalInvested > 0 ? ((totalProfit / totalInvested) * 100).toFixed(1) : 0;
-        pnlHeader.innerText = `${totalProfit >= 0 ? '+' : ''}${totalPercent}%`;
-        pnlHeader.style.color = totalProfit >= 0 ? 'var(--success)' : '#ff5f56';
-    } else if (pnlHeader) {
-        pnlHeader.innerText = '--';
+    
+    if (stocks.length === 0) {
+        list.innerHTML = '<p class="empty-msg">No stocks added yet.</p>';
+        return;
     }
+
+    stocks.slice(0, 4).forEach(s => {
+        const cur = s.current_price || s.buy_price;
+        const profit = (cur - s.buy_price) * s.quantity;
+        const perc = ((profit / (s.buy_price * s.quantity)) * 100).toFixed(1);
+        
+        const div = document.createElement('div');
+        div.className = 'ritual-card-mini view-only';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.innerHTML = `
+            <div class="ritual-info">
+                <span class="ritual-name">${s.name.toUpperCase()}</span>
+                <span style="font-size:0.75rem; color:var(--text-dim);">₹${cur}</span>
+            </div>
+            <div class="${profit >= 0 ? 'success-text' : 'error-text'}" style="font-weight:700;">
+                ${profit >= 0 ? '+' : ''}${perc}%
+            </div>
+        `;
+        list.appendChild(div);
+    });
 }
 
 function openStockModal() {
