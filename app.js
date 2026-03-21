@@ -62,9 +62,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Auto-refresh stocks every 60s (v30.0)
-    setInterval(() => {
-        if (stocks.length > 0) fetchLivePrices();
+    // Auto-refresh stocks every 60s (v30.0/v32.0)
+    setInterval(async () => {
+        await fetchInitialData(); // Sync DB first
+        if (stocks.length > 0) fetchLivePrices(); // Then update prices
     }, 60000);
 });
 
