@@ -411,7 +411,7 @@ body {
 
 .ritual-card-mini .ritual-name {
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem !important;
 }
 
 .ritual-card-mini .ritual-streak {
@@ -426,25 +426,29 @@ body {
 }
 
 .scrollable-list { 
-    max-height: 280px; 
+    max-height: 240px; 
     overflow-y: auto; 
-    padding-right: 0.8rem;
+    padding-right: 0.4rem;
 }
 .scrollable-list.academy-list {
-    max-height: 180px;
+    max-height: 220px !important;
 }
 .scrollable-list::-webkit-scrollbar { width: 4px; }
 .scrollable-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-/* Academy Dashboard Minimal Cards Style */
+.academy-card-mini {
+    padding: 0.5rem 0.8rem !important;
+    margin-bottom: 6px !important;
+}
 .academy-card-mini .label {
-    font-size: 0.9rem;
+    font-size: 0.85rem !important;
     color: var(--text-white);
     font-weight: 500;
 }
 
 .academy-card-mini .val {
     font-weight: 700;
+    font-size: 0.9rem !important;
     color: var(--primary);
 }
 

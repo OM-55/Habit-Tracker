@@ -126,17 +126,13 @@ async function fetchInitialData() {
         }));
         
         console.log("Sync complete. Habits:", habits.length);
-    } catch (e) {
-        console.error("Critical Sync Failure:", e);
-    }
-}
-
+        
         renderHabits();
         renderAttendanceSummary();
-        renderReminders(); // Dashboard preview
+        renderReminders();
         renderDashboard();
     } catch (e) {
-        console.error('Fetch failed', e);
+        console.error("Critical Sync Failure:", e);
     }
 }
 
