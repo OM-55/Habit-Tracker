@@ -62,6 +62,14 @@ async function renameHabit(id, oldName) {
     }
 }
 
+// PWA Service Worker (v43.0)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// Initial Load
+window.addEventListener('load', fetchInitialData);
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Zero database sync dependencies on local storage
     await fetchInitialData();
@@ -263,7 +271,7 @@ function renderDashboard() {
             div.style.display = 'flex';
             div.style.justifyContent = 'space-between';
             div.style.alignItems = 'center';
-            div.style.marginBottom = '0.5rem'; // Reduced spacing
+            div.style.marginBottom = '0.5rem';
 
             div.innerHTML = `
                 <div class="ritual-info" style="margin-right: 15px;">
@@ -297,7 +305,10 @@ function renderDashboard() {
             `;
             aList.appendChild(div);
         });
-        
+        let totalC = 0; let totalA = 0;
+        baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
+        const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
+        const badge = document.getElementById('overall-attendance-badge');
         if (badge) badge.innerText = `${overall}% Overall`;
     }
 

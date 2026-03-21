@@ -10,7 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <meta name="theme-color" content="#0a0a0a">
+    <meta name="theme-color" content="#0b0b0b">
+    <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="https://cdn-icons-png-flaticon.com/512/3248/3248443.png">
 </head>
 <body>
@@ -44,6 +45,19 @@
                 </button>
                 <button id="nav-stocks" class="nav-item" onclick="switchView('stocks')">
                     <span class="icon">📈</span> Stocks
+                </button>
+                <div class="nav-divider"></div>
+                <button id="nav-money" class="nav-item" onclick="switchView('money')">
+                    <span class="icon">💰</span> Money Planner
+                </button>
+                <button id="nav-timeline" class="nav-item" onclick="switchView('timeline')">
+                    <span class="icon">📅</span> Daily Timeline
+                </button>
+                <button id="nav-goals" class="nav-item" onclick="switchView('goals')">
+                    <span class="icon">🎯</span> Goals
+                </button>
+                <button id="nav-analytics" class="nav-item" onclick="switchView('analytics')">
+                    <span class="icon">📊</span> Analytics
                 </button>
             </nav>
         </aside>

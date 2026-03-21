@@ -26,12 +26,16 @@
     max-width: 100%;
 }
 
-body {
-    background-color: var(--bg-dark);
-    color: var(--text-white);
+html, body {
+    margin: 0;
+    padding: 0;
     font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
+    color: var(--text-white);
+    background-color: var(--bg-dark);
     overflow-x: hidden;
+    overscroll-behavior: none; /* PWA Stop Bounce */
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -217,7 +221,7 @@ body {
     padding: 1.1rem;
     border-radius: var(--radius-md);
     text-align: left;
-    font-size: 1rem;
+    font-size: 1.0rem;
     font-weight: 500;
     cursor: pointer;
     display: flex !important;
@@ -564,6 +568,7 @@ input:checked + .toggle-slider:before {
     align-items: center; 
     justify-content: center; 
     transition: all 0.2s ease; 
+    margin-left: auto; /* Move to the right */
 }
 
 .habit-check:hover {
@@ -624,7 +629,7 @@ input:checked + .toggle-slider:before {
 
 .attendance-tracker-card {
     height: 100% !important;
-    min-height: 80vh !important; /* Expand vertically v42.0 */
+    min-height: 85vh !important; /* Full expansion v43.0 */
     overflow: hidden !important; 
     background: var(--card-bg);
     padding: 2.5rem !important; 
@@ -683,6 +688,24 @@ input:checked + .toggle-slider:before {
 .subject-name { font-weight: 600; font-size: 1.2rem; color: var(--text-white); }
 .subject-slot { font-size: 0.85rem; color: var(--text-dim); display: block; margin-top: 0.4rem; font-weight: 400; }
 
+.overview-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+}
+.main-stats h1 {
+    font-size: 3.5rem; /* Big % v43.0 */
+}
+.sub-stats {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
 .check-inputs {
     display: flex;
     gap: 2rem;
@@ -755,10 +778,10 @@ input:checked + .toggle-slider:before {
 /* Reminders Styling */
 .reminders-card { border-left: 4px solid var(--primary); }
 .summary-card {
-    min-height: 420px; /* Synchronized height v42.0 */
+    min-height: 400px; /* Hard Symmetry v43.0 */
     display: flex;
     flex-direction: column;
-    padding: 1.8rem;
+    padding: 2rem;
     background: var(--card-bg);
     border-radius: var(--radius-lg);
     border: 1px solid var(--glass-border);
