@@ -304,9 +304,9 @@ body {
 }
 
 .dashboard-card {
-    padding: 1.2rem 1.2rem 1rem 1.2rem !important;
-    min-height: 280px !important;
-    max-height: 340px !important;
+    padding: 1.2rem !important;
+    min-height: 240px !important;
+    max-height: 300px !important;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -837,17 +837,23 @@ input:checked + .toggle-slider:before {
 .delete-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.2rem; }
 #reminders-view {
     position: relative;
-    min-height: calc(100vh - 120px);
+    min-height: 75vh;
     display: flex;
     flex-direction: column;
 }
 
+#full-reminders-list {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
 .reminder-actions {
-    position: absolute;
-    bottom: 40px;
-    right: 40px;
+    position: relative !important;
+    margin-top: auto !important;
+    align-self: flex-end !important;
     display: flex;
     gap: 12px;
+    padding: 2rem 0;
     z-index: 10;
 }
 .reminder-item.completed { opacity: 0.6; }

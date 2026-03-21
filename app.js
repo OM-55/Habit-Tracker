@@ -582,19 +582,33 @@ async function toggleHabit(id) {
     const today = new Date().toISOString().split('T')[0];
     const h = habits.find(x => x.id === id);
     if (!h) return;
-    if (h.completedDates.includes(today)) h.completedDates = h.completedDates.filter(d => d !== today); else h.completedDates.push(today);
     
-    // Direct Upsert with ALL fields to prevent data loss (v23.0)
-    await supabaseClient.from('rituals').upsert([{ 
-        id: h.id, 
-        user_id: USER_ID, 
-        name: h.name,
-        goal: h.goal,
-        completed_dates: h.completedDates 
-    }]);
+    // Toggle state locally
+    if (h.completedDates.includes(today)) {
+        h.completedDates = h.completedDates.filter(d => d !== today);
+    } else {
+        h.completedDates.push(today);
+    }
     
-    await fetchInitialData();
-    renderHabits(); renderDashboard();
+    try {
+        const { error } = await supabaseClient.from('rituals').upsert([{ 
+            id: h.id, 
+            user_id: USER_ID, 
+            name: h.name, 
+            goal: h.goal, 
+            completed_dates: h.completedDates 
+        }]);
+        
+        if (error) throw error;
+        
+        console.log("Toggle synced successfully");
+        await fetchInitialData();
+        renderHabits();
+        renderDashboard();
+    } catch (err) {
+        console.error("Toggle sync failed:", err);
+        alert("Persistence Error: " + err.message);
+    }
 }
 
 function updateStats() {
@@ -618,27 +632,39 @@ function openModal(id = null) {
 }
 function closeModal() { document.getElementById('habit-modal').classList.add('hidden'); }
 async function saveHabit() {
-    const name = document.getElementById('habit-name').value.trim(); if (!name) return;
-    let h;
-    if (currentEditingHabitId) { 
-        h = habits.find(x => x.id === currentEditingHabitId); 
-        h.name = name; 
-        h.goal = document.getElementById('habit-goal').value; 
-    } else { 
-        h = { name, goal: document.getElementById('habit-goal').value, completedDates: [], user_id: USER_ID };
+    try {
+        const name = document.getElementById('habit-name').value.trim();
+        const goal = document.getElementById('habit-goal').value;
+        if (!name) return;
+        
+        let h;
+        if (currentEditingHabitId) { 
+            h = habits.find(x => x.id === currentEditingHabitId); 
+            h.name = name; 
+            h.goal = goal; 
+        } else { 
+            h = { name, goal, completedDates: [], user_id: USER_ID };
+        }
+
+        const { error } = await supabaseClient.from('rituals').upsert([{ 
+            id: h.id || undefined,
+            user_id: USER_ID, 
+            name: h.name, 
+            goal: h.goal, 
+            completed_dates: h.completedDates || [] 
+        }]);
+
+        if (error) throw error;
+
+        alert("Daily Ritual Saved Successfully! 💎");
+        await fetchInitialData();
+        renderHabits(); 
+        renderDashboard(); 
+        closeModal();
+    } catch (err) {
+        console.error("Save ritual failed:", err);
+        alert("Save failed: " + err.message);
     }
-
-    // Direct Upsert with ALL fields & Refetch (v23.0)
-    await supabaseClient.from('rituals').upsert([{ 
-        id: h.id || undefined,
-        user_id: USER_ID, 
-        name: h.name, 
-        goal: h.goal, 
-        completed_dates: h.completedDates || [] 
-    }]);
-
-    await fetchInitialData();
-    renderHabits(); renderDashboard(); closeModal();
 }
 function openCalendarFor(id) { activeHabitForCalendar = habits.find(h => h.id === id); renderCalendar(); document.getElementById('calendar-modal').classList.remove('hidden'); }
 function closeCalendar() { document.getElementById('calendar-modal').classList.add('hidden'); }
