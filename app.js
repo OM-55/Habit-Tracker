@@ -38,12 +38,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchInitialData();
     selectDay(selectedDay);
 
-    // Register Service Worker
+    // Temporarily disabled SW to ensure stable deployment and immediate UI updates
+    /*
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('SW Registered', reg))
             .catch(err => console.error('SW Failed', err));
     }
+    */
 });
 
 async function fetchInitialData() {
