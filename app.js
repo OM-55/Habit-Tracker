@@ -6,6 +6,10 @@ const USER_ID = 'default_user';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function generateId() {
+    return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
 const TIMETABLE = {
     "Monday": ["AP Lab", "AC Lab", "Workshop", "EG"],
     "Tuesday": ["Math", "Physics", "EG"],
@@ -296,7 +300,14 @@ async function saveAttendanceDay() {
             if (happened) {
                 const existing = attendance.find(a => a.date === today && a.subject === sub);
                 if (!existing) {
-                    attendance.push({ id: Date.now()+Math.random().toString(), date: today, subject: sub, classHappened: true, attended, user_id: USER_ID });
+                    attendance.push({ 
+                        id: generateId(), 
+                        date: today, 
+                        subject: sub, 
+                        classHappened: true, 
+                        attended, 
+                        user_id: USER_ID 
+                    });
                 } else {
                     existing.attended = attended;
                 }
@@ -435,7 +446,7 @@ async function saveReminder() {
     if (!title || !date) return;
     
     // Explicit Supabase Insert as requested
-    const newRem = { title, date, completed: false, user_id: USER_ID };
+    const newRem = { id: generateId(), title, date, completed: false, user_id: USER_ID };
     const { error } = await supabaseClient.from('reminders').insert([newRem]);
     
     if (error) {
@@ -643,7 +654,7 @@ async function saveHabit() {
             h.name = name; 
             h.goal = goal; 
         } else { 
-            h = { name, goal, completedDates: [], user_id: USER_ID };
+            h = { id: generateId(), name, goal, completedDates: [], user_id: USER_ID };
         }
 
         const { error } = await supabaseClient.from('rituals').upsert([{ 
