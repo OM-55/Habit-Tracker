@@ -119,7 +119,7 @@ async function fetchInitialData() {
         const { data: a, error: aErr } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
         const { data: m, error: mErr } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
         const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
-        const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*').eq('user_id', USER_ID);
+        const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*');
 
         if (hErr) console.error("Rituals fetch error:", hErr);
         if (aErr) console.error("Attendance fetch error:", aErr);
@@ -670,7 +670,7 @@ function updateStats() {
         statsBox.innerHTML = `
             <div class="stats-text-row">
                 <span style="font-size: 1.1rem; font-weight: 800;">${done} / ${total}</span>
-                <span style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;">Done Today</span>
+                <span style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 400; letter-spacing: 0.5px;">Done Today</span>
             </div>
             <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
         `;
@@ -764,42 +764,55 @@ async function fetchLivePrices() {
             });
         }
         
-        renderStocksView();
+        renderStocks();
         renderStocksDashboard();
     } catch (err) {
         console.error("Stock price fetch failed:", err);
     }
 }
 
-function renderStocksView() {
+function renderStocks() {
     const list = document.getElementById('stocks-list');
     if (!list) return;
     list.innerHTML = '';
-
+    
+    // Portfolio Overview Card (v39.0)
+    let totalInvested = 0; let totalCurrent = 0;
     stocks.forEach(s => {
-        const invested = s.buyPrice * s.quantity;
-        const current = (s.currentPrice || s.buyPrice) * s.quantity;
-        const profit = current - invested;
-        const percent = invested > 0 ? ((profit / invested) * 100).toFixed(2) : 0;
-        const isProfit = profit >= 0;
+        totalInvested += s.buyPrice * s.quantity;
+        totalCurrent += (s.currentPrice || s.buyPrice) * s.quantity;
+    });
+    const totalProfit = totalCurrent - totalInvested;
+    const totalPercent = totalInvested > 0 ? ((totalProfit / totalInvested) * 100).toFixed(2) : 0;
 
-        const card = document.createElement('div');
-        card.className = `stock-card ${isProfit ? 'profit' : 'loss'}`;
-        card.innerHTML = `
-            <div class="stock-card-header">
-                <span class="stock-symbol">${s.name.toUpperCase()}</span>
-                <div class="card-actions">
-                    <button class="delete-btn" onclick="deleteStock('${s.id}')">×</button>
-                </div>
+    const overview = document.createElement('div');
+    overview.className = 'portfolio-overview-card glass-card';
+    overview.innerHTML = `
+        <div class="overview-content">
+            <div class="main-stats">
+                <h1 class="${totalProfit >= 0 ? 'success-text' : 'error-text'}">${totalProfit >= 0 ? '+' : ''}${totalPercent}%</h1>
+                <p>Total Portfolio Yield</p>
             </div>
-            <div class="stock-price-info">
-                <div class="price-box">
-                    <span class="label">Avg Buy</span>
-                    <span class="val">₹${s.buyPrice.toLocaleString()}</span>
-                </div>
-                <div class="price-box">
-                    <span class="label">Current</span>
-                    <span class="val">₹${(s.currentPrice || 0).toLocaleString()}</span>
+            <div class="sub-stats">
+                <div class="stat-item"><span>Invested</span> <strong>₹${totalInvested.toLocaleString()}</strong></div>
+                <div class="stat-item"><span>Current</span> <strong>₹${totalCurrent.toLocaleString()}</strong></div>
+            </div>
+        </div>
+    `;
+    list.appendChild(overview);
+
+    const grid = document.createElement('div');
+    grid.className = 'stocks-grid';
+    list.appendChild(grid);
+
+    stocks.forEach(stock => {
+        const cur = stock.currentPrice || stock.buyPrice;
+        const profit = (cur - stock.buyPrice) * stock.quantity;
+        const pPerc = ((profit / (stock.buyPrice * stock.quantity)) * 100).toFixed(2);
+        const div = document.createElement('div');
+        div.className = `stock-card ${profit >= 0 ? 'profit' : 'loss'}`;
+        div.innerHTML = `
+            <div class="stock-card-header">
                 </div>
             </div>
             <div class="stock-pnl-box">
@@ -876,11 +889,10 @@ async function saveStock() {
     try {
         const { error } = await supabaseClient.from('stocks').insert([{
             id: generateId(),
-            user_id: USER_ID,
             name,
             buy_price: buyPrice,
             quantity
-        }]);
+        }]); // Removed user_id
 
         if (error) throw error;
 
