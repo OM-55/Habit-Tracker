@@ -599,6 +599,7 @@ input:checked + .toggle-slider:before {
 
 /* Attendance View Restoration (Ultimate v38.0) */
 #attendance-view {
+    padding-top: 2rem;
     height: calc(100vh - 120px);
     overflow: hidden !important; /* LOCK MAIN SCROLL */
 }
@@ -624,8 +625,9 @@ input:checked + .toggle-slider:before {
 .attendance-tracker-card {
     height: 100% !important;
     min-height: 0 !important;
-    overflow: hidden !important; /* CLASS TRACKER IS FIXED/UNSCROLLABLE */
+    overflow: hidden !important; 
     background: var(--card-bg);
+    padding: 2.5rem !important; /* Premium spacing */
 }
 
 @media (max-width: 1200px) {
@@ -744,6 +746,15 @@ input:checked + .toggle-slider:before {
 
 /* Reminders Styling */
 .reminders-card { border-left: 4px solid var(--primary); }
+.summary-card {
+    min-height: 480px; /* Match Academy Card Height v41.0 */
+    display: flex;
+    flex-direction: column;
+}
+.summary-list {
+    flex-grow: 1;
+    overflow-y: auto;
+}
 .reminder-item {
     display: flex;
     align-items: center;

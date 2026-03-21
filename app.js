@@ -44,6 +44,24 @@ let currentView = 'dashboard';
 let selectedDay = "";
 let editMode = false;
 
+async function renameHabit(id, oldName) {
+    const newName = prompt("Enter new ritual name:", oldName);
+    if (!newName || newName === oldName) return;
+    try {
+        const { error } = await supabaseClient
+            .from('rituals')
+            .update({ name: newName })
+            .eq('id', id);
+        if (error) throw error;
+        habits = habits.map(h => h.id === id ? { ...h, name: newName } : h);
+        renderHabits();
+        renderDashboard();
+    } catch (e) {
+        console.error("Rename failed:", e);
+        alert("Rename failed. Check Supabase.");
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Zero database sync dependencies on local storage
     await fetchInitialData();
@@ -130,9 +148,9 @@ async function fetchInitialData() {
         if (s) stocks = s.map(x => ({
             id: x.id,
             name: x.name,
-            buyPrice: parseFloat(x.buy_price),
+            buy_price: parseFloat(x.buy_price),
             quantity: parseFloat(x.quantity),
-            currentPrice: 0 // Set on live fetch
+            current_price: 0 // Set on live fetch
         }));
 
         if (h) habits = h.map(x => ({ 
@@ -636,10 +654,17 @@ function renderHabits() {
         const card = document.createElement('div'); 
         card.className = `habit-card glass-card ${isDone ? 'completed' : ''}`;
         card.innerHTML = `
-            <div class="habit-info">
-                <h4 onclick="openCalendarFor('${h.id}')">${h.name}</h4>
-                <p>${h.goal || ''}</p>
-                <div class="habit-streak">🔥 ${calculateStreak(h)}</div>
+            <div class="habit-card-header" style="gap: 15px;">
+                <div class="habit-info" onclick="renameHabit('${h.id}', '${h.name}')" style="cursor: pointer;">
+                    <h3 id="name-${h.id}">${h.name}</h3>
+                    <div class="habit-meta">
+                        <span class="habit-goal">${h.goal || ''}</span>
+                    </div>
+                    <div class="habit-streak">
+                        <span class="streak-icon">🔥</span>
+                        <span class="streak-val">${calculateStreak(h)} day streak</span>
+                    </div>
+                </div>
             </div>
             <div class="habit-actions">
                 <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
@@ -783,7 +808,7 @@ async function fetchLivePrices() {
                     stock.name.toUpperCase() === result.symbol.replace('.NS', '') || 
                     stock.name.toUpperCase() === result.symbol
                 );
-                if (s) s.currentPrice = result.regularMarketPrice;
+                if (s) s.current_price = result.regularMarketPrice;
             });
         }
         
@@ -799,11 +824,11 @@ function renderStocks() {
     if (!list) return;
     list.innerHTML = '';
     
-    // Portfolio Overview Card (v39.0)
+    // Portfolio Overview Card (v41.0)
     let totalInvested = 0; let totalCurrent = 0;
     stocks.forEach(s => {
-        totalInvested += s.buyPrice * s.quantity;
-        totalCurrent += (s.currentPrice || s.buyPrice) * s.quantity;
+        totalInvested += s.buy_price * s.quantity;
+        totalCurrent += (s.current_price || s.buy_price) * s.quantity;
     });
     const totalProfit = totalCurrent - totalInvested;
     const totalPercent = totalInvested > 0 ? ((totalProfit / totalInvested) * 100).toFixed(2) : 0;
@@ -829,24 +854,29 @@ function renderStocks() {
     list.appendChild(grid);
 
     stocks.forEach(stock => {
-        const cur = stock.currentPrice || stock.buyPrice;
-        const profit = (cur - stock.buyPrice) * stock.quantity;
-        const pPerc = ((profit / (stock.buyPrice * stock.quantity)) * 100).toFixed(2);
+        const cur = stock.current_price || stock.buy_price;
+        const profit = (cur - stock.buy_price) * stock.quantity;
+        const pPerc = ((profit / (stock.buy_price * stock.quantity)) * 100).toFixed(2);
         const div = document.createElement('div');
         div.className = `stock-card ${profit >= 0 ? 'profit' : 'loss'}`;
         div.innerHTML = `
             <div class="stock-card-header">
+                <div>
+                    <span class="symbol">${stock.name}</span>
+                    <span class="qty">${stock.quantity} Shares</span>
                 </div>
+                <button class="delete-btn" onclick="deleteStock('${stock.id}')">×</button>
             </div>
-            <div class="stock-pnl-box">
-                <div class="pnl-info">
-                    <span class="label" style="display:block; font-size:0.75rem; color:var(--text-dim);">Profit / Loss</span>
-                    <span class="pnl-val">${isProfit ? '+' : ''}₹${Math.abs(profit).toLocaleString()}</span>
-                </div>
-                <span class="pnl-pct">${isProfit ? '+' : ''}${percent}%</span>
+            <div class="stock-prices">
+                <div class="price-row"><span>Buy</span> <strong>₹${stock.buy_price}</strong></div>
+                <div class="price-row"><span>Market</span> <strong class="market-price">₹${cur}</strong></div>
+            </div>
+            <div class="stock-pnl-footer">
+                <span class="pnl-val">${profit >= 0 ? '+' : ''}₹${Math.abs(profit).toLocaleString()}</span>
+                <span class="pnl-perc">${pPerc}%</span>
             </div>
         `;
-        list.appendChild(card);
+        grid.appendChild(div);
     });
 }
 
