@@ -94,9 +94,11 @@
                     <h2>Daily Rituals</h2>
                     <button class="circular-plus" onclick="openModal()">+</button>
                 </div>
-                <div id="today-stats" class="stats-banner glass-card">
-                    <p><span id="completed-count">0</span> / <span id="total-count">0</span> Done Today</p>
-                    <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: 0%"></div></div>
+                <div class="stats-wrapper">
+                    <div id="today-stats" class="stats-banner glass-card compact-stats">
+                        <span id="completed-count">0</span> / <span id="total-count">0</span> Done Today
+                        <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: 0%"></div></div>
+                    </div>
                 </div>
                 <div id="habit-list" class="content-stack"></div>
             </section>

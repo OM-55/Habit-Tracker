@@ -608,7 +608,7 @@ function renderHabits() {
             <div class="habit-info">
                 <h4 onclick="openCalendarFor('${h.id}')">${h.name}</h4>
                 <p>${h.goal || ''}</p>
-                <div class="habit-streak">🔥 ${calculateStreak(h)} day streak</div>
+                <div class="habit-streak">🔥 ${calculateStreak(h)}</div>
             </div>
             <div class="habit-actions">
                 <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
