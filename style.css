@@ -299,16 +299,27 @@ body {
 .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr) !important; 
-    gap: 2rem; 
+    gap: 12px !important; 
     width: 100%;
     align-items: stretch;
 }
 
 .dashboard-card {
+    padding: 12px !important;
+    min-height: 120px !important;
+    max-height: 140px !important;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    max-height: 400px; /* Limit height roughly to 5-6 items + title */
-    overflow: hidden;
+}
+
+.dashboard-card h3 {
+    font-size: 1.2rem !important;
+    margin-bottom: 8px !important;
+}
+
+.dashboard-card .preview-list p, .dashboard-card .ritual-streak {
+    font-size: 0.85rem !important;
 }
 
 .preview-list {
