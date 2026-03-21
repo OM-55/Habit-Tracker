@@ -82,12 +82,35 @@
                 </div>
 
                 <!-- Stocks Summary (v30.0) -->
-                <div class="dashboard-card" onclick="switchView('stocks')">
+                <div class="summary-card glass-card">
                     <div class="card-header">
                         <h3>Stock Market</h3>
-                        <span class="total-pnl" id="total-pnl">Fetching...</span>
                     </div>
-                    <div id="dashboard-stocks" class="scrollable-list"></div>
+                    <div id="stocks-summary" class="summary-list"></div>
+                    <div class="card-footer">
+                        <button class="text-link" onclick="switchView('stocks')">View Tracker →</button>
+                    </div>
+                </div>
+
+                <!-- NEW MODULES (v42.0) -->
+                <div class="summary-card glass-card">
+                    <div class="card-header"><h3>Money Planner</h3></div>
+                    <div class="summary-list empty-module"></div>
+                </div>
+
+                <div class="summary-card glass-card">
+                    <div class="card-header"><h3>Daily Timeline</h3></div>
+                    <div class="summary-list empty-module"></div>
+                </div>
+
+                <div class="summary-card glass-card">
+                    <div class="card-header"><h3>Goals</h3></div>
+                    <div class="summary-list empty-module"></div>
+                </div>
+
+                <div class="summary-card glass-card">
+                    <div class="card-header"><h3>Graph / Analytics</h3></div>
+                    <div class="summary-list empty-module"></div>
                 </div>
             </section>
 

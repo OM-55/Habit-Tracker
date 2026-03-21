@@ -257,15 +257,20 @@ function renderDashboard() {
         
         sortedHabits.forEach(h => {
             const isDone = h.completedDates.includes(today);
+            const streak = calculateStreak(h);
             const div = document.createElement('div');
-            // Premium View-Only Card
             div.className = `ritual-card-mini ${isDone ? 'completed' : ''} view-only`;
+            div.style.display = 'flex';
+            div.style.justifyContent = 'space-between';
+            div.style.alignItems = 'center';
+            div.style.marginBottom = '0.5rem'; // Reduced spacing
+
             div.innerHTML = `
-                <div class="ritual-info">
-                    <span class="ritual-name">${h.name}</span>
-                    <span class="ritual-streak">🔥 ${calculateStreak(h)} day streak</span>
+                <div class="ritual-info" style="margin-right: 15px;">
+                    <span class="ritual-name" style="display:block; margin-bottom: 2px;">${h.name}</span>
+                    <span class="ritual-streak" style="font-size: 0.75rem; color: var(--text-dim);">🔥 ${streak}</span>
                 </div>
-                <div class="status-indicator ${isDone ? 'done' : ''}">
+                <div class="status-indicator ${isDone ? 'done' : ''}" style="margin-left: auto;">
                     ${isDone ? '✓' : '—'}
                 </div>
             `;
@@ -293,12 +298,42 @@ function renderDashboard() {
             aList.appendChild(div);
         });
         
-        let totalC = 0; let totalA = 0;
-        baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
-        const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
-        const badge = document.getElementById('overall-attendance-badge');
         if (badge) badge.innerText = `${overall}% Overall`;
     }
+
+    renderStocksDashboard();
+}
+
+function renderStocksDashboard() {
+    const list = document.getElementById('stocks-summary');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    if (stocks.length === 0) {
+        list.innerHTML = '<p class="empty-msg">No stocks added yet.</p>';
+        return;
+    }
+
+    stocks.slice(0, 4).forEach(s => {
+        const cur = s.current_price || s.buy_price;
+        const profit = (cur - s.buy_price) * s.quantity;
+        const perc = ((profit / (s.buy_price * s.quantity)) * 100).toFixed(1);
+        
+        const div = document.createElement('div');
+        div.className = 'ritual-card-mini view-only';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.innerHTML = `
+            <div class="ritual-info">
+                <span class="ritual-name">${s.name.toUpperCase()}</span>
+                <span style="font-size:0.7rem; color:var(--text-dim);">₹${cur}</span>
+            </div>
+            <div class="${profit >= 0 ? 'success-text' : 'error-text'}" style="font-weight:700;">
+                ${profit >= 0 ? '+' : ''}${perc}%
+            </div>
+        `;
+        list.appendChild(div);
+    });
 }
 
 function getSubjectStats(sub) {

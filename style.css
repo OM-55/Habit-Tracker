@@ -624,10 +624,18 @@ input:checked + .toggle-slider:before {
 
 .attendance-tracker-card {
     height: 100% !important;
-    min-height: 0 !important;
+    min-height: 80vh !important; /* Expand vertically v42.0 */
     overflow: hidden !important; 
     background: var(--card-bg);
-    padding: 2.5rem !important; /* Premium spacing */
+    padding: 2.5rem !important; 
+    display: flex;
+    flex-direction: column;
+}
+
+#attendance-summary {
+    max-height: none !important; /* Show more without scroll v42.0 */
+    overflow-y: visible !important;
+    padding-right: 0;
 }
 
 @media (max-width: 1200px) {
@@ -747,14 +755,23 @@ input:checked + .toggle-slider:before {
 /* Reminders Styling */
 .reminders-card { border-left: 4px solid var(--primary); }
 .summary-card {
-    min-height: 480px; /* Match Academy Card Height v41.0 */
+    min-height: 420px; /* Synchronized height v42.0 */
     display: flex;
     flex-direction: column;
+    padding: 1.8rem;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
 }
+
 .summary-list {
     flex-grow: 1;
     overflow-y: auto;
+    padding-right: 0.5rem;
 }
+
+.summary-list::-webkit-scrollbar { width: 4px; }
+.summary-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 .reminder-item {
     display: flex;
     align-items: center;
@@ -1072,6 +1089,34 @@ input:checked + .toggle-slider:before {
     .view .header-top, .view .section-header {
         display: none !important;
     }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.modal.visible { display: flex; }
+
+.modal-content {
+    width: 100%;
+    max-width: 450px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: modalSlide 0.3s ease-out;
 }
 
 /* Ritual UI Refinements (v31.0) */
