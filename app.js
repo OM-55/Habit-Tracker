@@ -26,9 +26,8 @@ let currentView = 'dashboard';
 let selectedDay = "";
 let editMode = false;
 
-// Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-    // Zero localStorage dependency
+    // Zero database sync dependencies on local storage
     await fetchInitialData();
     
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -275,7 +274,7 @@ async function saveAttendanceDay() {
             if (happened) {
                 const existing = attendance.find(a => a.date === today && a.subject === sub);
                 if (!existing) {
-                    attendance.push({ id: Date.now()+Math.random().toString(), date: today, subject: sub, classHappened: true, attended, user_id: 'default_user' });
+                    attendance.push({ id: Date.now()+Math.random().toString(), date: today, subject: sub, classHappened: true, attended, user_id: USER_ID });
                 } else {
                     existing.attended = attended;
                 }
@@ -393,8 +392,18 @@ async function saveReminder() {
     const title = document.getElementById('rem-title').value.trim();
     const date = document.getElementById('rem-date').value;
     if (!title || !date) return;
-    reminders.push({ id: Date.now().toString(), title, date, completed: false, user_id: 'default_user' });
-    saveAndSync('reminders', reminders); renderReminders(); closeReminderModal();
+    
+    // Explicit Supabase Insert as requested
+    const newRem = { id: Date.now().toString(), title, date, completed: false, user_id: USER_ID };
+    const { error } = await supabaseClient.from('reminders').insert([newRem]);
+    
+    if (error) {
+        console.error("Insert error:", error);
+    } else {
+        console.log("Reminder inserted successfully");
+        await fetchInitialData(); // Immediate re-fetch for rock-solid sync
+        closeReminderModal();
+    }
 }
 
 function renderReminders() {
