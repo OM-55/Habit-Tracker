@@ -362,11 +362,30 @@ async function saveAndSync(table, data) {
     try {
         let res;
         if (table === 'rituals') {
-            res = await supabaseClient.from('rituals').upsert(data.map(h => ({ ...h, user_id: USER_ID })));
+            res = await supabaseClient.from('rituals').upsert(data.map(h => ({ 
+                id: h.id,
+                user_id: USER_ID, 
+                name: h.name, 
+                goal: h.goal, 
+                completed_dates: h.completedDates || [] 
+            })));
         } else if (table === 'attendance') {
-            res = await supabaseClient.from('attendance').upsert(data.map(a => ({ ...a, user_id: USER_ID })));
+            res = await supabaseClient.from('attendance').upsert(data.map(a => ({ 
+                id: a.id,
+                user_id: USER_ID, 
+                date: a.date, 
+                subject: a.subject, 
+                class_happened: a.classHappened || false, 
+                attended: a.attended || false 
+            })));
         } else if (table === 'reminders') {
-            res = await supabaseClient.from('reminders').upsert(data.map(r => ({ ...r, user_id: USER_ID })));
+            res = await supabaseClient.from('reminders').upsert(data.map(r => ({ 
+                id: r.id,
+                user_id: USER_ID, 
+                title: r.title, 
+                date: r.date, 
+                completed: r.completed || false 
+            })));
         } else if (table === 'manual_stats') {
             const mData = Object.keys(data).map(s => ({ subject: s, total: data[s].total, attended: data[s].attended, user_id: USER_ID }));
             res = await supabaseClient.from('manual_stats').upsert(mData);
