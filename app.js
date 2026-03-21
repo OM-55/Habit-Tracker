@@ -9,7 +9,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const TIMETABLE = {
     "Monday": ["AP Lab", "AC Lab", "Workshop", "EG"],
     "Tuesday": ["Math", "Physics", "EG"],
-    "Wednesday": ["Math", "Chemistry", "DSA 1", "DSA 2", "DSA 3", "DSA 4"],
+    "Wednesday": ["Math", "Chemistry", "DSA 1", "DSA 2"], // DSA 3, 4 removed for v25.0
     "Thursday": ["ACAD", "IKS Lecture"],
     "Friday": ["IKS Practical", "Python 1", "Python 2"]
 };
@@ -90,13 +90,16 @@ function navigate(view) {
 
 async function fetchInitialData() {
     try {
-        const { data: h } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
-        const { data: a } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
-        const { data: m } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
-        const { data: r } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
+        console.log("Syncing with Supabase (v25.0)...");
+        const { data: h, error: hErr } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
+        const { data: a, error: aErr } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
+        const { data: m, error: mErr } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
+        const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
 
-        console.log("Fetched rituals:", h);
-        console.log("Fetched reminders:", r);
+        if (hErr) console.error("Rituals fetch error:", hErr);
+        if (aErr) console.error("Attendance fetch error:", aErr);
+        if (mErr) console.error("ManualStats fetch error:", mErr);
+        if (rErr) console.error("Reminders fetch error:", rErr);
 
         if (h) habits = h.map(x => ({ 
             id: x.id, 
@@ -121,6 +124,12 @@ async function fetchInitialData() {
             date: x.date, 
             completed: x.completed || false 
         }));
+        
+        console.log("Sync complete. Habits:", habits.length);
+    } catch (e) {
+        console.error("Critical Sync Failure:", e);
+    }
+}
 
         renderHabits();
         renderAttendanceSummary();
