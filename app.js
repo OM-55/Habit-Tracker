@@ -33,8 +33,10 @@ const TIMETABLE = {
 let habits = [];
 let attendance = [];
 let reminders = [];
+let stocks = []; // v30.0
 let manualStats = {};
 let currentEditingHabitId = null;
+let currentEditingStockId = null; // v30.0
 let calendarMonth = new Date().getMonth();
 let calendarYear = new Date().getFullYear();
 let activeHabitForCalendar = null;
@@ -59,6 +61,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             regs.forEach(r => r.unregister());
         });
     }
+
+    // Auto-refresh stocks every 60s (v30.0)
+    setInterval(() => {
+        if (stocks.length > 0) fetchLivePrices();
+    }, 60000);
 });
 
 // --- Navigation & Drawer ---
@@ -80,7 +87,8 @@ function navigate(view) {
         'dashboard': 'Dashboard',
         'habits': 'Daily Rituals',
         'attendance': 'Academy Tracker',
-        'reminders': 'Reminders'
+        'reminders': 'Reminders',
+        'stocks': 'Stock Tracker'
     };
     document.getElementById('page-title').innerText = titles[view] || 'Stellar';
 
@@ -110,11 +118,21 @@ async function fetchInitialData() {
         const { data: a, error: aErr } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
         const { data: m, error: mErr } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
         const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
+        const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*').eq('user_id', USER_ID);
 
         if (hErr) console.error("Rituals fetch error:", hErr);
         if (aErr) console.error("Attendance fetch error:", aErr);
         if (mErr) console.error("ManualStats fetch error:", mErr);
         if (rErr) console.error("Reminders fetch error:", rErr);
+        if (sErr) console.error("Stocks fetch error:", sErr);
+
+        if (s) stocks = s.map(x => ({
+            id: x.id,
+            name: x.name,
+            buyPrice: parseFloat(x.buy_price),
+            quantity: parseFloat(x.quantity),
+            currentPrice: 0 // Set on live fetch
+        }));
 
         if (h) habits = h.map(x => ({ 
             id: x.id, 
@@ -146,6 +164,9 @@ async function fetchInitialData() {
         renderAttendanceSummary();
         renderReminders();
         renderDashboard();
+        
+        // Initial Price Fetch
+        if (stocks.length > 0) fetchLivePrices();
     } catch (e) {
         console.error("Critical Sync Failure:", e);
     }
@@ -708,3 +729,165 @@ function renderCalendar() {
 }
 function prevMonth() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderCalendar(); }
 function nextMonth() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } renderCalendar(); }
+
+// --- Stock Tracker (v30.0) ---
+async function fetchLivePrices() {
+    try {
+        const symbols = stocks.map(s => s.name.toUpperCase().endsWith('.NS') ? s.name.toUpperCase() : `${s.name.toUpperCase()}.NS`).join(',');
+        if (!symbols) return;
+
+        // Note: query1.finance.yahoo.com might require a proxy in some environments, 
+        // but using directly as requested by USER.
+        const response = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}`);
+        const json = await response.json();
+        
+        if (json.quoteResponse && json.quoteResponse.result) {
+            json.quoteResponse.result.forEach(result => {
+                const s = stocks.find(stock => 
+                    stock.name.toUpperCase() === result.symbol.replace('.NS', '') || 
+                    stock.name.toUpperCase() === result.symbol
+                );
+                if (s) s.currentPrice = result.regularMarketPrice;
+            });
+        }
+        
+        renderStocksView();
+        renderStocksDashboard();
+    } catch (err) {
+        console.error("Stock price fetch failed:", err);
+    }
+}
+
+function renderStocksView() {
+    const list = document.getElementById('stocks-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    stocks.forEach(s => {
+        const invested = s.buyPrice * s.quantity;
+        const current = (s.currentPrice || s.buyPrice) * s.quantity;
+        const profit = current - invested;
+        const percent = invested > 0 ? ((profit / invested) * 100).toFixed(2) : 0;
+        const isProfit = profit >= 0;
+
+        const card = document.createElement('div');
+        card.className = `stock-card ${isProfit ? 'profit' : 'loss'}`;
+        card.innerHTML = `
+            <div class="stock-card-header">
+                <span class="stock-symbol">${s.name.toUpperCase()}</span>
+                <div class="card-actions">
+                    <button class="delete-btn" onclick="deleteStock('${s.id}')">×</button>
+                </div>
+            </div>
+            <div class="stock-price-info">
+                <div class="price-box">
+                    <span class="label">Avg Buy</span>
+                    <span class="val">₹${s.buyPrice.toLocaleString()}</span>
+                </div>
+                <div class="price-box">
+                    <span class="label">Current</span>
+                    <span class="val">₹${(s.currentPrice || 0).toLocaleString()}</span>
+                </div>
+            </div>
+            <div class="stock-pnl-box">
+                <div class="pnl-info">
+                    <span class="label" style="display:block; font-size:0.75rem; color:var(--text-dim);">Profit / Loss</span>
+                    <span class="pnl-val">${isProfit ? '+' : ''}₹${Math.abs(profit).toLocaleString()}</span>
+                </div>
+                <span class="pnl-pct">${isProfit ? '+' : ''}${percent}%</span>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function renderStocksDashboard() {
+    const list = document.getElementById('dashboard-stocks');
+    const pnlHeader = document.getElementById('total-pnl');
+    if (!list) return;
+    list.innerHTML = '';
+
+    let totalInvested = 0;
+    let totalCurrent = 0;
+
+    stocks.slice(0, 3).forEach(s => {
+        const invested = s.buyPrice * s.quantity;
+        const current = (s.currentPrice || s.buyPrice) * s.quantity;
+        totalInvested += invested;
+        totalCurrent += current;
+
+        const profit = current - invested;
+        const isProfit = profit >= 0;
+
+        const row = document.createElement('div');
+        row.className = `stock-mini-row ${isProfit ? 'profit' : 'loss'}`;
+        row.innerHTML = `
+            <span class="name">${s.name.toUpperCase()}</span>
+            <span class="pnl">${isProfit ? '+' : '-'}${Math.abs(((profit/invested)*100)).toFixed(1)}%</span>
+        `;
+        list.appendChild(row);
+    });
+
+    if (pnlHeader && stocks.length > 0) {
+        const totalProfit = totalCurrent - totalInvested;
+        const totalPercent = totalInvested > 0 ? ((totalProfit / totalInvested) * 100).toFixed(1) : 0;
+        pnlHeader.innerText = `${totalProfit >= 0 ? '+' : ''}${totalPercent}%`;
+        pnlHeader.style.color = totalProfit >= 0 ? 'var(--success)' : '#ff5f56';
+    }
+}
+
+function openStockModal() {
+    document.getElementById('stock-modal-title').innerText = "Add New Stock";
+    document.getElementById('stock-name').value = '';
+    document.getElementById('stock-buy-price').value = '';
+    document.getElementById('stock-quantity').value = '';
+    document.getElementById('stock-modal').classList.remove('hidden');
+}
+
+function closeStockModal() {
+    document.getElementById('stock-modal').classList.add('hidden');
+}
+
+async function saveStock() {
+    const name = document.getElementById('stock-name').value.trim().toUpperCase();
+    const buyPrice = parseFloat(document.getElementById('stock-buy-price').value);
+    const quantity = parseFloat(document.getElementById('stock-quantity').value);
+
+    if (!name || isNaN(buyPrice) || isNaN(quantity)) {
+        alert("Please fill all fields correctly");
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient.from('stocks').insert([{
+            id: generateId(),
+            user_id: USER_ID,
+            name,
+            buy_price: buyPrice,
+            quantity
+        }]);
+
+        if (error) throw error;
+
+        alert("Stock added successfully! 💎");
+        closeStockModal();
+        await fetchInitialData();
+        fetchLivePrices();
+    } catch (err) {
+        console.error("Save stock failed:", err);
+        alert("Error: " + err.message);
+    }
+}
+
+async function deleteStock(id) {
+    if (!confirm("Remove this stock from portfolio?")) return;
+    try {
+        const { error } = await supabaseClient.from('stocks').delete().eq('id', id);
+        if (error) throw error;
+        await fetchInitialData();
+        renderStocksView();
+        renderStocksDashboard();
+    } catch (err) {
+        console.error("Delete stock failed:", err);
+    }
+}
