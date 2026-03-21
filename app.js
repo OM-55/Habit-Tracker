@@ -573,11 +573,20 @@ function renderHabits() {
     updateStats();
 }
 
-function toggleHabit(id) {
+async function toggleHabit(id) {
     const today = new Date().toISOString().split('T')[0];
     const h = habits.find(x => x.id === id);
     if (h.completedDates.includes(today)) h.completedDates = h.completedDates.filter(d => d !== today); else h.completedDates.push(today);
-    saveAndSync('rituals', habits); renderHabits(); renderDashboard();
+    
+    // Direct Upsert & Refetch to guarantee persistence
+    await supabaseClient.from('rituals').upsert([{ 
+        id: h.id, 
+        user_id: USER_ID, 
+        completed_dates: h.completedDates 
+    }]);
+    
+    await fetchInitialData();
+    renderHabits(); renderDashboard();
 }
 
 function updateStats() {
@@ -602,14 +611,25 @@ function openModal(id = null) {
 function closeModal() { document.getElementById('habit-modal').classList.add('hidden'); }
 async function saveHabit() {
     const name = document.getElementById('habit-name').value.trim(); if (!name) return;
+    let h;
     if (currentEditingHabitId) { 
-        const h = habits.find(x => x.id === currentEditingHabitId); 
+        h = habits.find(x => x.id === currentEditingHabitId); 
         h.name = name; 
         h.goal = document.getElementById('habit-goal').value; 
     } else { 
-        habits.push({ name, goal: document.getElementById('habit-goal').value, completedDates: [] }); 
+        h = { name, goal: document.getElementById('habit-goal').value, completedDates: [], user_id: USER_ID };
     }
-    await saveAndSync('rituals', habits); 
+
+    // Direct Upsert & Refetch
+    await supabaseClient.from('rituals').upsert([{ 
+        id: h.id || undefined,
+        user_id: USER_ID, 
+        name: h.name, 
+        goal: h.goal, 
+        completed_dates: h.completedDates || [] 
+    }]);
+
+    await fetchInitialData();
     renderHabits(); renderDashboard(); closeModal();
 }
 function openCalendarFor(id) { activeHabitForCalendar = habits.find(h => h.id === id); renderCalendar(); document.getElementById('calendar-modal').classList.remove('hidden'); }
