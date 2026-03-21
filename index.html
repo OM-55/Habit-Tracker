@@ -39,9 +39,12 @@
                 <button class="nav-item" onclick="navigate('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
-                <button class="nav-item" onclick="navigate('reminders')">
-                    <span class="icon">🔔</span> Reminders
-                </button>
+                <button class="nav-item" id="nav-reminders" onclick="switchView('reminders')">
+                <span class="nav-icon">🔔</span> Reminders
+            </button>
+            <button class="nav-item" id="nav-stocks" onclick="switchView('stocks')">
+                <span class="nav-icon">📈</span> Stocks
+            </button>
             </nav>
         </aside>
 
@@ -67,11 +70,21 @@
                         <button class="text-link" onclick="navigate('attendance')">Open tracker →</button>
                     </div>
 
-                    <div class="dashboard-card glass-card reminders-card">
-                        <div class="card-header"><h3>Reminders</h3></div>
-                        <div id="reminders-list" class="preview-list"></div>
-                        <button class="text-link" onclick="navigate('reminders')">Open list →</button>
+                    <!-- Reminders Summary -->
+                <div class="dashboard-card" onclick="switchView('reminders')">
+                    <div class="card-header">
+                        <h3>Upcoming Reminders</h3>
                     </div>
+                    <div id="dashboard-reminders" class="scrollable-list"></div>
+                </div>
+
+                <!-- Stocks Summary (v30.0) -->
+                <div class="dashboard-card" onclick="switchView('stocks')">
+                    <div class="card-header">
+                        <h3>Stock Market</h3>
+                        <span class="total-pnl" id="total-pnl">Fetching...</span>
+                    </div>
+                    <div id="dashboard-stocks" class="scrollable-list"></div>
                 </div>
             </section>
 
@@ -134,7 +147,17 @@
                     </div>
                 </div>
             </section>
-        </main>
+            <!-- Stocks View (v30.0) -->
+        <section id="stocks-view" class="view hidden">
+            <div class="section-header">
+                <div class="header-left">
+                    <h2 class="section-title">Stock Tracker</h2>
+                    <p class="subtitle">Live Portfolio Performance</p>
+                </div>
+                <button class="add-btn" onclick="openStockModal()">+ Add Stock</button>
+            </div>
+            <div id="stocks-list" class="stocks-grid"></div>
+        </section>
     </div>
 
     <!-- Modals (Habit) -->
@@ -181,5 +204,26 @@
     </div>
 
     <script src="app.js"></script>
-</body>
+    <!-- Stock Modal (v30.0) -->
+    <div id="stock-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="stock-modal-title">Add New Stock</h3>
+            <div class="form-group">
+                <label>Stock Symbol (e.g. TCS, INFY)</label>
+                <input type="text" id="stock-name" placeholder="Enter NSE Symbol">
+            </div>
+            <div class="form-group">
+                <label>Average Buy Price (₹)</label>
+                <input type="number" id="stock-buy-price" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="stock-quantity" placeholder="0">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeStockModal()">Cancel</button>
+                <button class="btn-save" onclick="saveStock()">Save</button>
+            </div>
+        </div>
+    </div>
 </html>
