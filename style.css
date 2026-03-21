@@ -160,8 +160,8 @@ body {
     border-right: 1px solid var(--glass-border);
     z-index: 100;
     padding: 2.5rem 1.2rem;
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .sidebar-header {
@@ -206,10 +206,12 @@ body {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    display: flex;
+    display: flex !important;
+    flex-direction: row !important;
     align-items: center;
     gap: 1.2rem;
     transition: var(--transition);
+    width: 100%; /* Ensure full width in column */
 }
 
 .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: white; }
@@ -285,8 +287,24 @@ body {
     grid-template-columns: repeat(3, 1fr); 
     gap: 2rem; 
     width: 100%;
-    margin-bottom: 2rem;
+    align-items: start;
 }
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    max-height: 400px; /* Limit height roughly to 5-6 items + title */
+    overflow: hidden;
+}
+
+.preview-list {
+    overflow-y: auto;
+    max-height: 280px; /* Scroll after ~5 items */
+    padding-right: 5px;
+}
+
+.preview-list::-webkit-scrollbar { width: 4px; }
+.preview-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
 @media (max-width: 1200px) {
     .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
@@ -341,6 +359,7 @@ body {
 
 .ritual-card-mini.view-only {
     cursor: default;
+    pointer-events: none; /* Strictly for showing */
 }
 .ritual-card-mini.view-only:hover {
     transform: none;
@@ -530,7 +549,20 @@ input:checked + .toggle-slider:before {
     border-radius: 100px;
 }
 
-/* Attendance Controls */
+/* Attendance View Restoration (2-Column Desktop) */
+#attendance-view .content-stack {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    #attendance-view .content-stack {
+        display: flex;
+        flex-direction: column;
+    }
+}
 .controls-group { display: flex; align-items: center; gap: 2rem; }
 .day-selector-container { margin-top: 2.5rem; }
 .day-selector { display: flex; gap: 0.8rem; }

@@ -158,8 +158,8 @@ function renderDashboard() {
                     <span class="ritual-name">${h.name}</span>
                     <span class="ritual-streak">🔥 ${calculateStreak(h)} day streak</span>
                 </div>
-                <div class="habit-check ${isDone ? 'done' : ''}">
-                    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                <div class="status-indicator ${isDone ? 'done' : ''}">
+                    ${isDone ? '✓' : '—'}
                 </div>
             `;
             hList.appendChild(div);
