@@ -94,11 +94,13 @@
                     <div class="attendance-tracker-card glass-card">
                         <div class="header-top">
                             <h2>Class Tracker</h2>
-                            <label class="toggle-control">
+                            <div class="toggle-control">
                                 <span class="toggle-label">Edit</span>
-                                <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
-                                <span class="toggle-slider"></span>
-                            </label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
                         </div>
                         <div class="day-selector">
                             <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">M</button>

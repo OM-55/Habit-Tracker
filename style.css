@@ -444,12 +444,17 @@ body {
 }
 
 .toggle-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.toggle-switch {
     position: relative;
     display: inline-block;
-    width: 52px;
-    height: 28px;
+    width: 48px;
+    height: 24px;
     flex-shrink: 0;
-    cursor: pointer;
 }
 
 .toggle-control input {
@@ -470,14 +475,13 @@ body {
 .toggle-slider:before {
     position: absolute;
     content: "";
-    height: 20px;
-    width: 20px;
+    height: 16px;
+    width: 16px;
     left: 4px;
     top: 50%;
     transform: translateY(-50%);
     background-color: white;
     border-radius: 50%;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 input:checked + .toggle-slider { 
