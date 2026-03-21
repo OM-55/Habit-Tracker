@@ -458,6 +458,7 @@ body {
     font-weight: 500;
 }
 
+/* Legacy support for toggle labeling */
 .toggle-control {
     display: flex;
     align-items: center;
@@ -509,9 +510,10 @@ input:checked + .toggle-slider:before {
     transform: translateY(-50%) translateX(22px); 
 }
 
-/* Clear states */
-.toggle-control input:not(:checked) + .toggle-slider { opacity: 0.5; }
-.toggle-control input:checked + .toggle-slider { opacity: 1; }
+/* Slider visibility and states */
+.toggle-switch input:not(:checked) + .toggle-slider { opacity: 0.5; }
+.toggle-switch input:checked + .toggle-slider { opacity: 1; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
 
 .attendance-item .label { font-weight: 500; font-size: 1.1rem; }
 .attendance-toggles { display: flex; gap: 1.5rem; align-items: center; }
