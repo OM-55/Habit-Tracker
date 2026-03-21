@@ -492,7 +492,7 @@ async function saveReminder() {
 }
 
 function renderReminders() {
-    const list = document.getElementById('reminders-list');
+    const list = document.getElementById('dashboard-reminders') || document.getElementById('reminders-list');
     if (!list) return;
     list.innerHTML = '';
     
@@ -659,9 +659,12 @@ function updateStats() {
     const total = habits.length; const today = new Date().toISOString().split('T')[0];
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     if (document.getElementById('completed-count')) {
-        document.getElementById('completed-count').innerText = done;
-        document.getElementById('total-count').innerText = total;
-        document.getElementById('daily-progress').style.width = `${total > 0 ? (done / total) * 100 : 0}%`;
+        const statsBox = document.getElementById('today-stats');
+        statsBox.innerHTML = `
+            <span style="font-size: 1.4rem">${done} / ${total}</span>
+            <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase">Done Today</span>
+            <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
+        `;
     }
 }
 
@@ -834,6 +837,8 @@ function renderStocksDashboard() {
         const totalPercent = totalInvested > 0 ? ((totalProfit / totalInvested) * 100).toFixed(1) : 0;
         pnlHeader.innerText = `${totalProfit >= 0 ? '+' : ''}${totalPercent}%`;
         pnlHeader.style.color = totalProfit >= 0 ? 'var(--success)' : '#ff5f56';
+    } else if (pnlHeader) {
+        pnlHeader.innerText = '--';
     }
 }
 
