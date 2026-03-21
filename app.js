@@ -576,12 +576,15 @@ function renderHabits() {
 async function toggleHabit(id) {
     const today = new Date().toISOString().split('T')[0];
     const h = habits.find(x => x.id === id);
+    if (!h) return;
     if (h.completedDates.includes(today)) h.completedDates = h.completedDates.filter(d => d !== today); else h.completedDates.push(today);
     
-    // Direct Upsert & Refetch to guarantee persistence
+    // Direct Upsert with ALL fields to prevent data loss (v23.0)
     await supabaseClient.from('rituals').upsert([{ 
         id: h.id, 
         user_id: USER_ID, 
+        name: h.name,
+        goal: h.goal,
         completed_dates: h.completedDates 
     }]);
     
@@ -620,7 +623,7 @@ async function saveHabit() {
         h = { name, goal: document.getElementById('habit-goal').value, completedDates: [], user_id: USER_ID };
     }
 
-    // Direct Upsert & Refetch
+    // Direct Upsert with ALL fields & Refetch (v23.0)
     await supabaseClient.from('rituals').upsert([{ 
         id: h.id || undefined,
         user_id: USER_ID, 
