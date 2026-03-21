@@ -182,6 +182,13 @@ function switchView(view) {
     const navBtn = document.getElementById(`nav-${view}`);
     if (navBtn) navBtn.classList.add('active');
     
+    // Toggle Global Actions (v34.0)
+    const globalActions = document.getElementById('global-reminder-actions');
+    if (globalActions) {
+        if (view === 'reminders') globalActions.classList.remove('hidden');
+        else globalActions.classList.add('hidden');
+    }
+    
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
     if (view === 'reminders') renderFullReminders();
