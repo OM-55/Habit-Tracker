@@ -30,21 +30,21 @@
                 <button class="close-drawer" onclick="toggleDrawer()">×</button>
             </div>
             <nav id="main-nav">
-                <button class="nav-item active" onclick="navigate('dashboard')">
+                <button id="nav-dashboard" class="nav-item active" onclick="switchView('dashboard')">
                     <span class="icon">📊</span> Dashboard
                 </button>
-                <button class="nav-item" onclick="navigate('habits')">
+                <button id="nav-habits" class="nav-item" onclick="switchView('habits')">
                     <span class="icon">✨</span> Daily Rituals
                 </button>
-                <button class="nav-item" onclick="navigate('attendance')">
+                <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
-                <button class="nav-item" id="nav-reminders" onclick="switchView('reminders')">
-                <span class="nav-icon">🔔</span> Reminders
-            </button>
-            <button class="nav-item" id="nav-stocks" onclick="switchView('stocks')">
-                <span class="nav-icon">📈</span> Stocks
-            </button>
+                <button id="nav-reminders" class="nav-item" onclick="switchView('reminders')">
+                    <span class="icon">🔔</span> Reminders
+                </button>
+                <button id="nav-stocks" class="nav-item" onclick="switchView('stocks')">
+                    <span class="icon">📈</span> Stocks
+                </button>
             </nav>
         </aside>
 

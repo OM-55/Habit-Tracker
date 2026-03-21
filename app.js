@@ -176,23 +176,46 @@ async function fetchInitialData() {
 // --- Navigation ---
 function switchView(view) {
     currentView = view;
+    
+    // 1. Sidebar Auto-Close (Mobile Fix v40.0)
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+        toggleDrawer();
+    }
+
+    // 2. Clear Views
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(`${view}-view`).classList.remove('hidden');
+
+    // 3. Update Mobile Header Title
+    const titles = {
+        'dashboard': 'Dashboard',
+        'habits': 'Daily Rituals',
+        'attendance': 'Academy Tracker',
+        'reminders': 'Reminders',
+        'stocks': 'Stock Tracker'
+    };
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.innerText = titles[view] || 'Stellar';
+
+    // 4. Update Nav Active State
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
     const navBtn = document.getElementById(`nav-${view}`);
     if (navBtn) navBtn.classList.add('active');
     
-    // Toggle Global Actions (v34.0)
+    // 5. Toggle Global Actions
     const globalActions = document.getElementById('global-reminder-actions');
     if (globalActions) {
         if (view === 'reminders') globalActions.classList.remove('hidden');
         else globalActions.classList.add('hidden');
     }
     
+    // 6. Refresh Data
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
     if (view === 'reminders') renderFullReminders();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
+    if (view === 'stocks') renderStocks();
 }
 
 function selectDay(day) {
