@@ -126,10 +126,12 @@
                     <h2>Reminders</h2>
                     <button class="circular-plus" onclick="openReminderModal()">+</button>
                 </div>
-                <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
-                <div class="reminders-actions">
-                    <button class="secondary modern-btn" onclick="renderPastReminders()">Past</button>
-                    <button class="primary modern-btn" onclick="renderFullReminders()">Active</button>
+                <div class="reminders-container" style="position: relative; min-height: 400px;">
+                    <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
+                    <div class="reminder-actions">
+                        <button class="secondary modern-btn" onclick="renderPastReminders()">Past</button>
+                        <button class="primary modern-btn" onclick="renderFullReminders()">Active</button>
+                    </div>
                 </div>
             </section>
         </main>

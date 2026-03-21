@@ -572,19 +572,22 @@ input:checked + .toggle-slider:before {
     border-radius: 100px;
 }
 
-/* Attendance View Restoration (2-Column Desktop) */
+/* Attendance View Restoration (Surgical v22.1) */
 #attendance-view .content-stack {
-    display: grid;
-    grid-template-columns: 1fr 320px;
+    display: flex;
+    flex-direction: column;
     gap: 2.5rem;
-    align-items: start;
+    align-items: stretch;
 }
 
-@media (max-width: 1200px) {
-    #attendance-view .content-stack {
-        display: flex;
-        flex-direction: column;
-    }
+#attendance-view .attendance-tracker-card {
+    width: 100% !important;
+    overflow: visible !important;
+}
+
+#attendance-view .summary-card {
+    max-height: 400px;
+    overflow-y: auto;
 }
 .controls-group { display: flex; align-items: center; gap: 2rem; }
 .day-selector-container { margin-top: 2.5rem; }
@@ -790,7 +793,14 @@ input:checked + .toggle-slider:before {
 .rem-left { display: flex; align-items: center; gap: 1.2rem; }
 .rem-check { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
 .delete-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.2rem; }
-.reminders-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1.2rem; }
+.reminder-actions {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
 .reminder-item.completed { opacity: 0.6; }
 .delete-btn:hover { color: #ff5f56; transform: scale(1.2); }
 
