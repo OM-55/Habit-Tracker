@@ -295,22 +295,26 @@ body {
 .section-header .subtitle { color: var(--text-dim); font-size: 1.1rem; }
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 
-/* Dashboard Grid Default (Desktop - 3 Boxes) */
+/* Dashboard Grid Default (v24.0 Recovery) */
 .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr) !important; 
     gap: 20px !important; 
     width: 100%;
-    align-items: stretch;
 }
 
 .dashboard-card {
-    padding: 1.2rem !important;
-    min-height: 160px !important;
-    max-height: 200px !important;
+    padding: 1.5rem !important;
+    min-height: 220px !important;
+    max-height: 280px !important;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+}
+
+.card-header h3 {
+    font-size: 1.4rem !important;
+    margin-bottom: 1rem !important;
 }
 
 .dashboard-card h3 {
@@ -583,7 +587,7 @@ input:checked + .toggle-slider:before {
     border-radius: 100px;
 }
 
-/* Attendance View Restoration (Absolute Strict v23.0) */
+/* Attendance View Restoration (Absolute v24.0) */
 #attendance-view .content-stack {
     display: grid;
     grid-template-columns: 1fr 340px;
@@ -591,15 +595,23 @@ input:checked + .toggle-slider:before {
     align-items: start;
 }
 
-#attendance-view .attendance-tracker-card {
-    width: 100% !important;
-    overflow: visible !important;
+.subject-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem !important;
+    margin-bottom: 1.2rem;
+}
+
+.check-inputs {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
 }
 
 #attendance-view .summary-card {
-    max-height: 480px;
+    max-height: 520px;
     overflow-y: auto;
-    scrollbar-width: thin;
 }
 
 @media (max-width: 1200px) {
