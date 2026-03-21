@@ -566,9 +566,15 @@ function openModal(id = null) {
 function closeModal() { document.getElementById('habit-modal').classList.add('hidden'); }
 async function saveHabit() {
     const name = document.getElementById('habit-name').value.trim(); if (!name) return;
-    if (currentEditingHabitId) { const h = habits.find(x => x.id === currentEditingHabitId); h.name = name; h.goal = document.getElementById('habit-goal').value; }
-    else { habits.push({ id: Date.now().toString(), name, goal: document.getElementById('habit-goal').value, completedDates: [], createdAt: new Date().toISOString() }); }
-    saveAndSync('rituals', habits); renderHabits(); renderDashboard(); closeModal();
+    if (currentEditingHabitId) { 
+        const h = habits.find(x => x.id === currentEditingHabitId); 
+        h.name = name; 
+        h.goal = document.getElementById('habit-goal').value; 
+    } else { 
+        habits.push({ name, goal: document.getElementById('habit-goal').value, completedDates: [] }); 
+    }
+    await saveAndSync('rituals', habits); 
+    renderHabits(); renderDashboard(); closeModal();
 }
 function openCalendarFor(id) { activeHabitForCalendar = habits.find(h => h.id === id); renderCalendar(); document.getElementById('calendar-modal').classList.remove('hidden'); }
 function closeCalendar() { document.getElementById('calendar-modal').classList.add('hidden'); }
