@@ -1057,6 +1057,10 @@ input:checked + .toggle-slider:before {
     .section-header h2 {
         font-size: 1.8rem;
     }
+    /* Hide redundant headings on mobile (v40.0) */
+    .view .header-top, .view .section-header {
+        display: none !important;
+    }
 }
 
 /* Ritual UI Refinements (v31.0) */
