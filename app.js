@@ -97,13 +97,29 @@ async function fetchInitialData() {
         console.log("Fetched rituals:", h);
         console.log("Fetched reminders:", r);
 
-        if (h) habits = h;
-        if (a) attendance = a;
+        if (h) habits = h.map(x => ({ 
+            id: x.id, 
+            name: x.name, 
+            goal: x.goal, 
+            completedDates: x.completed_dates || [] 
+        }));
+        if (a) attendance = a.map(x => ({ 
+            id: x.id, 
+            date: x.date, 
+            subject: x.subject, 
+            classHappened: x.class_happened || false, 
+            attended: x.attended || false 
+        }));
         if (m) {
             manualStats = {};
             m.forEach(row => { manualStats[row.subject] = { total: row.total, attended: row.attended }; });
         }
-        if (r) reminders = r;
+        if (r) reminders = r.map(x => ({ 
+            id: x.id, 
+            title: x.title, 
+            date: x.date, 
+            completed: x.completed || false 
+        }));
 
         renderHabits();
         renderAttendanceSummary();
