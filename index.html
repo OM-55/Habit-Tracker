@@ -216,13 +216,13 @@
                     <input type="text" id="rem-title" placeholder="e.g., Physics Midterm" autocomplete="off" class="full-input">
                 </div>
                 <div class="input-group">
-                    <label for="rem-date">When?</label>
+                    <label for="rem-date">When? (DD/MM/YYYY)</label>
                     <input type="date" id="rem-date" class="full-input">
                 </div>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" style="display: flex; gap: 16px; justify-content: space-between;">
                 <button class="text-btn secondary" onclick="closeReminderModal()">Cancel</button>
-                <button class="primary modern-btn" onclick="saveReminder()">Save Reminder</button>
+                <button class="primary modern-btn" onclick="saveReminder()" style="flex: 1;">Save Reminder</button>
             </div>
         </div>
     </div>

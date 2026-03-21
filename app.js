@@ -124,8 +124,8 @@ function renderDashboard() {
         sortedHabits.forEach(h => {
             const isDone = h.completedDates.includes(today);
             const div = document.createElement('div');
-            div.className = `ritual-card-mini ${isDone ? 'completed' : ''}`;
-            div.onclick = () => toggleHabit(h.id);
+            // Dashboard cards are now view-only (no onclick, no pointer cursor via CSS)
+            div.className = `ritual-card-mini ${isDone ? 'completed' : ''} view-only`;
             div.innerHTML = `
                 <div class="ritual-info">
                     <span class="ritual-name">${h.name}</span>
@@ -147,8 +147,8 @@ function renderDashboard() {
             const stats = getSubjectStats(sub);
             const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(0) : 0;
             const div = document.createElement('div');
-            div.className = 'preview-item';
-            div.innerHTML = `<span class="label">${sub}</span> <span class="val">${perc}%</span>`;
+            div.className = 'ritual-card-mini academy-card-mini view-only'; // Match ritual style
+            div.innerHTML = `<span class="label">${sub}</span> <span class="val">→ ${perc}%</span>`;
             aList.appendChild(div);
         });
         
@@ -391,6 +391,7 @@ function renderReminders() {
 }
 
 function formatDate(ds) {
+    if (!ds) return '--/--/----';
     const d = new Date(ds);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
