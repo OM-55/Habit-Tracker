@@ -668,8 +668,10 @@ function updateStats() {
     if (document.getElementById('completed-count')) {
         const statsBox = document.getElementById('today-stats');
         statsBox.innerHTML = `
-            <span style="font-size: 1.4rem">${done} / ${total}</span>
-            <span style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase">Done Today</span>
+            <div class="stats-text-row">
+                <span style="font-size: 1.4rem; font-weight: 800;">${done} / ${total}</span>
+                <span style="font-size: 0.85rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;">Done Today</span>
+            </div>
             <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
         `;
     }
