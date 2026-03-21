@@ -597,30 +597,35 @@ input:checked + .toggle-slider:before {
     width: fit-content; /* Shorter as requested */
 }
 
-/* Attendance View Restoration (Ultimate v25.0) */
+/* Attendance View Restoration (Ultimate v38.0) */
+#attendance-view {
+    height: calc(100vh - 120px);
+    overflow: hidden !important; /* LOCK MAIN SCROLL */
+}
+
 #attendance-view .content-stack {
     display: grid;
     grid-template-columns: 1fr 340px;
     gap: 2.5rem;
-    align-items: start;
+    align-items: stretch;
+    height: 100%;
     overflow: hidden !important;
 }
 
 #attendance-summary {
-    max-height: 85vh;
-    overflow-y: auto;
-    padding-right: 1.2rem;
-    scrollbar-width: none; /* Hide scrollbar for clean UI */
-    -ms-overflow-style: none; /* IE/Edge */
+    max-height: calc(100vh - 250px);
+    overflow-y: auto !important; /* ONLY THIS SCROLLS */
+    padding-right: 1rem;
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
 }
-#attendance-summary::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+#attendance-summary::-webkit-scrollbar { display: none; }
 
 .attendance-tracker-card {
-    width: 100% !important;
-    overflow: visible !important;
-    min-height: 90vh !important; /* Fill the whole screen as requested */
-    display: flex;
-    flex-direction: column;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important; /* CLASS TRACKER IS FIXED/UNSCROLLABLE */
+    background: var(--card-bg);
 }
 
 @media (max-width: 1200px) {
@@ -1028,11 +1033,11 @@ input:checked + .toggle-slider:before {
 
 .compact-stats {
     width: fit-content !important; 
-    padding: 0.6rem 1.2rem !important;
+    padding: 0.5rem 1.2rem !important;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 
 .stats-text-row {
