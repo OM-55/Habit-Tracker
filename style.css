@@ -299,15 +299,15 @@ body {
 .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr) !important; 
-    gap: 12px !important; 
+    gap: 20px !important; 
     width: 100%;
     align-items: stretch;
 }
 
 .dashboard-card {
-    padding: 12px !important;
-    min-height: 120px !important;
-    max-height: 140px !important;
+    padding: 1.2rem !important;
+    min-height: 160px !important;
+    max-height: 200px !important;
     overflow: hidden;
     display: flex;
     flex-direction: column;
