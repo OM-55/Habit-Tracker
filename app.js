@@ -245,15 +245,15 @@ function renderSubjects() {
                 <span class="subject-slot">Standard Session</span>
             </div>
             <div class="check-inputs">
-                <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
-                    <span class="toggle-label" style="font-size:0.8rem; color:var(--text-dim);">Class Happened</span>
+                <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+                    <span class="toggle-label" style="font-size:0.75rem; color:var(--text-dim); margin-bottom: 2px;">Class Happened</span>
                     <label class="toggle-switch">
                         <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${locked ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
-                    <span class="toggle-label" style="font-size:0.8rem; color:var(--text-dim);">Attended</span>
+                <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
+                    <span class="toggle-label" style="font-size:0.75rem; color:var(--text-dim); margin-bottom: 2px;">Attended</span>
                     <label class="toggle-switch">
                         <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
