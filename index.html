@@ -14,215 +14,164 @@
     <link rel="icon" type="image/png" href="https://cdn-icons-png-flaticon.com/512/3248/3248443.png">
 </head>
 <body>
+    <!-- Top Navbar -->
+    <header id="top-navbar">
+        <button id="menu-toggle" onclick="toggleDrawer()">☰</button>
+        <h1 id="page-title">Dashboard</h1>
+        <div class="header-right"></div>
+    </header>
+
     <!-- Main App Container -->
     <div id="app-container" class="app-layout">
-        <aside id="sidebar">
+        <!-- Sidebar Drawer -->
+        <aside id="sidebar" class="drawer">
             <div class="sidebar-header">
-                <h1>Stellar</h1>
+                <h2>Stellar</h2>
+                <button class="close-drawer" onclick="toggleDrawer()">×</button>
             </div>
             <nav id="main-nav">
-                <button id="nav-dashboard" class="nav-item active" onclick="switchView('dashboard')">
+                <button class="nav-item active" onclick="navigate('dashboard')">
                     <span class="icon">📊</span> Dashboard
                 </button>
-                <button id="nav-habits" class="nav-item" onclick="switchView('habits')">
+                <button class="nav-item" onclick="navigate('habits')">
                     <span class="icon">✨</span> Daily Rituals
                 </button>
-                <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
+                <button class="nav-item" onclick="navigate('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
-                <button id="nav-reminders" class="nav-item" onclick="switchView('reminders')">
+                <button class="nav-item" onclick="navigate('reminders')">
                     <span class="icon">🔔</span> Reminders
                 </button>
             </nav>
         </aside>
 
+        <!-- Overlay for Drawer -->
+        <div id="drawer-overlay" class="hidden" onclick="toggleDrawer()"></div>
+
         <main id="app-main">
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view">
-                <header class="section-header">
-                    <h2>Summary</h2>
-                    <p class="subtitle">Overview of your progress</p>
-                </header>
-
-                <div class="dashboard-grid">
-                    <!-- Habits Quick Preview -->
+                <div class="content-stack">
                     <div class="dashboard-card glass-card">
-                        <div class="card-header">
-                            <h3>Daily Rituals</h3>
-                        </div>
-                        <div id="habits-preview-list" class="ritual-cards-container">
-                            <!-- Ritual cards injected here -->
-                        </div>
-                        <button class="text-link" onclick="switchView('habits')">View all →</button>
+                        <div class="card-header"><h3>Daily Rituals</h3></div>
+                        <div id="habits-preview-list" class="ritual-cards-container"></div>
+                        <button class="text-link" onclick="navigate('habits')">View all →</button>
                     </div>
 
-                    <!-- Attendance Quick Preview -->
                     <div class="dashboard-card glass-card">
                         <div class="card-header">
                             <h3>Academy</h3>
                             <span id="overall-attendance-badge" class="badge">0% Overall</span>
                         </div>
-                        <div id="attendance-preview-list" class="preview-list scrollable-list academy-list">
-                            <!-- Subject percentages injected here -->
-                        </div>
-                        <button class="text-link" onclick="switchView('attendance')">Open tracker →</button>
+                        <div id="attendance-preview-list" class="preview-list academy-list"></div>
+                        <button class="text-link" onclick="navigate('attendance')">Open tracker →</button>
                     </div>
 
-                    <!-- Reminders Section -->
                     <div class="dashboard-card glass-card reminders-card">
-                        <div class="card-header">
-                            <h3>Reminders</h3>
-                        </div>
-                        <div id="reminders-list" class="preview-list scrollable-list">
-                            <!-- Reminders injected here -->
-                        </div>
-                        <button class="text-link" onclick="switchView('reminders')">Open list →</button>
+                        <div class="card-header"><h3>Reminders</h3></div>
+                        <div id="reminders-list" class="preview-list"></div>
+                        <button class="text-link" onclick="navigate('reminders')">Open list →</button>
                     </div>
                 </div>
             </section>
 
             <!-- Habits View -->
             <section id="habits-view" class="view hidden">
-                <header class="section-header no-border">
-                    <div class="header-top">
-                        <h2>Daily Rituals</h2>
-                        <button id="view-add-habit-btn" class="circular-plus" onclick="openModal()">+</button>
-                    </div>
-                    <div id="today-stats" class="stats-banner glass-card">
-                        <p><span id="completed-count">0</span> / <span id="total-count">0</span> Done Today</p>
-                        <div class="progress-bar mini">
-                            <div id="daily-progress" class="progress-fill" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </header>
-
-                <div id="habit-list">
-                    <!-- Habits injected here -->
+                <div class="header-top">
+                    <h2>Daily Rituals</h2>
+                    <button class="circular-plus" onclick="openModal()">+</button>
                 </div>
+                <div id="today-stats" class="stats-banner glass-card">
+                    <p><span id="completed-count">0</span> / <span id="total-count">0</span> Done Today</p>
+                    <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: 0%"></div></div>
+                </div>
+                <div id="habit-list" class="content-stack"></div>
             </section>
 
-            <!-- Attendance View (STRECHED/SPLIT) -->
-            <section id="attendance-view" class="view split-view hidden">
-                <div class="split-left sticky-column">
-                    <header class="section-header">
+            <!-- Attendance View -->
+            <section id="attendance-view" class="view hidden">
+                <div class="content-stack">
+                    <div class="attendance-tracker-card glass-card">
                         <div class="header-top">
                             <h2>Class Tracker</h2>
-                            <div class="controls-group">
-                                <label class="toggle-control">
-                                    <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
-                                    <span class="toggle-slider"></span>
-                                    <span class="toggle-label">Edit Mode</span>
-                                </label>
-                                <div id="selected-date-display" class="date-badge"></div>
-                            </div>
+                            <label class="toggle-control">
+                                <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Edit</span>
+                            </label>
                         </div>
-                        
-                        <div class="day-selector-container">
-                            <div class="day-selector">
-                                <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">Mon</button>
-                                <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">Tue</button>
-                                <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">Wed</button>
-                                <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">Thu</button>
-                                <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">Fri</button>
-                            </div>
+                        <div class="day-selector">
+                            <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">M</button>
+                            <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">T</button>
+                            <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">W</button>
+                            <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">T</button>
+                            <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">F</button>
                         </div>
-                    </header>
-
-                    <div class="attendance-tracker-card glass-card">
-                        <div id="subjects-container">
-                            <!-- Today's subjects injected here -->
-                        </div>
-                        <button id="save-attendance-btn" class="primary save-day-btn" onclick="saveAttendanceDay()">Save Day</button>
+                        <div id="subjects-container"></div>
+                        <button id="save-attendance-btn" class="primary modern-btn" onclick="saveAttendanceDay()">Save Day</button>
                     </div>
-                </div>
 
-                <div class="split-right scroll-column">
-                    <header class="section-header">
-                        <h2>Academy Summary</h2>
-                    </header>
-                    <div id="attendance-summary" class="summary-list">
-                        <!-- Stats injected here -->
+                    <div class="summary-card glass-card">
+                        <div class="card-header"><h3>Academy Summary</h3></div>
+                        <div id="attendance-summary" class="summary-list"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- Reminders View (NEW) -->
+            <!-- Reminders View -->
             <section id="reminders-view" class="view hidden">
-                <header class="section-header no-border">
-                    <div class="header-top">
-                        <h2>Reminders</h2>
-                        <button class="icon-btn circular-plus" onclick="openReminderModal()">+</button>
-                    </div>
-                </header>
-                <div id="full-reminders-list" class="reminders-full-list">
-                    <!-- Global reminders list injected here -->
+                <div class="header-top">
+                    <h2>Reminders</h2>
+                    <button class="circular-plus" onclick="openReminderModal()">+</button>
                 </div>
+                <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
                 <div class="reminders-actions">
-                    <button class="text-btn secondary" onclick="renderPastReminders()">View Past Reminders</button>
-                    <button class="text-btn primary" onclick="renderFullReminders()">View Active</button>
+                    <button class="secondary modern-btn" onclick="renderPastReminders()">Past</button>
+                    <button class="primary modern-btn" onclick="renderFullReminders()">Active</button>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Add Habit Modal -->
+    <!-- Modals (Habit) -->
     <div id="habit-modal" class="modal hidden">
-        <div class="modal-content glass-card centered-modal dark-modal">
+        <div class="modal-content glass-card dark-modal">
             <h3>New Ritual</h3>
-            <div class="modal-body" style="margin: 2rem 0;">
-                <div class="input-group" style="margin-bottom: 2rem;">
-                    <label for="habit-name" style="display: block; margin-bottom: 0.8rem; color: var(--text-dim); font-size: 0.9rem;">Ritual Name</label>
-                    <input type="text" id="habit-name" placeholder="e.g., Morning Meditation" autocomplete="off" class="full-input">
-                </div>
-                <div class="input-group" style="margin-bottom: 2.5rem;">
-                    <label for="habit-goal" style="display: block; margin-bottom: 0.8rem; color: var(--text-dim); font-size: 0.9rem;">Daily Goal (optional)</label>
-                    <input type="text" id="habit-goal" placeholder="e.g., 10 minutes" class="full-input">
-                </div>
-            </div>
-            <div class="modal-actions" style="margin-top: 1rem; display: flex; gap: 16px; justify-content: space-between;">
-                <button class="text-btn secondary" onclick="closeModal()">Cancel</button>
-                <button class="primary modern-btn" onclick="saveHabit()" style="flex: 1;">Save Ritual</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Calendar View Modal (Keep existing) -->
-    <div id="calendar-modal" class="modal hidden">
-        <div class="modal-content calendar-container">
-            <div class="calendar-header">
-                <button onclick="prevMonth()">&lt;</button>
-                <h3 id="calendar-month-year">March 2026</h3>
-                <button onclick="nextMonth()">&gt;</button>
-            </div>
-            <div class="calendar-days">
-                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-            </div>
-            <div id="calendar-grid" class="calendar-grid">
-                <!-- Days will be injected here -->
+            <div class="input-group">
+                <input type="text" id="habit-name" placeholder="Ritual Name" class="full-input">
+                <input type="text" id="habit-goal" placeholder="Daily Goal (e.g., 10m)" class="full-input">
             </div>
             <div class="modal-actions">
-                <button class="primary" onclick="closeCalendar()">Close</button>
+                <button class="secondary modern-btn" onclick="closeModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveHabit()">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- Reminder Modal -->
-    <div id="reminder-modal" class="modal hidden">
-        <div class="modal-content glass-card centered-modal dark-modal">
-            <h3 id="rem-modal-title">New Reminder</h3>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label for="rem-title">What's the reminder?</label>
-                    <input type="text" id="rem-title" placeholder="e.g., Physics Midterm" autocomplete="off" class="full-input">
-                </div>
-                <div class="input-group">
-                    <label for="rem-date">When? (DD/MM/YYYY)</label>
-                    <input type="date" id="rem-date" class="full-input">
-                </div>
+    <!-- Modals (Calendar) -->
+    <div id="calendar-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <div class="calendar-header">
+                <button onclick="prevMonth()">&lt;</button>
+                <h3 id="calendar-month-year"></h3>
+                <button onclick="nextMonth()">&gt;</button>
             </div>
-            <div class="modal-actions" style="display: flex; gap: 16px; justify-content: space-between;">
-                <button class="text-btn secondary" onclick="closeReminderModal()">Cancel</button>
-                <button class="primary modern-btn" onclick="saveReminder()" style="flex: 1;">Save Reminder</button>
+            <div id="calendar-grid" class="calendar-grid"></div>
+            <button class="primary modern-btn" onclick="closeCalendar()">Close</button>
+        </div>
+    </div>
+
+    <!-- Modals (Reminder) -->
+    <div id="reminder-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>New Reminder</h3>
+            <div class="input-group">
+                <input type="text" id="rem-title" placeholder="Reminder title" class="full-input">
+                <input type="date" id="rem-date" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeReminderModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveReminder()">Save</button>
             </div>
         </div>
     </div>

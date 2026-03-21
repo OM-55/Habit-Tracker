@@ -112,49 +112,136 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Sidebar Navigation */
-#sidebar {
-    width: var(--sidebar-width);
-    background: var(--sidebar-bg);
-    border-right: 1px solid var(--glass-border);
-    padding: 2rem 1.5rem;
-    display: flex;
-    flex-direction: column;
+/* Navbar & Drawer Layout v14.0 */
+#top-navbar {
     position: fixed;
-    height: 100vh;
-    z-index: 100;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    background: rgba(10, 10, 10, 0.82);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    padding: 0 1.2rem;
+    z-index: 1000;
 }
 
-.sidebar-header h1 {
-    font-size: 1.6rem;
-    font-weight: 600;
+#menu-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+    margin-right: 1.5rem;
+    padding: 5px;
+    line-height: 1;
+}
+
+#page-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-white);
+    letter-spacing: -0.02em;
+}
+
+.drawer {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100%;
+    background: var(--sidebar-bg);
+    z-index: 2000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 2rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer.open {
+    transform: translateX(280px);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.6);
+}
+
+#drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 1500;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+#drawer-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 3.5rem;
-    background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+}
+
+.sidebar-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, white, var(--primary));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.close-drawer {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 2.2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+#main-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
 }
 
 .nav-item {
     background: none;
     border: none;
     color: var(--text-dim);
-    padding: 1rem 1.2rem;
-    text-align: left;
-    font-family: inherit;
-    font-size: 1rem;
+    padding: 1.1rem;
     border-radius: var(--radius-md);
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    width: 100%;
-    margin-bottom: 0.8rem;
+    gap: 1.2rem;
+    transition: var(--transition);
 }
 
-.nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text-white); }
-.nav-item.active { background: rgba(99, 102, 241, 0.12); color: var(--primary); font-weight: 600; }
+.nav-item:hover { background: rgba(255, 255, 255, 0.05); color: white; }
+.nav-item.active { background: var(--primary-glow); color: var(--primary); font-weight: 600; }
+
+/* Desktop Adjustments */
+@media (min-width: 1024px) {
+    #top-navbar { left: 280px; width: calc(100% - 280px); }
+    .drawer { left: 0; }
+    #menu-toggle, .close-drawer { display: none; }
+    #app-main { margin-left: 280px; }
+}
 
 /* Main Area */
 #app-main { 
@@ -477,24 +564,30 @@ input:checked + .toggle-slider:before {
     box-shadow: 0 0 20px var(--primary-glow);
 }
 
-/* Unified Scroll Split View */
-.split-view { 
-    display: flex; 
-    gap: 4rem; 
-    align-items: flex-start;
-    padding-bottom: 5rem;
+/* Simplified Views */
+.view {
+    animation: fadeIn 0.4s ease;
 }
-.split-left { flex: 0 0 58%; }
-.split-right { 
-    flex: 0 0 42%; 
-    border-left: 1px solid var(--glass-border); 
-    padding-left: 4rem; 
-    min-height: 100vh;
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-#app-main {
-    overflow-y: auto;
-    height: 100vh;
-    scroll-behavior: smooth;
+
+.dashboard-card {
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.8rem;
+}
+
+.card-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
 }
 
 /* Reminders Styling */
@@ -600,98 +693,39 @@ input:checked + .toggle-slider:before {
 .save-day-btn { background: var(--primary); padding: 1.4rem; border-radius: 100px; font-weight: 600; font-size: 1.2rem; margin-top: 2rem; width: 100%; border: none; color: white; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 25px var(--primary-glow); }
 .save-day-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px var(--primary-glow); }
 
-/* Premium Mobile Responsiveness v13.0 */
-@media (max-width: 768px) {
-    body {
-        padding: 0;
+/* Desktop Drawer Adjustments */
+@media (min-width: 1024px) {
+    #top-navbar {
+        left: 280px;
+        width: calc(100% - 280px);
     }
+    .drawer {
+        left: 0;
+    }
+    #menu-toggle, .close-drawer {
+        display: none;
+    }
+    #app-main {
+        margin-left: 280px;
+    }
+    #drawer-overlay {
+        display: none;
+    }
+}
 
+@media (max-width: 768px) {
     #app-main {
         padding: 1.2rem;
-        padding-bottom: 120px;
     }
-
-    .section-header h2 {
-        font-size: 1.8rem;
-    }
-
-    .dashboard-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1.2rem;
-    }
-
     .glass-card {
-        padding: 1.2rem;
-        border-radius: 16px;
-        width: 100%;
+        padding: 1.5rem;
     }
-
-    /* Floating Action Button (FAB) */
-    .circular-plus {
-        position: fixed !important;
-        bottom: 100px !important;
-        right: 20px !important;
-        width: 56px !important;
-        height: 56px !important;
-        z-index: 1000 !important;
-        box-shadow: 0 10px 30px var(--primary-glow) !important;
-        margin: 0 !important;
+    .header-top h2 {
+        font-size: 1.6rem;
     }
-
-    /* Compact Bottom Nav */
-    #sidebar {
-        height: 70px;
-        padding: 0;
-        background: rgba(17, 17, 17, 0.9);
-        backdrop-filter: blur(20px);
-    }
-
-    .nav-item {
-        padding: 0.6rem;
-        font-size: 0.75rem;
-        gap: 0.2rem;
-    }
-
-    .nav-item .icon {
-        font-size: 1.2rem;
-    }
-
-    /* Reminders Page Mobile Fixes */
     .reminders-actions {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        margin-top: 1.5rem;
-    }
-
-    .reminders-actions .text-btn {
-        flex: 1;
-        padding: 0.8rem !important;
-        font-size: 0.85rem !important;
-        text-align: center;
-        border-radius: 12px !important;
-    }
-
-    /* General thumb-friendly buttons */
-    .primary, .modern-btn, .secondary {
-        padding: 0.9rem 1.5rem !important;
-        font-size: 0.9rem;
-        border-radius: 12px !important;
-        width: 100%;
-    }
-
-    .modal-actions {
-        flex-direction: column-reverse;
-        gap: 10px !important;
-    }
-
-    .modal-actions button {
-        width: 100% !important;
-    }
-
-    .dark-modal {
-        width: 90% !important;
-        padding: 1.8rem !important;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
     }
 }

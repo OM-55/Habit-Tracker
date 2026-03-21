@@ -28,32 +28,75 @@ let editMode = false;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-    unlockApp();
+    // Zero localStorage dependency
+    await fetchInitialData();
     
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const todayIndex = new Date().getDay();
     selectedDay = (todayIndex >= 1 && todayIndex <= 5) ? dayNames[todayIndex] : "Monday";
     
-    switchView('dashboard');
-    await fetchInitialData();
+    navigate('dashboard');
     selectDay(selectedDay);
 
-    // Temporarily disabled SW to ensure stable deployment and immediate UI updates
-    /*
+    // Disable SW to prevent caching issues
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW Registered', reg))
-            .catch(err => console.error('SW Failed', err));
+        navigator.serviceWorker.getRegistrations().then(regs => {
+            regs.forEach(r => r.unregister());
+        });
     }
-    */
 });
+
+// --- Navigation & Drawer ---
+function toggleDrawer() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('drawer-overlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('visible');
+    overlay.classList.toggle('hidden');
+}
+
+function navigate(view) {
+    // Update Views
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.getElementById(`${view}-view`).classList.remove('hidden');
+
+    // Update Title
+    const titles = {
+        'dashboard': 'Dashboard',
+        'habits': 'Daily Rituals',
+        'attendance': 'Academy Tracker',
+        'reminders': 'Reminders'
+    };
+    document.getElementById('page-title').innerText = titles[view] || 'Stellar';
+
+    // Update Nav Active State
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.innerText.toLowerCase().includes(view)) item.classList.add('active');
+    });
+
+    // Close Drawer
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('drawer-overlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+    overlay.classList.add('hidden');
+
+    if (view === 'reminders') renderFullReminders();
+    if (view === 'dashboard') renderDashboard();
+    
+    currentView = view;
+}
 
 async function fetchInitialData() {
     try {
-        const { data: h, error: hErr } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
-        const { data: a, error: aErr } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
-        const { data: m, error: mErr } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
-        const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
+        const { data: h } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
+        const { data: a } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
+        const { data: m } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
+        const { data: r } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
+
+        console.log("Fetched rituals:", h);
+        console.log("Fetched reminders:", r);
 
         if (h) habits = h;
         if (a) attendance = a;
@@ -65,7 +108,7 @@ async function fetchInitialData() {
 
         renderHabits();
         renderAttendanceSummary();
-        renderReminders();
+        renderReminders(); // Dashboard preview
         renderDashboard();
     } catch (e) {
         console.error('Fetch failed', e);
@@ -318,15 +361,24 @@ function unlockApp() {
 // --- Sync ---
 async function saveAndSync(table, data) {
     try {
+        let res;
         if (table === 'rituals') {
-            await supabaseClient.from('rituals').upsert(data.map(h => ({ ...h, user_id: USER_ID })));
+            res = await supabaseClient.from('rituals').upsert(data.map(h => ({ ...h, user_id: USER_ID })));
         } else if (table === 'attendance') {
-            await supabaseClient.from('attendance').upsert(data.map(a => ({ ...a, user_id: USER_ID })));
+            res = await supabaseClient.from('attendance').upsert(data.map(a => ({ ...a, user_id: USER_ID })));
         } else if (table === 'reminders') {
-            await supabaseClient.from('reminders').upsert(data.map(r => ({ ...r, user_id: USER_ID })));
+            res = await supabaseClient.from('reminders').upsert(data.map(r => ({ ...r, user_id: USER_ID })));
         } else if (table === 'manual_stats') {
             const mData = Object.keys(data).map(s => ({ subject: s, total: data[s].total, attended: data[s].attended, user_id: USER_ID }));
-            await supabaseClient.from('manual_stats').upsert(mData);
+            res = await supabaseClient.from('manual_stats').upsert(mData);
+        }
+
+        if (res?.error) {
+            console.error(`Sync error for ${table}:`, res.error);
+        } else {
+            console.log(`Synced ${table} successfully`);
+            // Immediate Fetch for rock-solid sync
+            fetchInitialData();
         }
     } catch (e) {
         console.error(`Sync failed for ${table}`, e);
@@ -450,20 +502,26 @@ function calculateStreak(h) {
 }
 
 function renderHabits() {
-    const l = document.getElementById('habit-list'); if (!l) return; l.innerHTML = '';
+    const l = document.getElementById('habit-list'); 
+    if (!l) return; 
+    l.innerHTML = '';
     const today = new Date().toISOString().split('T')[0];
+    
     habits.forEach(h => {
         const isDone = h.completedDates.includes(today);
-        const card = document.createElement('div'); card.className = 'habit-card glass-card';
+        const card = document.createElement('div'); 
+        card.className = `habit-card glass-card ${isDone ? 'completed' : ''}`;
         card.innerHTML = `
-            <div class="habit-check ${isDone?'done':''}" onclick="toggleHabit('${h.id}')">
-                <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
-            </div>
             <div class="habit-info">
                 <h4 onclick="openCalendarFor('${h.id}')">${h.name}</h4>
-                <p>${h.goal||''}</p>
+                <p>${h.goal || ''}</p>
+                <div class="habit-streak">🔥 ${calculateStreak(h)} day streak</div>
             </div>
-            <div class="habit-streak">🔥 ${calculateStreak(h)}</div>
+            <div class="habit-actions">
+                <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
+                    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                </div>
+            </div>
         `;
         l.appendChild(card);
     });
