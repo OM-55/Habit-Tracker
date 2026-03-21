@@ -298,7 +298,7 @@ body {
 /* Dashboard Grid Default (Desktop - 3 Boxes) */
 .dashboard-grid { 
     display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
+    grid-template-columns: repeat(3, 1fr) !important; 
     gap: 2rem; 
     width: 100%;
     align-items: start;
@@ -584,15 +584,15 @@ input:checked + .toggle-slider:before {
 }
 .controls-group { display: flex; align-items: center; gap: 2rem; }
 .day-selector-container { margin-top: 2.5rem; }
-.day-selector { display: flex; gap: 0.8rem; }
+.day-selector { margin-bottom: 2rem; display: flex; gap: 0.8rem; }
 .day-btn { padding: 0.8rem 1.6rem; font-size: 1rem; background: var(--card-bg); border: 1px solid var(--glass-border); color: var(--text-dim); border-radius: 12px; cursor: pointer; transition: 0.2s; }
 .day-btn:hover { border-color: var(--primary); color: white; }
 .day-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
 
 /* Card-Style Attendance Rows */
 .subject-row { 
-    padding: 1.8rem; 
-    margin-bottom: 1.2rem;
+    padding: 1rem 1.4rem; 
+    margin-bottom: 1rem;
     background: var(--card-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
@@ -600,6 +600,16 @@ input:checked + .toggle-slider:before {
     justify-content: space-between; 
     align-items: center; 
     transition: var(--transition);
+}
+
+.subject-info .subject-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.subject-info .subject-slot {
+    font-size: 0.8rem;
+    color: var(--text-dim);
 }
 
 .subject-row:hover {
