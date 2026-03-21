@@ -1009,3 +1009,27 @@ input:checked + .toggle-slider:before {
         font-size: 1.8rem;
     }
 }
+
+/* Ritual UI Refinements (v31.0) */
+.stats-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2.5rem; /* Gap between stats and list */
+}
+
+.compact-stats {
+    width: auto !important;
+    padding: 0.6rem 1.2rem !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.compact-stats .progress-bar.mini {
+    width: 100px;
+    height: 4px;
+    margin-top: 0;
+}
