@@ -1,12 +1,9 @@
 // Supabase Configuration
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-const USER_ID = 'default_user'; // For now: fixed user ID
+const SUPABASE_URL = 'https://fzqifrigkenzugqveacs.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ebz00mT4w6fuLbjridRPZQ_HSm48Vbp';
+const USER_ID = 'default_user';
 
-let supabaseClient = null;
-if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-}
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TIMETABLE = {
     "Monday": ["AP Lab", "AC Lab", "Workshop", "EG"],
@@ -50,25 +47,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function fetchInitialData() {
-    if (!supabaseClient) {
-        console.warn('Supabase client not initialized. Using local state.');
-        // Fallback to localStorage if available (for migration/testing)
-        habits = JSON.parse(localStorage.getItem('habits')) || [];
-        attendance = JSON.parse(localStorage.getItem('attendance')) || [];
-        reminders = JSON.parse(localStorage.getItem('reminders')) || [];
-        manualStats = JSON.parse(localStorage.getItem('manualStats')) || {};
-        renderHabits();
-        renderAttendanceSummary();
-        renderReminders();
-        renderDashboard();
-        return;
-    }
-
     try {
-        const { data: h } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
-        const { data: a } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
-        const { data: m } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
-        const { data: r } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
+        const { data: h, error: hErr } = await supabaseClient.from('rituals').select('*').eq('user_id', USER_ID);
+        const { data: a, error: aErr } = await supabaseClient.from('attendance').select('*').eq('user_id', USER_ID);
+        const { data: m, error: mErr } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
+        const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
 
         if (h) habits = h;
         if (a) attendance = a;
@@ -124,12 +107,12 @@ function renderDashboard() {
         sortedHabits.forEach(h => {
             const isDone = h.completedDates.includes(today);
             const div = document.createElement('div');
-            // Dashboard cards are now view-only (no onclick, no pointer cursor via CSS)
+            // Premium View-Only Card
             div.className = `ritual-card-mini ${isDone ? 'completed' : ''} view-only`;
             div.innerHTML = `
                 <div class="ritual-info">
                     <span class="ritual-name">${h.name}</span>
-                    <span class="ritual-streak">🔥 ${calculateStreak(h)} streak</span>
+                    <span class="ritual-streak">🔥 ${calculateStreak(h)} day streak</span>
                 </div>
                 <div class="habit-check ${isDone ? 'done' : ''}">
                     <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
@@ -147,8 +130,15 @@ function renderDashboard() {
             const stats = getSubjectStats(sub);
             const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(0) : 0;
             const div = document.createElement('div');
-            div.className = 'ritual-card-mini academy-card-mini view-only'; // Match ritual style
-            div.innerHTML = `<span class="label">${sub}</span> <span class="val">→ ${perc}%</span>`;
+            div.className = 'ritual-card-mini academy-card-mini view-only'; 
+            div.innerHTML = `
+                <div class="ritual-info">
+                    <span class="ritual-name">${sub}</span>
+                </div>
+                <div class="habit-streak" style="background:transparent; padding:0; font-size:1rem;">
+                    → ${perc}%
+                </div>
+            `;
             aList.appendChild(div);
         });
         
@@ -190,13 +180,13 @@ function renderSubjects() {
             </div>
             <div class="check-inputs">
                 <div class="toggle-group">
-                    <span class="toggle-label">Class</span>
+                    <span class="toggle-label">Class Happened</span>
                     <label class="toggle-control">
                         <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${locked ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div class="toggle-group" style="margin-left: 1.5rem;">
+                <div class="toggle-group">
                     <span class="toggle-label">Attended</span>
                     <label class="toggle-control">
                         <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
@@ -325,14 +315,6 @@ function unlockApp() {
 
 // --- Sync ---
 async function saveAndSync(table, data) {
-    if (!supabaseClient) {
-        localStorage.setItem('habits', JSON.stringify(habits));
-        localStorage.setItem('attendance', JSON.stringify(attendance));
-        localStorage.setItem('reminders', JSON.stringify(reminders));
-        localStorage.setItem('manualStats', JSON.stringify(manualStats));
-        return;
-    }
-
     try {
         if (table === 'rituals') {
             await supabaseClient.from('rituals').upsert(data.map(h => ({ ...h, user_id: USER_ID })));
