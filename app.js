@@ -394,7 +394,7 @@ async function saveReminder() {
     if (!title || !date) return;
     
     // Explicit Supabase Insert as requested
-    const newRem = { id: Date.now().toString(), title, date, completed: false, user_id: USER_ID };
+    const newRem = { title, date, completed: false, user_id: USER_ID };
     const { error } = await supabaseClient.from('reminders').insert([newRem]);
     
     if (error) {
