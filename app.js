@@ -304,7 +304,7 @@ async function saveAttendanceDay() {
 function renderAttendanceSummary() {
     const summary = document.getElementById('attendance-summary');
     if (!summary) return;
-    summary.innerHTML = `<div class="card-header"><h3>Academy Summary</h3></div>`;
+    summary.innerHTML = '';
 
     const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
 
