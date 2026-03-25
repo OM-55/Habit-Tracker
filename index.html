@@ -149,29 +149,35 @@
                 <div id="habit-list" class="content-stack"></div>
             </section>
 
-            <!-- Attendance View -->
+            <!-- Attendance View (v47.0 Refined) -->
             <section id="attendance-view" class="view hidden">
+                <button id="toggle-class-tracker" class="modern-btn mobile-only" onclick="toggleMobileClassTracker()">
+                    <span>📅</span> Edit Class Tracker
+                </button>
+
                 <div class="content-stack">
-                    <div class="attendance-tracker-card glass-card">
-                        <div class="header-top">
-                            <h2>Class Tracker</h2>
-                            <div class="toggle-control">
-                                <span class="toggle-label">Edit</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
-                                    <span class="toggle-slider"></span>
-                                </label>
+                    <div id="class-tracker-wrapper" class="mobile-collapsible">
+                        <div class="attendance-tracker-card glass-card">
+                            <div class="header-top">
+                                <h2>Class Tracker</h2>
+                                <div class="toggle-control">
+                                    <span class="toggle-label">Edit</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
                             </div>
+                            <div class="day-selector">
+                                <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">M</button>
+                                <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">T</button>
+                                <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">W</button>
+                                <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">T</button>
+                                <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">F</button>
+                            </div>
+                            <div id="subjects-container"></div>
+                            <button id="save-attendance-btn" class="primary modern-btn" onclick="saveAttendanceDay()">Save Day</button>
                         </div>
-                        <div class="day-selector">
-                            <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">M</button>
-                            <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">T</button>
-                            <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">W</button>
-                            <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">T</button>
-                            <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">F</button>
-                        </div>
-                        <div id="subjects-container"></div>
-                        <button id="save-attendance-btn" class="primary modern-btn" onclick="saveAttendanceDay()">Save Day</button>
                     </div>
 
                     <div class="summary-card glass-card">

@@ -303,6 +303,17 @@ function handleMenu() {
     console.log("More options coming soon!");
 }
 
+function toggleMobileClassTracker() {
+    const wrapper = document.getElementById('class-tracker-wrapper');
+    if (wrapper) {
+        wrapper.classList.toggle('open');
+        const btn = document.getElementById('toggle-class-tracker');
+        if (btn) {
+            btn.innerHTML = wrapper.classList.contains('open') ? '<span>✕</span> Close Tracker' : '<span>📅</span> Edit Class Tracker';
+        }
+    }
+}
+
 function selectDay(day) {
     selectedDay = day;
     document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
@@ -729,10 +740,13 @@ async function completeReminder(id) {
 }
 
 async function deleteReminder(id) {
-    reminders = reminders.filter(r => r.id !== id);
-    saveAndSync('reminders', reminders);
-    renderReminders();
-    renderFullReminders();
+    try {
+        const { error } = await supabaseClient.from('reminders').delete().eq('id', id);
+        if (error) throw error;
+        await fetchInitialData();
+    } catch (err) {
+        console.error("Delete reminder failed:", err);
+    }
 }
 
 // --- Common ---

@@ -40,6 +40,8 @@ html, body {
 }
 
 .hidden { display: none !important; }
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
 
 /* Overlays & Modals */
 .overlay {
@@ -310,8 +312,7 @@ html, body {
 .dashboard-card {
     padding: 1.2rem !important;
     min-height: 240px !important;
-    max-height: 300px !important;
-    overflow: hidden;
+    height: auto !important; /* Allow growth v47.0 */
     display: flex;
     flex-direction: column;
 }
@@ -605,8 +606,9 @@ input:checked + .toggle-slider:before {
 /* Attendance View Restoration (Ultimate v38.0) */
 #attendance-view {
     padding-top: 2rem;
-    height: calc(100vh - 120px);
-    overflow: hidden !important; /* LOCK MAIN SCROLL */
+    min-height: calc(100vh - 120px);
+    height: auto !important;
+    overflow: visible !important; /* RESTORE MAIN SCROLL v47.0 */
 }
 
 #attendance-view .content-stack {
@@ -614,8 +616,8 @@ input:checked + .toggle-slider:before {
     grid-template-columns: 1fr 340px;
     gap: 2.5rem;
     align-items: stretch;
-    height: 100%;
-    overflow: hidden !important;
+    height: auto !important;
+    overflow: visible !important;
 }
 
 #attendance-summary {
@@ -1350,19 +1352,47 @@ input:checked + .toggle-slider:before {
         max-width: 100%;
     }
 
-    /* Attendance Specific */
+    /* Attendance Refinement (v47.0) */
     #attendance-view .content-stack {
         display: flex !important;
         flex-direction: column !important;
-        gap: 1rem !important;
+        gap: 1.5rem !important;
         height: auto !important;
         overflow: visible !important;
+    }
+
+    /* Hide Class Tracker by default on mobile */
+    .mobile-collapsible {
+        display: none;
+        margin-bottom: 1rem;
+    }
+    
+    .mobile-collapsible.open {
+        display: block !important;
+    }
+
+    #toggle-class-tracker {
+        margin-bottom: 1.5rem;
+        width: 100%;
+        display: flex !important; 
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem !important;
+    }
+
+    .mobile-only {
+        display: flex !important;
+    }
+    
+    .desktop-only {
+        display: none !important;
     }
 
     .attendance-tracker-card {
         min-height: auto !important;
         padding: 1.5rem !important;
-        margin-bottom: 1rem !important;
+        margin-bottom: 0 !important; /* Managed by collapsible gap */
     }
 
     .day-selector {
