@@ -228,6 +228,11 @@ function switchView(view) {
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
     const navBtn = document.getElementById(`nav-${view}`);
     if (navBtn) navBtn.classList.add('active');
+
+    // 4b. Update Bottom Nav Active State
+    document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+    const bottomNavBtn = Array.from(document.querySelectorAll('.bottom-nav-item')).find(btn => btn.getAttribute('onclick').includes(`'${view}'`));
+    if (bottomNavBtn) bottomNavBtn.classList.add('active');
     
     // 5. Toggle Global Actions
     const globalActions = document.getElementById('global-reminder-actions');
@@ -242,6 +247,41 @@ function switchView(view) {
     if (view === 'reminders') renderFullReminders();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
+}
+
+/** 
+ * Context-aware Add function for Mobile Header (v45.0)
+ */
+function handleAdd() {
+    const view = String(currentView).trim().toLowerCase();
+    console.log("handleAdd START. View:", view);
+    if (view === 'habits' || view === 'dashboard' || view === 'stellar') {
+        console.log("Calling openModal from handleAdd");
+        openModal();
+    } else if (view === 'reminders') {
+        openReminderModal();
+    } else if (view === 'stocks') {
+        openStockModal();
+    } else {
+        console.log("Defaulting to openModal");
+        openModal();
+    }
+}
+
+function handleEdit() {
+    if (currentView === 'attendance') {
+        const toggle = document.getElementById('edit-mode-toggle');
+        if (toggle) {
+            toggle.checked = !toggle.checked;
+            toggleEditMode();
+        }
+    } else {
+        console.log("Edit mode only available in Academy Tracker.");
+    }
+}
+
+function handleMenu() {
+    console.log("More options coming soon!");
 }
 
 function selectDay(day) {
@@ -564,8 +604,21 @@ async function saveAndSync(table, data) {
 }
 
 // --- Reminders ---
-function openReminderModal() { document.getElementById('reminder-modal').classList.remove('hidden'); }
-function closeReminderModal() { document.getElementById('reminder-modal').classList.add('hidden'); }
+function openReminderModal() { 
+    console.log("Opening Reminder Modal");
+    const m = document.getElementById('reminder-modal');
+    if (m) {
+        m.classList.remove('hidden'); 
+        m.classList.add('visible');
+    }
+}
+function closeReminderModal() { 
+    const m = document.getElementById('reminder-modal');
+    if (m) {
+        m.classList.remove('visible');
+        m.classList.add('hidden'); 
+    }
+}
 
 async function saveReminder() {
     const title = document.getElementById('rem-title').value.trim();
@@ -773,14 +826,41 @@ function updateStats() {
 
 // --- Modal & Calendar ---
 function openModal(id = null) {
+    console.log("Opening Habit Modal, ID:", id);
     currentEditingHabitId = id;
     const modal = document.getElementById('habit-modal');
     const name = document.getElementById('habit-name');
     const goal = document.getElementById('habit-goal');
-    if (id) { const h = habits.find(x => x.id === id); name.value = h.name; goal.value = h.goal || ''; } else { name.value = ''; goal.value = ''; }
-    modal.classList.remove('hidden'); name.focus();
+    
+    if (!modal || !name) {
+        console.error("Modal elements not found!");
+        return;
+    }
+
+    if (id) { 
+        const h = habits.find(x => x.id === id); 
+        if (h) {
+            name.value = h.name; 
+            goal.value = h.goal || ''; 
+        }
+    } else { 
+        name.value = ''; 
+        goal.value = ''; 
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('visible'); // Added for extra safety
+    setTimeout(() => {
+        try { name.focus(); } catch(e) { console.warn("Focus failed", e); }
+    }, 100);
 }
-function closeModal() { document.getElementById('habit-modal').classList.add('hidden'); }
+function closeModal() { 
+    const m = document.getElementById('habit-modal');
+    if (m) {
+        m.classList.remove('visible');
+        m.classList.add('hidden'); 
+    }
+}
 async function saveHabit() {
     try {
         const name = document.getElementById('habit-name').value.trim();
@@ -959,15 +1039,22 @@ function renderStocksDashboard() {
 }
 
 function openStockModal() {
+    console.log("Opening Stock Modal");
     document.getElementById('stock-modal-title').innerText = "Add New Stock";
     document.getElementById('stock-name').value = '';
     document.getElementById('stock-buy-price').value = '';
     document.getElementById('stock-quantity').value = '';
-    document.getElementById('stock-modal').classList.remove('hidden');
+    const m = document.getElementById('stock-modal');
+    if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('visible');
+    }
 }
 
 function closeStockModal() {
-    document.getElementById('stock-modal').classList.add('hidden');
+    const m = document.getElementById('stock-modal');
+    if (m) m.classList.remove('visible');
+    m.classList.add('hidden');
 }
 
 async function saveStock() {
@@ -1006,7 +1093,7 @@ async function deleteStock(id) {
         const { error } = await supabaseClient.from('stocks').delete().eq('id', id);
         if (error) throw error;
         await fetchInitialData();
-        renderStocksView();
+        renderStocks();
         renderStocksDashboard();
     } catch (err) {
         console.error("Delete stock failed:", err);

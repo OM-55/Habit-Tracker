@@ -1152,7 +1152,7 @@ input:checked + .toggle-slider:before {
     padding: 2rem;
 }
 
-.modal.visible { display: flex; }
+.modal.visible { display: flex !important; }
 
 .modal-content {
     width: 100%;
@@ -1192,3 +1192,226 @@ input:checked + .toggle-slider:before {
     height: 4px;
     margin-top: 5px;
 }
+
+/* ============================================================
+   STRICT MOBILE APP LAYOUT (max-width: 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+    /* 1. SIDEBAR / DRAWER HANDLING */
+    .drawer {
+        display: flex !important;
+        left: -280px !important;
+        width: 280px;
+        z-index: 3000 !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .drawer.open {
+        transform: translateX(280px) !important;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.8);
+    }
+
+    #drawer-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2500;
+        backdrop-filter: blur(4px);
+    }
+
+    #drawer-overlay.visible {
+        display: block !important;
+    }
+
+    /* 2. FIXED TOP HEADER (APP STYLE) */
+    #top-navbar {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 56px !important;
+        background: #0b0b0b !important;
+        border-bottom: 1px solid var(--glass-border);
+        z-index: 2000;
+        padding: 0 0.5rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #menu-toggle {
+        display: flex !important;
+        font-size: 1.6rem;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: white;
+    }
+
+    #page-title {
+        font-size: 1.1rem !important;
+        font-weight: 600;
+        flex-grow: 1;
+        text-align: center;
+        margin: 0;
+    }
+
+    .header-right {
+        display: flex;
+        gap: 0;
+    }
+
+    .header-icon-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        width: 44px; /* Touch-friendly */
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    /* 3. MAIN CONTENT ADJUSTMENTS */
+    #app-main {
+        margin-left: 0 !important;
+        margin-top: 56px !important;
+        padding: 1rem !important;
+        padding-bottom: 90px !important;
+        max-width: 100vw;
+        overflow-x: hidden;
+        min-height: calc(100vh - 56px);
+    }
+
+    /* 4. COMPACT MOBILE CARDS */
+    .dashboard-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    .glass-card, .dashboard-card, .summary-card {
+        padding: 1rem !important;
+        min-height: auto !important;
+        max-height: none !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    /* 5. FIXED BOTTOM NAVIGATION (APP STYLE) */
+    #bottom-nav {
+        display: flex !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        background: #0b0b0b;
+        border-top: 1px solid var(--glass-border);
+        z-index: 2000;
+        padding: 0 4px;
+        justify-content: space-around;
+        align-items: stretch;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .bottom-nav-item {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex: 1;
+        min-height: 44px;
+        cursor: pointer;
+        padding: 8px 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+
+    .bottom-nav-item .nav-icon {
+        font-size: 1.4rem;
+        line-height: 1;
+    }
+
+    .bottom-nav-item .nav-label {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .bottom-nav-item.active {
+        color: var(--primary);
+    }
+
+    .bottom-nav-item.active .nav-icon {
+        transform: scale(1.1);
+    }
+
+    /* 6. VIEW-SPECIFIC MOBILE TWEAKS */
+    .header-top h2 {
+        font-size: 1.5rem !important;
+    }
+
+    .stats-banner {
+        padding: 0.6rem 1rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .habit-card {
+        padding: 1.2rem !important;
+        margin-bottom: 0.75rem !important;
+        gap: 1rem !important;
+    }
+
+    .habit-info h4 {
+        font-size: 1.1rem !important;
+    }
+
+    /* 7. PREVENT LAYOUT BREAKS */
+    body {
+        overflow-x: hidden;
+    }
+
+    * {
+        max-width: 100%;
+    }
+
+    /* Attendance Specific */
+    #attendance-view .content-stack {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .attendance-tracker-card {
+        min-height: auto !important;
+        padding: 1.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .day-selector {
+        flex-wrap: wrap;
+        gap: 0.5rem !important;
+    }
+
+    .day-btn {
+        padding: 0.6rem 1rem !important;
+        font-size: 0.9rem !important;
+        flex: 1;
+        min-width: 44px;
+    }
+}
+

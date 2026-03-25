@@ -19,7 +19,11 @@
     <header id="top-navbar">
         <button id="menu-toggle" onclick="toggleDrawer()">☰</button>
         <h1 id="page-title">Dashboard</h1>
-        <div class="header-right"></div>
+        <div class="header-right">
+            <button class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
+            <button class="header-icon-btn" onclick="handleMenu()"><span>⋮</span></button>
+            <button class="header-icon-btn" onclick="handleEdit()"><span>✎</span></button>
+        </div>
     </header>
 
     <!-- Main App Container -->
@@ -255,6 +259,26 @@
     <section id="analytics-view" class="view hidden">
         <div class="empty-placeholder"><h3>Analytics</h3><p>Coming Soon</p></div>
     </section>
+
+    <!-- Bottom Navigation (Mobile Only) -->
+    <nav id="bottom-nav" class="mobile-nav">
+        <button class="bottom-nav-item active" onclick="switchView('dashboard')">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Dashboard</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView('habits')">
+            <span class="nav-icon">✨</span>
+            <span class="nav-label">Rituals</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView('attendance')">
+            <span class="nav-icon">🎓</span>
+            <span class="nav-label">Attendance</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView('reminders')">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-label">Reminders</span>
+        </button>
+    </nav>
 
     <script src="app.js"></script>
     <!-- Stock Modal (v30.0) -->
