@@ -1281,84 +1281,47 @@ input:checked + .toggle-slider:before {
         cursor: pointer;
     }
 
-    /* 3. MAIN CONTENT ADJUSTMENTS */
+    /* 3. MAIN CONTENT ADJUSTMENTS (FULL SCROLL v46.0) */
     #app-main {
         margin-left: 0 !important;
         margin-top: 56px !important;
         padding: 1rem !important;
-        padding-bottom: 90px !important;
+        padding-bottom: 2rem !important; /* Reduced as bottom nav is gone */
         max-width: 100vw;
         overflow-x: hidden;
-        min-height: calc(100vh - 56px);
+        min-height: auto !important; /* Allow natural growth */
+        display: block !important;
     }
 
-    /* 4. COMPACT MOBILE CARDS */
+    body, html {
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+
+    /* 4. COMPACT MOBILE CARDS (NO INTERNAL SCROLL) */
     .dashboard-grid {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 0.75rem !important;
+        display: block !important; /* Stack naturally */
     }
 
-    .glass-card, .dashboard-card, .summary-card {
-        padding: 1rem !important;
+    .glass-card, .dashboard-card, .summary-card, .stat-card {
+        padding: 1.25rem !important;
         min-height: auto !important;
         max-height: none !important;
+        height: auto !important;
         border-radius: var(--radius-md) !important;
+        margin-bottom: 1rem !important;
+        overflow: visible !important; /* Prevent internal scroll */
     }
 
-    /* 5. FIXED BOTTOM NAVIGATION (APP STYLE) */
-    #bottom-nav {
-        display: flex !important;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 70px;
-        background: #0b0b0b;
-        border-top: 1px solid var(--glass-border);
-        z-index: 2000;
-        padding: 0 4px;
-        justify-content: space-around;
-        align-items: stretch;
-        border-radius: 12px 12px 0 0;
+    /* 5. HIDE BOTTOM NAVIGATION (v46.0) */
+    #bottom-nav, .mobile-nav {
+        display: none !important;
     }
 
-    .bottom-nav-item {
-        background: none;
-        border: none;
-        color: var(--text-dim);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        flex: 1;
-        min-height: 44px;
-        cursor: pointer;
-        padding: 8px 0;
-        -webkit-tap-highlight-color: transparent;
+    .mobile-hidden {
+        display: none !important;
     }
 
-
-    .bottom-nav-item .nav-icon {
-        font-size: 1.4rem;
-        line-height: 1;
-    }
-
-    .bottom-nav-item .nav-label {
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-
-    .bottom-nav-item.active {
-        color: var(--primary);
-    }
-
-    .bottom-nav-item.active .nav-icon {
-        transform: scale(1.1);
-    }
-
-    /* 6. VIEW-SPECIFIC MOBILE TWEAKS */
     .header-top h2 {
         font-size: 1.5rem !important;
     }

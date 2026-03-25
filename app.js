@@ -47,19 +47,10 @@ let editMode = false;
 async function renameHabit(id, oldName) {
     const newName = prompt("Enter new ritual name:", oldName);
     if (!newName || newName === oldName) return;
-    try {
-        const { error } = await supabaseClient
-            .from('rituals')
-            .update({ name: newName })
-            .eq('id', id);
-        if (error) throw error;
-        habits = habits.map(h => h.id === id ? { ...h, name: newName } : h);
-        renderHabits();
-        renderDashboard();
-    } catch (e) {
-        console.error("Rename failed:", e);
-        alert("Rename failed. Check Supabase.");
-    }
+    const h = habits.find(x => x.id === id);
+    if (!h) return;
+    h.name = newName;
+    await saveAndSync('rituals', habits);
 }
 
 // PWA Service Worker (v43.0)
@@ -67,18 +58,21 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
-// Initial Load
-window.addEventListener('load', fetchInitialData);
-
+// Initial Load Consolidation (v46.0)
 document.addEventListener('DOMContentLoaded', async () => {
-    // Zero database sync dependencies on local storage
+    console.log("App Initializing...");
+    
+    // Load from LocalStorage first for instant UI (v46.0 Fallback)
+    loadFromLocalStorage();
+    
+    // Then sync with Supabase
     await fetchInitialData();
     
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const todayIndex = new Date().getDay();
     selectedDay = (todayIndex >= 1 && todayIndex <= 5) ? dayNames[todayIndex] : "Monday";
     
-    navigate('dashboard');
+    switchView('dashboard');
     selectDay(selectedDay);
 
     // Disable SW to prevent caching issues
@@ -88,12 +82,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Auto-refresh stocks every 60s (v30.0/v32.0)
+    // Auto-refresh stocks every 60s
     setInterval(async () => {
-        await fetchInitialData(); // Sync DB first
-        if (stocks.length > 0) fetchLivePrices(); // Then update prices
+        await fetchInitialData(); 
+        if (stocks.length > 0) fetchLivePrices(); 
     }, 60000);
 });
+
+function saveToLocalStorage() {
+    const backup = { habits, attendance, reminders, stocks, manualStats };
+    localStorage.setItem('stellar_backup', JSON.stringify(backup));
+    console.log("Local backup saved.");
+}
+
+function loadFromLocalStorage() {
+    const data = localStorage.getItem('stellar_backup');
+    if (data) {
+        try {
+            const parsed = JSON.parse(data);
+            if (parsed.habits) habits = parsed.habits;
+            if (parsed.attendance) attendance = parsed.attendance;
+            if (parsed.reminders) reminders = parsed.reminders;
+            if (parsed.stocks) stocks = parsed.stocks;
+            if (parsed.manualStats) manualStats = parsed.manualStats;
+            console.log("Restored from local backup.");
+            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard();
+        } catch (e) { console.error("Local load failed", e); }
+    }
+}
 
 // --- Navigation & Drawer ---
 function toggleDrawer() {
@@ -186,6 +202,9 @@ async function fetchInitialData() {
         }));
         
         console.log("Sync complete. Habits:", habits.length);
+        
+        // Save to local backup
+        saveToLocalStorage();
         
         renderHabits();
         renderAttendanceSummary();
@@ -560,46 +579,35 @@ function unlockApp() {
 // --- Sync ---
 async function saveAndSync(table, data) {
     try {
-        let res;
+        console.log(`Syncing ${table} to Supabase...`);
+        let payload;
         if (table === 'rituals') {
-            res = await supabaseClient.from('rituals').upsert(data.map(h => ({ 
-                id: h.id,
-                user_id: USER_ID, 
-                name: h.name, 
-                goal: h.goal, 
-                completed_dates: h.completedDates || [] 
-            })));
+            payload = data.map(h => ({ 
+                id: h.id, user_id: USER_ID, name: h.name, goal: h.goal, completed_dates: h.completedDates || [] 
+            }));
         } else if (table === 'attendance') {
-            res = await supabaseClient.from('attendance').upsert(data.map(a => ({ 
-                id: a.id,
-                user_id: USER_ID, 
-                date: a.date, 
-                subject: a.subject, 
-                class_happened: a.classHappened || false, 
-                attended: a.attended || false 
-            })));
+            payload = data.map(a => ({ 
+                id: a.id, user_id: USER_ID, date: a.date, subject: a.subject, class_happened: a.classHappened || false, attended: a.attended || false 
+            }));
         } else if (table === 'reminders') {
-            res = await supabaseClient.from('reminders').upsert(data.map(r => ({ 
-                id: r.id,
-                user_id: USER_ID, 
-                title: r.title, 
-                date: r.date, 
-                completed: r.completed || false 
-            })));
+            payload = data.map(r => ({ 
+                id: r.id, user_id: USER_ID, title: r.title, date: r.date, completed: r.completed || false 
+            }));
         } else if (table === 'manual_stats') {
-            const mData = Object.keys(data).map(s => ({ subject: s, total: data[s].total, attended: data[s].attended, user_id: USER_ID }));
-            res = await supabaseClient.from('manual_stats').upsert(mData);
+            payload = Object.keys(data).map(s => ({ subject: s, total: data[s].total, attended: data[s].attended, user_id: USER_ID }));
+        } else if (table === 'stocks') {
+            payload = data.map(s => ({ id: s.id, user_id: USER_ID, name: s.name, buy_price: s.buy_price, quantity: s.quantity }));
         }
 
-        if (res?.error) {
-            console.error(`Sync error for ${table}:`, res.error);
-        } else {
-            console.log(`Synced ${table} successfully`);
-            // Immediate Fetch for rock-solid sync
-            fetchInitialData();
-        }
+        const { error } = await supabaseClient.from(table).upsert(payload);
+        if (error) throw error;
+
+        console.log(`Synced ${table} successfully`);
+        await fetchInitialData(); // Re-fetch to confirm and update UI
     } catch (e) {
-        console.error(`Sync failed for ${table}`, e);
+        console.error(`Sync failed for ${table}:`, e);
+        // Fallback: save to localStorage anyway
+        saveToLocalStorage();
     }
 }
 
@@ -625,17 +633,10 @@ async function saveReminder() {
     const date = document.getElementById('rem-date').value;
     if (!title || !date) return;
     
-    // Explicit Supabase Insert as requested
-    const newRem = { id: generateId(), title, date, completed: false, user_id: USER_ID };
-    const { error } = await supabaseClient.from('reminders').insert([newRem]);
-    
-    if (error) {
-        console.error("Insert error:", error);
-    } else {
-        console.log("Reminder inserted successfully");
-        await fetchInitialData(); // Immediate re-fetch for rock-solid sync
-        closeReminderModal();
-    }
+    // Explicit Supabase Insert (v46.0: Use consolidated sync)
+    reminders.push({ id: generateId(), title, date, completed: false });
+    await saveAndSync('reminders', reminders);
+    closeReminderModal();
 }
 
 function renderReminders() {
@@ -788,25 +789,7 @@ async function toggleHabit(id) {
         h.completedDates.push(today);
     }
     
-    try {
-        const { error } = await supabaseClient.from('rituals').upsert([{ 
-            id: h.id, 
-            user_id: USER_ID, 
-            name: h.name, 
-            goal: h.goal, 
-            completed_dates: h.completedDates 
-        }]);
-        
-        if (error) throw error;
-        
-        console.log("Toggle synced successfully");
-        await fetchInitialData();
-        renderHabits();
-        renderDashboard();
-    } catch (err) {
-        console.error("Toggle sync failed:", err);
-        alert("Persistence Error: " + err.message);
-    }
+    await saveAndSync('rituals', habits);
 }
 
 function updateStats() {
@@ -874,26 +857,13 @@ async function saveHabit() {
             h.goal = goal; 
         } else { 
             h = { id: generateId(), name, goal, completedDates: [], user_id: USER_ID };
+            habits.push(h);
         }
 
-        const { error } = await supabaseClient.from('rituals').upsert([{ 
-            id: h.id || undefined,
-            user_id: USER_ID, 
-            name: h.name, 
-            goal: h.goal, 
-            completed_dates: h.completedDates || [] 
-        }]);
-
-        if (error) throw error;
-
-        alert("Daily Ritual Saved Successfully! 💎");
-        await fetchInitialData();
-        renderHabits(); 
-        renderDashboard(); 
+        await saveAndSync('rituals', habits);
         closeModal();
     } catch (err) {
         console.error("Save ritual failed:", err);
-        alert("Save failed: " + err.message);
     }
 }
 function openCalendarFor(id) { activeHabitForCalendar = habits.find(h => h.id === id); renderCalendar(); document.getElementById('calendar-modal').classList.remove('hidden'); }
@@ -1068,22 +1038,11 @@ async function saveStock() {
     }
 
     try {
-        const { error } = await supabaseClient.from('stocks').insert([{
-            id: generateId(),
-            name,
-            buy_price: buyPrice,
-            quantity
-        }]); // Removed user_id
-
-        if (error) throw error;
-
-        alert("Stock added successfully! 💎");
+        stocks.push({ id: generateId(), name, buy_price: buyPrice, quantity });
+        await saveAndSync('stocks', stocks);
         closeStockModal();
-        await fetchInitialData();
-        fetchLivePrices();
     } catch (err) {
         console.error("Save stock failed:", err);
-        alert("Error: " + err.message);
     }
 }
 
@@ -1092,9 +1051,7 @@ async function deleteStock(id) {
     try {
         const { error } = await supabaseClient.from('stocks').delete().eq('id', id);
         if (error) throw error;
-        await fetchInitialData();
-        renderStocks();
-        renderStocksDashboard();
+        await fetchInitialData(); 
     } catch (err) {
         console.error("Delete stock failed:", err);
     }
