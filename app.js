@@ -1106,7 +1106,7 @@ function renderCalendar() {
     document.getElementById('calendar-month-year').innerText = `${new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long' })} ${calendarYear}`;
     for (let i = 0; i < first; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day muted' }));
     for (let d = 1; d <= days; d++) {
-        const dateStr = new Date(calendarYear, calendarMonth, d).toISOString().split('T')[0];
+        const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const isSet = activeHabitForCalendar.completedDates.includes(dateStr);
         const el = document.createElement('div'); el.className = `calendar-day ${isSet ? 'completed' : ''}`;
         el.innerText = d; el.onclick = () => {
