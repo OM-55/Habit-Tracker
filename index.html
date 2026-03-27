@@ -50,30 +50,23 @@
                 <button id="nav-stocks" class="nav-item" onclick="switchView('stocks')">
                     <span class="icon">📈</span> Stocks
                 </button>
-                <div class="mobile-hidden">
-                    <div class="nav-divider"></div>
-                    <button id="nav-money" class="nav-item" onclick="switchView('money')">
-                        <span class="icon">💰</span> Money Planner
-                    </button>
-                    <button id="nav-timeline" class="nav-item" onclick="switchView('timeline')">
-                        <span class="icon">📅</span> Daily Timeline
-                    </button>
-                    <button id="nav-goals" class="nav-item" onclick="switchView('goals')">
-                        <span class="icon">🎯</span> Goals
-                    </button>
-                </div>
-                <button id="nav-analytics" class="nav-item" onclick="switchView('analytics')">
-                    <span class="icon">📊</span> Analytics
+                <button id="nav-expiry" class="nav-item" onclick="switchView('expiry')">
+                    <span class="icon">⏳</span> Expiry Tracker
                 </button>
             </nav>
+
         </aside>
 
         <!-- Overlay for Drawer -->
         <div id="drawer-overlay" class="hidden" onclick="toggleDrawer()"></div>
 
         <main id="app-main">
+            <!-- Priority Alerter (v10.0) -->
+            <div id="priority-alert-container"></div>
+
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view">
+
                 <div class="dashboard-grid">
                     <div class="dashboard-card glass-card">
                         <div class="card-header"><h3>Daily Rituals</h3></div>
@@ -112,26 +105,6 @@
                     </div>
                 </div>
 
-                <!-- NEW MODULES (v42.0) -->
-                <div class="summary-card glass-card">
-                    <div class="card-header"><h3>Money Planner</h3></div>
-                    <div class="summary-list empty-module"></div>
-                </div>
-
-                <div class="summary-card glass-card">
-                    <div class="card-header"><h3>Daily Timeline</h3></div>
-                    <div class="summary-list empty-module"></div>
-                </div>
-
-                <div class="summary-card glass-card">
-                    <div class="card-header"><h3>Goals</h3></div>
-                    <div class="summary-list empty-module"></div>
-                </div>
-
-                <div class="summary-card glass-card">
-                    <div class="card-header"><h3>Graph / Analytics</h3></div>
-                    <div class="summary-list empty-module"></div>
-                </div>
             </section>
 
             <!-- Habits View -->
@@ -254,19 +227,31 @@
         </div>
     </div>
 
-    <!-- NEW PLACEHOLDER VIEWS (v43.0) -->
-    <section id="money-view" class="view hidden">
-        <div class="empty-placeholder"><h3>Money Planner</h3><p>Coming Soon</p></div>
+    <!-- Expiry Tracker View -->
+    <section id="expiry-view" class="view hidden">
+        <div class="header-top">
+            <h2>Expiry Tracker</h2>
+            <button class="circular-plus" onclick="openExpiryModal()">+</button>
+        </div>
+        <div id="expiry-list" class="content-stack"></div>
     </section>
-    <section id="timeline-view" class="view hidden">
-        <div class="empty-placeholder"><h3>Daily Timeline</h3><p>Coming Soon</p></div>
-    </section>
-    <section id="goals-view" class="view hidden">
-        <div class="empty-placeholder"><h3>Goals</h3><p>Coming Soon</p></div>
-    </section>
-    <section id="analytics-view" class="view hidden">
-        <div class="empty-placeholder"><h3>Analytics</h3><p>Coming Soon</p></div>
-    </section>
+
+
+
+    <!-- Modals (Expiry) -->
+    <div id="expiry-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>Add Expiry Item</h3>
+            <div class="input-group">
+                <input type="text" id="exp-name" placeholder="Item Name (e.g., Tomato)" class="full-input">
+                <input type="number" id="exp-days" placeholder="Days until expiry" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeExpiryModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveExpiryItem()">Save</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Bottom Navigation (Mobile Only) -->
     <nav id="bottom-nav" class="mobile-nav">
@@ -286,7 +271,12 @@
             <span class="nav-icon">🔔</span>
             <span class="nav-label">Reminders</span>
         </button>
+        <button class="bottom-nav-item" onclick="switchView('expiry')">
+            <span class="nav-icon">⏳</span>
+            <span class="nav-label">Expiry</span>
+        </button>
     </nav>
+
 
     <script src="app.js"></script>
     <!-- Stock Modal (v30.0) -->

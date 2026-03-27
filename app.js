@@ -43,6 +43,8 @@ let activeHabitForCalendar = null;
 let currentView = 'dashboard';
 let selectedDay = "";
 let editMode = false;
+let expiryItems = []; // v50.0 NEW
+
 
 async function renameHabit(id, oldName) {
     const newName = prompt("Enter new ritual name:", oldName);
@@ -150,6 +152,7 @@ function navigate(view) {
 
     if (view === 'reminders') renderFullReminders();
     if (view === 'dashboard') renderDashboard();
+    if (view === 'expiry') renderExpiryTracker();
     
     currentView = view;
 }
@@ -162,12 +165,21 @@ async function fetchInitialData() {
         const { data: m, error: mErr } = await supabaseClient.from('manual_stats').select('*').eq('user_id', USER_ID);
         const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
         const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*');
+        const { data: e, error: eErr } = await supabaseClient.from('expiry_items').select('*').eq('user_id', USER_ID);
 
         if (hErr) console.error("Rituals fetch error:", hErr);
         if (aErr) console.error("Attendance fetch error:", aErr);
         if (mErr) console.error("ManualStats fetch error:", mErr);
         if (rErr) console.error("Reminders fetch error:", rErr);
         if (sErr) console.error("Stocks fetch error:", sErr);
+        if (eErr) console.error("Expiry fetch error:", eErr);
+
+        if (e) expiryItems = e.map(x => ({
+            id: x.id,
+            name: x.name,
+            initialDays: parseInt(x.days_left),
+            createdAt: x.created_at
+        }));
 
         if (s) stocks = s.map(x => ({
             id: x.id,
@@ -209,6 +221,7 @@ async function fetchInitialData() {
         renderHabits();
         renderAttendanceSummary();
         renderReminders();
+        renderExpiryTracker();
         renderDashboard();
         
         // Initial Price Fetch
@@ -264,6 +277,7 @@ function switchView(view) {
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
     if (view === 'reminders') renderFullReminders();
+    if (view === 'expiry') renderExpiryTracker();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
 }
@@ -281,6 +295,8 @@ function handleAdd() {
         openReminderModal();
     } else if (view === 'stocks') {
         openStockModal();
+    } else if (view === 'expiry') {
+        openExpiryModal();
     } else {
         console.log("Defaulting to openModal");
         openModal();
@@ -326,6 +342,24 @@ function selectDay(day) {
 
 // --- Dashboard ---
 function renderDashboard() {
+    const alertContainer = document.getElementById('priority-alert-container');
+    if (alertContainer) {
+        alertContainer.innerHTML = '';
+        const expired = expiryItems.filter(item => calculateDaysLeft(item.createdAt, item.initialDays) === 0);
+        if (expired.length > 0) {
+            const alertCard = document.createElement('div');
+            alertCard.className = 'priority-alert-card';
+            alertCard.innerHTML = `
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-content">
+                    <strong>Expiry Alert</strong>
+                    <p>${expired.map(i => i.name).join(', ')} expired today</p>
+                </div>
+            `;
+            alertContainer.appendChild(alertCard);
+        }
+    }
+
     const hList = document.getElementById('habits-preview-list');
     if (hList) {
         hList.innerHTML = '';
@@ -773,6 +807,106 @@ async function deleteReminder(id) {
         console.error("Delete reminder failed:", err);
     }
 }
+
+// --- Expiry Tracker (v50.0) ---
+function calculateDaysLeft(createdAtStr, initialDays) {
+    const created = new Date(createdAtStr);
+    const now = new Date();
+    const diffTime = now - created;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, initialDays - diffDays);
+}
+
+function renderExpiryTracker() {
+    const list = document.getElementById('expiry-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (expiryItems.length === 0) {
+        list.innerHTML = '<div class="empty-state-modern">No items tracked. Add your first item!</div>';
+        return;
+    }
+
+    expiryItems.forEach(item => {
+        const daysLeft = calculateDaysLeft(item.createdAt, item.initialDays);
+        let statusClass = 'status-normal';
+        if (daysLeft === 1) statusClass = 'status-warning';
+        if (daysLeft === 0) statusClass = 'status-expired';
+
+        const card = document.createElement('div');
+        card.className = `expiry-card glass-card ${statusClass}`;
+        card.innerHTML = `
+            <div class="exp-info">
+                <span class="exp-name">${item.name}</span>
+                <span class="exp-days">${daysLeft} days left</span>
+            </div>
+            <div class="exp-status-badge">${daysLeft === 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
+            <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+            </button>
+        `;
+        list.appendChild(card);
+    });
+}
+
+function openExpiryModal() {
+    console.log("Opening Expiry Modal");
+    const modal = document.getElementById('expiry-modal');
+    if (!modal) {
+        console.error("Expiry modal not found in DOM");
+        return;
+    }
+    document.getElementById('exp-name').value = '';
+    document.getElementById('exp-days').value = '';
+    modal.classList.remove('hidden');
+    modal.classList.add('visible');
+}
+
+function closeExpiryModal() {
+    console.log("Closing Expiry Modal");
+    const modal = document.getElementById('expiry-modal');
+    if (modal) {
+        modal.classList.remove('visible');
+        modal.classList.add('hidden');
+    }
+}
+
+async function saveExpiryItem() {
+    const name = document.getElementById('exp-name').value.trim();
+    const days = parseInt(document.getElementById('exp-days').value);
+
+    if (!name || isNaN(days)) return;
+
+    try {
+        const newItem = {
+            id: generateId(),
+            user_id: USER_ID,
+            name: name,
+            days_left: days,
+            created_at: new Date().toISOString()
+        };
+
+        const { error } = await supabaseClient.from('expiry_items').insert([newItem]);
+        if (error) throw error;
+
+        await fetchInitialData();
+        closeExpiryModal();
+    } catch (err) {
+        console.error("Save expiry item failed:", err);
+    }
+}
+
+async function deleteExpiryItem(id) {
+    if (!confirm("Are you sure?")) return;
+    try {
+        const { error } = await supabaseClient.from('expiry_items').delete().eq('id', id);
+        if (error) throw error;
+        await fetchInitialData();
+    } catch (err) {
+        console.error("Delete expiry failed:", err);
+    }
+}
+
 
 // --- Common ---
 function calculateStreak(h) {

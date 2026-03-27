@@ -1396,10 +1396,11 @@ input:checked + .toggle-slider:before {
         overflow: visible !important; /* Prevent internal scroll */
     }
 
-    /* 5. HIDE BOTTOM NAVIGATION (v46.0) */
+    /* 5. MOBILE NAVIGATION (RE-ENABLED v50.0) */
     #bottom-nav, .mobile-nav {
-        display: none !important;
+        display: flex !important;
     }
+
 
     .mobile-hidden {
         display: none !important;
@@ -1488,4 +1489,80 @@ input:checked + .toggle-slider:before {
         min-width: 44px;
     }
 }
+
+/* Expiry Tracker UI (v50.0) */
+.expiry-card {
+    display: flex;
+    align-items: center;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    justify-content: space-between;
+    transition: transform 0.2s ease;
+}
+
+.expiry-card:active { transform: scale(0.98); }
+
+.exp-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.exp-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.exp-days {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.exp-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.status-normal .exp-status-badge { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+.status-warning .exp-status-badge { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #fbbf24; }
+.status-expired .exp-status-badge { background: rgba(248, 113, 113, 0.3); color: #f87171; border: 1px solid #f87171; }
+
+.status-expired {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.1), rgba(0,0,0,0.1)) !important;
+    border-left: 4px solid #f87171 !important;
+}
+
+/* Priority Alert Card */
+#priority-alert-container {
+    padding: 1rem 1rem 0 1rem;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.priority-alert-card {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: white;
+    padding: 1.2rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 10px 20px rgba(255, 75, 43, 0.3);
+    animation: slideDown 0.5s ease-out;
+    margin-bottom: 1rem;
+}
+
+.priority-alert-card .alert-icon { font-size: 1.5rem; }
+.priority-alert-card strong { font-size: 1.1rem; display: block; }
+.priority-alert-card p { font-size: 0.9rem; opacity: 0.9; margin-top: 2px; }
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
 
