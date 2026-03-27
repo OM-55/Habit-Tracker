@@ -273,6 +273,17 @@ function switchView(view) {
         else globalActions.classList.add('hidden');
     }
     
+    // 5a. Conditional Header "+" Button (v60.0)
+    const headerAddBtn = document.getElementById('header-add-btn');
+    if (headerAddBtn) {
+        const allowedViews = ['habits', 'reminders', 'stocks', 'expiry'];
+        if (allowedViews.includes(view)) {
+            headerAddBtn.classList.remove('hidden');
+        } else {
+            headerAddBtn.classList.add('hidden');
+        }
+    }
+    
     // 6. Refresh Data
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
@@ -678,10 +689,15 @@ async function saveReminder() {
     const date = document.getElementById('rem-date').value;
     if (!title || !date) return;
     
-    // Explicit Supabase Insert (v46.0: Use consolidated sync)
-    reminders.push({ id: generateId(), title, date, completed: false });
-    await saveAndSync('reminders', reminders);
+    const newRem = { id: generateId(), title, date, completed: false };
+    reminders.push(newRem);
+    
+    // Render immediately for UX
+    renderFullReminders();
+    renderReminders();
+    
     closeReminderModal();
+    await saveAndSync('reminders', reminders);
 }
 
 function renderReminders() {
@@ -723,60 +739,87 @@ function formatDate(ds) {
 }
 
 function renderFullReminders() {
-    const list = document.getElementById('full-reminders-list');
-    if (!list) return;
-    list.innerHTML = '';
+    const activeList = document.getElementById('full-reminders-list');
+    const completedList = document.getElementById('completed-reminders-list');
+    const completedSection = document.getElementById('completed-reminders-section');
+    
+    if (!activeList || !completedList) return;
+    
+    activeList.innerHTML = '';
+    completedList.innerHTML = '';
     
     const todayStr = new Date().toLocaleDateString('en-CA');
-    
     const activeReminders = reminders.filter(r => !r.completed);
     const completedReminders = reminders.filter(r => r.completed);
     
+    // Active Sections
     const todayReminders = activeReminders.filter(r => r.date === todayStr);
     const upcomingReminders = activeReminders.filter(r => r.date > todayStr).sort((a, b) => new Date(a.date) - new Date(b.date));
     const backlogReminders = activeReminders.filter(r => r.date < todayStr).sort((a, b) => new Date(a.date) - new Date(b.date));
     
-    const renderSection = (title, items, icon) => {
-        if (items.length === 0) return;
-        
-        const section = document.createElement('div');
-        section.className = 'reminders-section';
-        section.innerHTML = `<h3>${icon} ${title}</h3>`;
-        
+    const renderItems = (items, container) => {
         items.forEach(rem => {
             const card = document.createElement('div');
             card.className = `reminder-card-modern ${rem.completed ? 'completed' : ''}`;
             card.id = `rem-card-${rem.id}`;
-            
             card.innerHTML = `
                 <div class="rem-content-main">
                     <span class="rem-title-modern">${rem.title}</span>
                     <span class="rem-date-modern">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 2v4M8 2v4M3 10h18"></path></svg>
                         ${formatDate(rem.date)}
                     </span>
                 </div>
                 <div class="rem-actions-modern">
-                    <button class="rem-btn complete-btn ${rem.completed ? 'completed-active' : ''}" onclick="toggleReminder('${rem.id}')" title="Toggle Complete">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                    <button class="rem-btn complete-btn ${rem.completed ? 'completed-active' : ''}" onclick="toggleReminder('${rem.id}')">
+                        ✓
                     </button>
-                    <button class="rem-btn delete-btn-modern" onclick="deleteReminder('${rem.id}')" title="Delete">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                    <button class="rem-btn delete-btn-modern" onclick="deleteReminder('${rem.id}')">
+                        ✕
                     </button>
                 </div>
             `;
-            section.appendChild(card);
+            container.appendChild(card);
         });
-        list.appendChild(section);
     };
 
-    if (backlogReminders.length > 0) renderSection('Overdue', backlogReminders, '⚠️');
-    renderSection('Today', todayReminders, '📅');
-    renderSection('Upcoming', upcomingReminders, '🚀');
-    renderSection('Completed', completedReminders.sort((a,b) => new Date(b.date) - new Date(a.date)), '✅');
+    if (backlogReminders.length > 0) {
+        const h = document.createElement('h3'); h.className = 'rem-section-title'; h.innerText = '⚠️ Overdue';
+        activeList.appendChild(h);
+        renderItems(backlogReminders, activeList);
+    }
+    if (todayReminders.length > 0) {
+        const h = document.createElement('h3'); h.className = 'rem-section-title'; h.innerText = '📅 Today';
+        activeList.appendChild(h);
+        renderItems(todayReminders, activeList);
+    }
+    if (upcomingReminders.length > 0) {
+        const h = document.createElement('h3'); h.className = 'rem-section-title'; h.innerText = '🚀 Upcoming';
+        activeList.appendChild(h);
+        renderItems(upcomingReminders, activeList);
+    }
+
+    // Completed Section
+    if (completedReminders.length > 0) {
+        completedSection.classList.remove('hidden');
+        renderItems(completedReminders.sort((a,b) => new Date(b.date) - new Date(a.date)), completedList);
+    } else {
+        completedSection.classList.add('hidden');
+    }
 
     if (reminders.length === 0) {
-        list.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--text-dim);">No reminders yet. Tap + to add one.</div>';
+        activeList.innerHTML = '<div class="empty-msg">No reminders yet.</div>';
+    }
+}
+
+function toggleCompletedReminders() {
+    const list = document.getElementById('completed-reminders-list');
+    const icon = document.getElementById('completed-toggle-icon');
+    if (list.classList.contains('hidden')) {
+        list.classList.remove('hidden');
+        icon.innerText = '▼';
+    } else {
+        list.classList.add('hidden');
+        icon.innerText = '▶';
     }
 }
 
@@ -913,6 +956,11 @@ function calculateStreak(h) {
     let s = 0; let d = new Date(); const today = d.toISOString().split('T')[0];
     if (!h.completedDates.includes(today)) d.setDate(d.getDate()-1);
     while (h.completedDates.includes(d.toISOString().split('T')[0])) { s++; d.setDate(d.getDate()-1); }
+    
+    // Update Best Streak
+    if (!h.bestStreak || s > h.bestStreak) {
+        h.bestStreak = s;
+    }
     return s;
 }
 
@@ -924,22 +972,31 @@ function renderHabits() {
     
     habits.forEach(h => {
         const isDone = h.completedDates.includes(today);
+        const currentStreak = calculateStreak(h);
         const card = document.createElement('div'); 
         card.className = `habit-card glass-card ${isDone ? 'completed' : ''}`;
         card.innerHTML = `
             <div class="habit-card-header" style="gap: 15px;">
-                <div class="habit-info" onclick="renameHabit('${h.id}', '${h.name}')" style="cursor: pointer;">
+                <div class="habit-info" onclick="openModal('${h.id}')" style="cursor: pointer;">
                     <h3 id="name-${h.id}">${h.name}</h3>
                     <div class="habit-meta">
                         <span class="habit-goal">${h.goal || ''}</span>
                     </div>
-                    <div class="habit-streak">
-                        <span class="streak-icon">🔥</span>
-                        <span class="streak-val">${calculateStreak(h)} day streak</span>
+                    <div class="streak-badges">
+                        <div class="habit-streak glass-badge">
+                            <span class="streak-icon">🔥</span>
+                            <span class="streak-val">${currentStreak} Curr</span>
+                        </div>
+                        <div class="habit-streak glass-badge best-streak">
+                            <span class="streak-icon">⭐</span>
+                            <span class="streak-val">${h.bestStreak || currentStreak} Best</span>
+                        </div>
+                        <button class="edit-streak-btn" onclick="event.stopPropagation(); manualEditStreak('${h.id}')">✎</button>
                     </div>
                 </div>
             </div>
             <div class="habit-actions">
+                <button class="calendar-btn" onclick="event.stopPropagation(); openCalendarFor('${h.id}')">📅</button>
                 <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
                     <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
                 </div>
@@ -963,6 +1020,8 @@ async function toggleHabit(id) {
     }
     
     await saveAndSync('rituals', habits);
+    renderHabits();
+    renderDashboard();
 }
 
 function updateStats() {
@@ -1227,5 +1286,16 @@ async function deleteStock(id) {
         await fetchInitialData(); 
     } catch (err) {
         console.error("Delete stock failed:", err);
+    }
+}
+
+async function manualEditStreak(id) {
+    const h = habits.find(x => x.id === id);
+    if (!h) return;
+    const newVal = prompt(`Edit streak for "${h.name}":`, h.bestStreak || calculateStreak(h));
+    if (newVal !== null && !isNaN(newVal)) {
+        h.bestStreak = parseInt(newVal);
+        await saveAndSync('rituals', habits);
+        renderHabits();
     }
 }

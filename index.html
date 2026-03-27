@@ -20,7 +20,7 @@
         <button id="menu-toggle" onclick="toggleDrawer()">☰</button>
         <h1 id="page-title">Dashboard</h1>
         <div class="header-right">
-            <button class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
+            <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
             <button class="header-icon-btn" onclick="handleMenu()"><span>⋮</span></button>
             <button class="header-icon-btn" onclick="handleEdit()"><span>✎</span></button>
         </div>
@@ -168,6 +168,10 @@
                 </div>
                 <div class="reminders-container" style="position: relative; min-height: 400px;">
                     <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
+                    <div id="completed-reminders-section" class="reminders-section hidden">
+                        <h3 onclick="toggleCompletedReminders()" style="cursor: pointer;">✅ Completed <span id="completed-toggle-icon">▼</span></h3>
+                        <div id="completed-reminders-list" class="content-stack"></div>
+                    </div>
                 </div>
             </section>
             <!-- Stocks View (v30.0) -->

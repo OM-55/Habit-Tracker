@@ -590,16 +590,64 @@ input:checked + .toggle-slider:before {
 .habit-info p { font-size: 0.9rem; color: var(--text-dim); }
 
 .habit-streak { 
-    font-size: 1rem; 
+    font-size: 0.85rem; 
     font-weight: 600; 
     color: var(--primary); 
     display: flex; 
     align-items: center; 
-    gap: 0.5rem;
+    gap: 0.4rem;
     background: rgba(99, 102, 241, 0.1);
-    padding: 0.4rem 1rem;
+    padding: 0.3rem 0.8rem;
     border-radius: 100px;
-    width: fit-content; /* Shorter as requested */
+    width: fit-content;
+}
+
+.streak-badges {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.glass-badge {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px;
+    padding: 0.3rem 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-white);
+    transition: var(--transition);
+}
+
+.best-streak {
+    border-color: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+}
+
+.edit-streak-btn, .calendar-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.edit-streak-btn:hover, .calendar-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.1);
 }
 
 /* Attendance View Restoration (Ultimate v38.0) */
@@ -902,15 +950,23 @@ input:checked + .toggle-slider:before {
 }
 
 .reminders-section h3 {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--text-dim);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 1.2rem;
+    letter-spacing: 1.5px;
+    margin: 2rem 0 1rem 0;
     display: flex;
     align-items: center;
     gap: 0.8rem;
+}
+
+.rem-section-title {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 1.5rem 0 0.8rem 0;
 }
 
 .reminders-section h3::after {
