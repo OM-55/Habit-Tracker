@@ -693,50 +693,75 @@ function renderFullReminders() {
     if (!list) return;
     list.innerHTML = '';
     
-    const active = reminders.filter(r => !r.completed).sort((a, b) => new Date(a.date) - new Date(b.date));
-    active.forEach(rem => {
-        const div = document.createElement('div');
-        div.className = 'reminder-item full-width-rem';
-        div.innerHTML = `
-            <div class="rem-left">
-                <input type="checkbox" onchange="completeReminder('${rem.id}')" class="rem-check">
-                <div class="rem-info">
-                    <span class="rem-date">${formatDate(rem.date)}</span>
-                    <span class="rem-title">${rem.title}</span>
-                </div>
-            </div>
-            <button class="delete-btn" onclick="deleteReminder('${rem.id}')">×</button>
-        `;
-        list.appendChild(div);
-    });
-}
-
-function renderPastReminders() {
-    const list = document.getElementById('full-reminders-list');
-    if (!list) return;
-    list.innerHTML = `<div class="card-header" style="margin-bottom:1rem"><h3>Past Reminders</h3></div>`;
+    const todayStr = new Date().toLocaleDateString('en-CA');
     
-    const past = reminders.filter(r => r.completed).sort((a, b) => new Date(b.date) - new Date(a.date));
-    past.forEach(rem => {
-        const div = document.createElement('div');
-        div.className = 'reminder-item full-width-rem completed';
-        div.innerHTML = `
-            <div class="rem-info">
-                <span class="rem-date">${formatDate(rem.date)}</span>
-                <span class="rem-title" style="text-decoration:line-through">${rem.title}</span>
-            </div>
-            <button class="delete-btn" onclick="deleteReminder('${rem.id}')">×</button>
-        `;
-        list.appendChild(div);
-    });
+    const activeReminders = reminders.filter(r => !r.completed);
+    const completedReminders = reminders.filter(r => r.completed);
+    
+    const todayReminders = activeReminders.filter(r => r.date === todayStr);
+    const upcomingReminders = activeReminders.filter(r => r.date > todayStr).sort((a, b) => new Date(a.date) - new Date(b.date));
+    const backlogReminders = activeReminders.filter(r => r.date < todayStr).sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    const renderSection = (title, items, icon) => {
+        if (items.length === 0) return;
+        
+        const section = document.createElement('div');
+        section.className = 'reminders-section';
+        section.innerHTML = `<h3>${icon} ${title}</h3>`;
+        
+        items.forEach(rem => {
+            const card = document.createElement('div');
+            card.className = `reminder-card-modern ${rem.completed ? 'completed' : ''}`;
+            card.id = `rem-card-${rem.id}`;
+            
+            card.innerHTML = `
+                <div class="rem-content-main">
+                    <span class="rem-title-modern">${rem.title}</span>
+                    <span class="rem-date-modern">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zM16 2v4M8 2v4M3 10h18"></path></svg>
+                        ${formatDate(rem.date)}
+                    </span>
+                </div>
+                <div class="rem-actions-modern">
+                    <button class="rem-btn complete-btn ${rem.completed ? 'completed-active' : ''}" onclick="toggleReminder('${rem.id}')" title="Toggle Complete">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"></path></svg>
+                    </button>
+                    <button class="rem-btn delete-btn-modern" onclick="deleteReminder('${rem.id}')" title="Delete">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                    </button>
+                </div>
+            `;
+            section.appendChild(card);
+        });
+        list.appendChild(section);
+    };
+
+    if (backlogReminders.length > 0) renderSection('Overdue', backlogReminders, '⚠️');
+    renderSection('Today', todayReminders, '📅');
+    renderSection('Upcoming', upcomingReminders, '🚀');
+    renderSection('Completed', completedReminders.sort((a,b) => new Date(b.date) - new Date(a.date)), '✅');
+
+    if (reminders.length === 0) {
+        list.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--text-dim);">No reminders yet. Tap + to add one.</div>';
+    }
 }
 
-async function completeReminder(id) {
+async function toggleReminder(id) {
     const rem = reminders.find(r => r.id === id);
-    if (rem) rem.completed = true;
-    saveAndSync('reminders', reminders);
-    renderReminders();
-    renderFullReminders();
+    if (!rem) return;
+    
+    const card = document.getElementById(`rem-card-${id}`);
+    if (card) {
+        card.style.transform = "scale(0.95)";
+        card.style.opacity = "0.5";
+    }
+
+    setTimeout(async () => {
+        rem.completed = !rem.completed;
+        await saveAndSync('reminders', reminders);
+        renderFullReminders();
+        renderReminders();
+    }, 200);
 }
 
 async function deleteReminder(id) {
