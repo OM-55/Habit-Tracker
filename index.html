@@ -181,8 +181,15 @@
                     <button class="add-stock-btn" onclick="openStockModal()">+ Add Stock</button>
                 </header>
             <div id="stocks-list" class="stocks-grid"></div>
-        </section>
-    </div>
+            <!-- Expiry Tracker View -->
+            <section id="expiry-view" class="view hidden">
+                <div class="header-top">
+                    <h2>Expiry Tracker</h2>
+                    <button class="circular-plus" onclick="openExpiryModal()">+</button>
+                </div>
+                <div id="expiry-list" class="content-stack"></div>
+            </section>
+        </main>
 
     <!-- Modals (Habit) -->
     <div id="habit-modal" class="modal hidden">
@@ -227,14 +234,6 @@
         </div>
     </div>
 
-    <!-- Expiry Tracker View -->
-    <section id="expiry-view" class="view hidden">
-        <div class="header-top">
-            <h2>Expiry Tracker</h2>
-            <button class="circular-plus" onclick="openExpiryModal()">+</button>
-        </div>
-        <div id="expiry-list" class="content-stack"></div>
-    </section>
 
 
 
