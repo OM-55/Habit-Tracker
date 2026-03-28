@@ -999,6 +999,20 @@ input:checked + .toggle-slider:before {
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.reminder-today-highlight {
+    border-left: 3px solid var(--primary) !important;
+    background: rgba(99, 102, 241, 0.08) !important;
+    padding-left: 8px;
+}
+.urgent-highlight {
+    border: 1px solid var(--primary) !important;
+    background: rgba(99, 102, 241, 0.08) !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15) !important;
+}
+.reminder-card-modern {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;

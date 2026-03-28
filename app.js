@@ -816,32 +816,55 @@ async function saveReminder() {
 }
 
 function renderReminders() {
-    const list = document.getElementById('dashboard-reminders') || document.getElementById('reminders-list');
-    if (!list) return;
-    list.innerHTML = '';
+    const dashList = document.getElementById('dashboard-reminders');
+    if (!dashList) return;
+    dashList.innerHTML = '';
     
-    // Sort ascending
-    const sorted = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const todayStr = new Date().toISOString().split('T')[0];
+    const activeReminders = reminders.filter(r => !r.completed);
     
-    const activeReminders = sorted.filter(r => !r.completed);
-    activeReminders.forEach(rem => {
+    // Check priority
+    const hasToday = activeReminders.some(r => r.date <= todayStr);
+    const remCard = document.getElementById('dashboard-reminder-card');
+    if (remCard) {
+        if (hasToday) {
+            remCard.style.order = '-2';
+        } else {
+            remCard.style.order = '4'; // fallback position matching initial CSS order approx
+        }
+    }
+
+    if (activeReminders.length === 0) {
+        dashList.innerHTML = '<div class="empty-msg" style="padding:1rem 0; font-size:0.9rem; color:var(--text-dim);">No pending reminders</div>';
+        return;
+    }
+    
+    // Sort logic for Dashboard: Today/Overdue first, then upcoming
+    const sorted = [...activeReminders].sort((a,b) => {
+        const aUrgent = a.date <= todayStr;
+        const bUrgent = b.date <= todayStr;
+        if (aUrgent && !bUrgent) return -1;
+        if (!aUrgent && bUrgent) return 1;
+        return new Date(a.date) - new Date(b.date);
+    });
+
+    sorted.slice(0, 4).forEach(rem => {
+        const isToday = rem.date <= todayStr;
         const div = document.createElement('div');
-        div.className = 'reminder-item';
+        div.className = `reminder-item ${isToday ? 'reminder-today-highlight' : ''}`;
         div.id = `rem-card-${rem.id}`;
+        
         div.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
-                <span class="rem-title" style="font-weight:600;">${rem.title}</span>
-                <span class="rem-date" style="align-self:flex-start;">${formatDate(rem.date)}</span>
+                <span class="rem-title" style="font-weight:600; color:${isToday ? 'var(--primary)' : 'var(--text-color)'};">${rem.title}</span>
+                <span class="rem-date" style="align-self:flex-start; font-size:0.8rem; color:${isToday ? 'var(--primary)' : 'var(--text-dim)'}; opacity:${isToday ? '0.8' : '1'};">${isToday ? '⚠ ' : ''}${formatDate(rem.date)}</span>
             </div>
             <div style="display:flex; gap:8px;">
-                <button class="rem-btn complete-btn" onclick="toggleReminder('${rem.id}')" title="Complete">✓</button>
-                <button class="rem-btn delete-btn-modern" onclick="deleteReminder('${rem.id}')" title="Delete" style="padding:6px;">✕</button>
+                <button class="rem-btn complete-btn" onclick="toggleReminder('${rem.id}')" title="Complete" style="${isToday ? 'border-color:var(--primary);color:var(--primary);' : ''}">✓</button>
             </div>
         `;
-        list.appendChild(div);
+        dashList.appendChild(div);
     });
-    
-    if (activeReminders.length === 0) list.innerHTML = '<div class="empty-msg" style="padding:1rem 0; font-size:0.9rem; color:var(--text-dim);">No pending reminders</div>';
 }
 
 function formatDate(ds) {
@@ -863,29 +886,28 @@ function renderFullReminders() {
     activeList.innerHTML = '';
     completedList.innerHTML = '';
     
-    const todayStr = new Date().toLocaleDateString('en-CA');
+    const todayStr = new Date().toISOString().split('T')[0];
     const activeReminders = reminders.filter(r => !r.completed);
     const completedReminders = reminders.filter(r => r.completed);
     
-    // Active Sections
     const todayReminders = activeReminders.filter(r => r.date === todayStr);
     const upcomingReminders = activeReminders.filter(r => r.date > todayStr).sort((a, b) => new Date(a.date) - new Date(b.date));
     const backlogReminders = activeReminders.filter(r => r.date < todayStr).sort((a, b) => new Date(a.date) - new Date(b.date));
     
-    const renderItems = (items, container) => {
+    const renderItems = (items, container, isHighlight = false) => {
         items.forEach(rem => {
             const card = document.createElement('div');
-            card.className = `reminder-card-modern ${rem.completed ? 'completed' : ''}`;
-            card.id = `rem-card-${rem.id}`;
+            card.className = `reminder-card-modern ${rem.completed ? 'completed' : ''} ${isHighlight ? 'urgent-highlight' : ''}`;
+            card.id = `rem-card-full-${rem.id}`;
             card.innerHTML = `
                 <div class="rem-content-main">
-                    <span class="rem-title-modern">${rem.title}</span>
-                    <span class="rem-date-modern">
-                        ${formatDate(rem.date)}
+                    <span class="rem-title-modern" style="${isHighlight ? 'color: var(--primary);' : ''}">${rem.title}</span>
+                    <span class="rem-date-modern" style="${isHighlight ? 'color: var(--primary); opacity:0.8;' : ''}">
+                        ${isHighlight && !rem.completed ? '⚠ ' : ''}${formatDate(rem.date)}
                     </span>
                 </div>
                 <div class="rem-actions-modern">
-                    <button class="rem-btn complete-btn ${rem.completed ? 'completed-active' : ''}" onclick="toggleReminder('${rem.id}')">
+                    <button class="rem-btn complete-btn ${rem.completed ? 'completed-active' : ''}" onclick="toggleReminder('${rem.id}')" style="${isHighlight && !rem.completed ? 'border-color:var(--primary); color:var(--primary);' : ''}">
                         ✓
                     </button>
                     <button class="rem-btn delete-btn-modern" onclick="deleteReminder('${rem.id}')">
@@ -900,29 +922,28 @@ function renderFullReminders() {
     if (backlogReminders.length > 0) {
         const h = document.createElement('h3'); h.className = 'rem-section-title'; h.innerText = '⚠️ Overdue';
         activeList.appendChild(h);
-        renderItems(backlogReminders, activeList);
+        renderItems(backlogReminders, activeList, true);
     }
     if (todayReminders.length > 0) {
         const h = document.createElement('h3'); h.className = 'rem-section-title'; h.innerText = '📅 Today';
         activeList.appendChild(h);
-        renderItems(todayReminders, activeList);
+        renderItems(todayReminders, activeList, true);
     }
     if (upcomingReminders.length > 0) {
         const h = document.createElement('h3'); h.className = 'rem-section-title'; h.innerText = '🚀 Upcoming';
         activeList.appendChild(h);
-        renderItems(upcomingReminders, activeList);
+        renderItems(upcomingReminders, activeList, false);
     }
 
-    // Completed Section
     if (completedReminders.length > 0) {
         completedSection.classList.remove('hidden');
-        renderItems(completedReminders.sort((a,b) => new Date(b.date) - new Date(a.date)), completedList);
+        renderItems(completedReminders.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 15), completedList, false);
     } else {
         completedSection.classList.add('hidden');
     }
 
-    if (reminders.length === 0) {
-        activeList.innerHTML = '<div class="empty-msg">No reminders yet.</div>';
+    if (activeReminders.length === 0) {
+        activeList.innerHTML = '<div class="empty-state-modern">No pending reminders here.</div>';
     }
 }
 
@@ -942,17 +963,24 @@ async function toggleReminder(id) {
     const rem = reminders.find(r => r.id === id);
     if (!rem) return;
     
-    const card = document.getElementById(`rem-card-${id}`);
-    if (card) {
-        card.style.transform = "scale(0.95)";
-        card.style.opacity = "0.5";
+    const cardDash = document.getElementById(`rem-card-${id}`);
+    const cardFull = document.getElementById(`rem-card-full-${id}`);
+    
+    if (cardDash) {
+        cardDash.style.transform = "scale(0.95)";
+        cardDash.style.opacity = "0";
+    }
+    if (cardFull) {
+        cardFull.style.transform = "scale(0.95)";
+        cardFull.style.opacity = "0";
     }
 
     setTimeout(async () => {
         rem.completed = !rem.completed;
         await saveAndSync('reminders', reminders);
         renderReminders();
-    }, 200);
+        renderFullReminders();
+    }, 250);
 }
 
 async function deleteReminder(id) {
