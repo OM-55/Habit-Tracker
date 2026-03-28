@@ -315,7 +315,7 @@ html, body {
     align-items: stretch;
 }
 
-.dashboard-card {
+.dashboard-card, .summary-card {
     min-height: auto !important;
     max-height: 280px !important;
     display: flex;
@@ -325,10 +325,14 @@ html, body {
 }
 
 .dashboard-card .ritual-cards-container, 
-.dashboard-card .summary-list {
+.dashboard-card .summary-list,
+.dashboard-card .preview-list {
     flex: 1;
     overflow-y: auto;
     padding-right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 /* Custom scrollbar for cards */
@@ -383,15 +387,15 @@ html, body {
 .ritual-cards-container {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 1rem;
+    gap: 6px; /* Tighten */
+    margin-bottom: 0.5rem;
 }
 
 .ritual-card-mini {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.2rem;
+    padding: 0.6rem 0.8rem;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
@@ -672,21 +676,26 @@ input:checked + .toggle-slider:before {
 /* Attendance View Restoration (v61.0 Split Layout) */
 #attendance-view .content-stack {
     display: grid !important;
-    grid-template-columns: 1fr 380px !important;
-    gap: 1.5rem !important;
-    height: calc(100vh - 140px) !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2rem !important;
+    height: calc(100vh - 120px) !important;
     align-items: stretch !important;
 }
 
 #class-tracker-wrapper {
-    overflow: visible !important;
+    height: 100%;
 }
 
 .attendance-tracker-card {
-    position: sticky !important;
-    top: 0 !important;
-    height: fit-content !important;
-    padding: 1.5rem !important;
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+}
+
+#subjects-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
 #attendance-summary {
@@ -842,21 +851,20 @@ input:checked + .toggle-slider:before {
 
 /* Reminders Styling */
 .reminders-card { border-left: 4px solid var(--primary); }
-.summary-card {
-    min-height: auto !important;
-    max-height: 280px !important;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 0 !important;
-    overflow: hidden;
-}
-
 .summary-list {
     flex-grow: 1;
-    overflow-y: visible; /* Remove nested scroll v10.0 */
-    padding-right: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
+.summary-list::-webkit-scrollbar,
+.preview-list::-webkit-scrollbar,
+.ritual-cards-container::-webkit-scrollbar { width: 4px; }
+.summary-list::-webkit-scrollbar-thumb,
+.preview-list::-webkit-scrollbar-thumb,
+.ritual-cards-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 .reminder-item {
     display: flex;
     align-items: center;
@@ -1258,17 +1266,36 @@ input:checked + .toggle-slider:before {
     .view .header-top, .view .section-header {
         display: none !important;
     }
-.add-stock-btn {
+.fab-btn {
+    position: fixed;
+    bottom: 2.5rem;
+    right: 2.5rem;
+    width: 64px;
+    height: 64px;
     background: var(--primary);
     color: white;
+    border-radius: 50%;
     border: none;
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
-    font-weight: 600;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px var(--primary-glow);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+    line-height: 0.9;
+    z-index: 100;
 }
-.add-stock-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+.fab-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 15px 35px var(--primary-glow);
+}
+.fab-btn:active {
+    transform: scale(0.95);
+}
+@media (max-width: 768px) {
+    .fab-btn { bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; font-size: 2.2rem; }
+}
 
 .stocks-grid {
     display: grid;

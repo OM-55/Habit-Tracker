@@ -44,8 +44,18 @@ let currentView = 'dashboard';
 let selectedDay = "";
 let editMode = false;
 let expiryItems = []; // v50.0 NEW
+let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
+let editingSubjectOriginalName = null;
 
+function getSubjectDisplayName(sub) {
+    if (customSubjects[sub] && customSubjects[sub].name) return `${customSubjects[sub].name} (${customSubjects[sub].type || 'Session'})`;
+    return sub;
+}
 
+function getSubjectType(sub) {
+    if (customSubjects[sub] && customSubjects[sub].type) return customSubjects[sub].type;
+    return "Standard Session";
+}
 async function renameHabit(id, oldName) {
     const newName = prompt("Enter new ritual name:", oldName);
     if (!newName || newName === oldName) return;
@@ -293,8 +303,6 @@ function switchView(view) {
     // 6. Refresh Data
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
     if (view === 'habits') renderHabits();
-    if (view === 'reminders') renderFullReminders();
-    if (view === 'expiry') renderExpiryTracker();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
 }
@@ -387,16 +395,20 @@ function renderDashboard() {
             activeItems.sort((a,b) => calculateDaysLeft(a.createdAt, a.initialDays) - calculateDaysLeft(b.createdAt, b.initialDays)).slice(0, 3).forEach(item => {
                 const daysLeft = calculateDaysLeft(item.createdAt, item.initialDays);
                 const el = document.createElement('div');
-                el.className = 'ritual-card-mini view-only';
+                el.className = 'ritual-card-mini dashboard-expiry-item';
                 el.style.display = 'flex';
                 el.style.justifyContent = 'space-between';
+                el.style.alignItems = 'center';
                 el.innerHTML = `
-                    <div class="ritual-info">
+                    <div class="ritual-info" style="flex:1;">
                         <span class="ritual-name">${item.name}</span>
                     </div>
-                    <div class="ritual-streak" style="background:${daysLeft === 1 ? 'rgba(251,191,36,0.1)' : 'transparent'}; color:${daysLeft === 1 ? '#fbbf24' : 'var(--text-dim)'}; border:${daysLeft === 1 ? '1px solid rgba(251,191,36,0.3)' : 'none'}; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                    <div class="ritual-streak" style="background:${daysLeft === 1 ? 'rgba(251,191,36,0.1)' : 'transparent'}; color:${daysLeft === 1 ? '#fbbf24' : 'var(--text-dim)'}; border:${daysLeft === 1 ? '1px solid rgba(251,191,36,0.3)' : 'none'}; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-right: 10px;">
                         ${daysLeft} d left
                     </div>
+                    <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')" title="Delete" style="padding:4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                    </button>
                 `;
                 expiryList.appendChild(el);
             });
@@ -444,7 +456,7 @@ function renderDashboard() {
             div.className = 'ritual-card-mini academy-card-mini view-only'; 
             div.innerHTML = `
                 <div class="ritual-info">
-                    <span class="ritual-name">${sub}</span>
+                    <span class="ritual-name">${getSubjectDisplayName(sub)}</span>
                 </div>
                 <div class="habit-streak" style="background:transparent; padding:0; font-size:1rem;">
                     → ${perc}%
@@ -518,9 +530,9 @@ function renderSubjects() {
         div.dataset.subject = sub;
         
         div.innerHTML = `
-            <div class="subject-info">
-                <span class="subject-name">${sub}</span>
-                <span class="subject-slot">Standard Session</span>
+            <div class="subject-info" style="cursor:pointer;" onclick="openClassSubjectModal('${sub}')" title="Click to rename subject">
+                <span class="subject-name">${getSubjectDisplayName(sub)}</span>
+                <span class="subject-slot">${getSubjectType(sub)}</span>
             </div>
             <div class="check-inputs">
                 <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
@@ -624,13 +636,13 @@ function renderAttendanceSummary() {
         const manual = manualStats[sub] || { total: 0, attended: 0 };
         
         card.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-                <strong>${sub}</strong> <span style="color:var(--primary)">${perc}%</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+                <strong>${getSubjectDisplayName(sub)}</strong> <span style="color:var(--primary)">${perc}%</span>
             </div>
-            <div style="font-size:0.9rem;color:var(--text-dim);">
+            <div style="font-size:0.85rem;color:var(--text-dim);">
                 <span>Total: ${stats.total} | Attended: ${stats.attended}</span>
             </div>
-            <div class="progress-bar" style="height:5px;margin-top:1rem;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden">
+            <div class="progress-bar" style="height:4px;margin-top:0.8rem;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden">
                 <div class="progress-fill" style="width:${perc}%;height:100%;transition:0.3s;background:var(--primary)"></div>
             </div>
         `;
@@ -642,6 +654,34 @@ function updateManualStat(sub, type, val) {
     if (!manualStats[sub]) manualStats[sub] = { total: 0, attended: 0 };
     manualStats[sub][type] = parseInt(val) || 0;
     saveAndSync('manual_stats', manualStats); renderAttendanceSummary(); renderDashboard();
+}
+
+function openClassSubjectModal(sub) {
+    editingSubjectOriginalName = sub;
+    const m = document.getElementById('class-subject-modal');
+    if (!m) return;
+    document.getElementById('class-subject-name').value = customSubjects[sub]?.name || sub;
+    document.getElementById('class-subject-type').value = customSubjects[sub]?.type || 'Lecture';
+    m.classList.remove('hidden');
+    m.classList.add('visible');
+}
+
+function closeClassSubjectModal() {
+    const m = document.getElementById('class-subject-modal');
+    if (m) { m.classList.remove('visible'); m.classList.add('hidden'); }
+}
+
+function saveClassSubject() {
+    const name = document.getElementById('class-subject-name').value.trim();
+    const type = document.getElementById('class-subject-type').value.trim();
+    if (!name) return;
+    
+    customSubjects[editingSubjectOriginalName] = { name, type };
+    localStorage.setItem('stellar_custom_subjects', JSON.stringify(customSubjects));
+    closeClassSubjectModal();
+    renderSubjects();
+    renderAttendanceSummary();
+    renderDashboard();
 }
 
 function toggleEditMode() {
@@ -740,25 +780,25 @@ function renderReminders() {
     // Sort ascending
     const sorted = [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date));
     
-    // Upcoming logic: show top 3 dates, but if multiple on same date, show all
-    const grouped = {};
-    sorted.forEach(r => { if (!grouped[r.date]) grouped[r.date] = []; grouped[r.date].push(r); });
-    
-    const dates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
-    let count = 0;
-    
-    dates.forEach(date => {
-        if (count < 3) {
-            const items = grouped[date].filter(r => !r.completed);
-            items.forEach(rem => {
-                const div = document.createElement('div');
-                div.className = 'reminder-item';
-                div.innerHTML = `<span class="rem-date">${formatDate(date)}</span> <span class="rem-title">${rem.title}</span>`;
-                list.appendChild(div);
-            });
-            if (items.length > 0) count++;
-        }
+    const activeReminders = sorted.filter(r => !r.completed);
+    activeReminders.forEach(rem => {
+        const div = document.createElement('div');
+        div.className = 'reminder-item';
+        div.id = `rem-card-${rem.id}`;
+        div.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
+                <span class="rem-title" style="font-weight:600;">${rem.title}</span>
+                <span class="rem-date" style="align-self:flex-start;">${formatDate(rem.date)}</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="rem-btn complete-btn" onclick="toggleReminder('${rem.id}')" title="Complete">✓</button>
+                <button class="rem-btn delete-btn-modern" onclick="deleteReminder('${rem.id}')" title="Delete" style="padding:6px;">✕</button>
+            </div>
+        `;
+        list.appendChild(div);
     });
+    
+    if (activeReminders.length === 0) list.innerHTML = '<div class="empty-msg" style="padding:1rem 0; font-size:0.9rem; color:var(--text-dim);">No pending reminders</div>';
 }
 
 function formatDate(ds) {
@@ -868,7 +908,6 @@ async function toggleReminder(id) {
     setTimeout(async () => {
         rem.completed = !rem.completed;
         await saveAndSync('reminders', reminders);
-        renderFullReminders();
         renderReminders();
     }, 200);
 }
