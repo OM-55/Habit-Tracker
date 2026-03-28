@@ -22,7 +22,6 @@
         <div class="header-right">
             <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
             <button class="header-icon-btn" onclick="handleMenu()"><span>⋮</span></button>
-            <button class="header-icon-btn" onclick="handleEdit()"><span>✎</span></button>
         </div>
     </header>
 
@@ -193,10 +192,14 @@
     <!-- Modals (Habit) -->
     <div id="habit-modal" class="modal hidden">
         <div class="modal-content glass-card dark-modal">
-            <h3>New Ritual</h3>
+            <h3 id="habit-modal-title">New Ritual</h3>
             <div class="input-group">
                 <input type="text" id="habit-name" placeholder="Ritual Name" class="full-input">
                 <input type="text" id="habit-goal" placeholder="Daily Goal (e.g., 10m)" class="full-input">
+                <div id="streak-edit-group" class="hidden">
+                    <input type="number" id="habit-current-streak" placeholder="Current Streak" class="full-input" min="0">
+                    <input type="number" id="habit-best-streak" placeholder="Best Streak" class="full-input" min="0">
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="secondary modern-btn" onclick="closeModal()">Cancel</button>

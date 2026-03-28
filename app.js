@@ -283,6 +283,12 @@ function switchView(view) {
             headerAddBtn.classList.add('hidden');
         }
     }
+
+    // 5b. Expiry Alert Visibility (v61.0)
+    const alertContainer = document.getElementById('priority-alert-container');
+    if (alertContainer && view !== 'dashboard' && view !== 'expiry') {
+        alertContainer.innerHTML = '';
+    }
     
     // 6. Refresh Data
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
@@ -356,7 +362,7 @@ function renderDashboard() {
     const alertContainer = document.getElementById('priority-alert-container');
     if (alertContainer) {
         alertContainer.innerHTML = '';
-        const expired = expiryItems.filter(item => calculateDaysLeft(item.createdAt, item.initialDays) === 0);
+        const expired = expiryItems.filter(item => calculateDaysLeft(item.createdAt, item.initialDays) <= 0);
         if (expired.length > 0) {
             const alertCard = document.createElement('div');
             alertCard.className = 'priority-alert-card';
@@ -857,7 +863,7 @@ function calculateDaysLeft(createdAtStr, initialDays) {
     const now = new Date();
     const diffTime = now - created;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, initialDays - diffDays);
+    return initialDays - diffDays;
 }
 
 function renderExpiryTracker() {
@@ -874,7 +880,7 @@ function renderExpiryTracker() {
         const daysLeft = calculateDaysLeft(item.createdAt, item.initialDays);
         let statusClass = 'status-normal';
         if (daysLeft === 1) statusClass = 'status-warning';
-        if (daysLeft === 0) statusClass = 'status-expired';
+        if (daysLeft <= 0) statusClass = 'status-expired';
 
         const card = document.createElement('div');
         card.className = `expiry-card glass-card ${statusClass}`;
@@ -883,7 +889,7 @@ function renderExpiryTracker() {
                 <span class="exp-name">${item.name}</span>
                 <span class="exp-days">${daysLeft} days left</span>
             </div>
-            <div class="exp-status-badge">${daysLeft === 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
+            <div class="exp-status-badge">${daysLeft <= 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
             <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
             </button>
@@ -974,31 +980,25 @@ function renderHabits() {
         const isDone = h.completedDates.includes(today);
         const currentStreak = calculateStreak(h);
         const card = document.createElement('div'); 
-        card.className = `habit-card glass-card ${isDone ? 'completed' : ''}`;
+        card.className = `habit-card-v2 glass-card ${isDone ? 'completed' : ''}`;
         card.innerHTML = `
-            <div class="habit-card-header" style="gap: 15px;">
-                <div class="habit-info" onclick="openModal('${h.id}')" style="cursor: pointer;">
-                    <h3 id="name-${h.id}">${h.name}</h3>
-                    <div class="habit-meta">
-                        <span class="habit-goal">${h.goal || ''}</span>
-                    </div>
-                    <div class="streak-badges">
-                        <div class="habit-streak glass-badge">
-                            <span class="streak-icon">🔥</span>
-                            <span class="streak-val">${currentStreak} Curr</span>
-                        </div>
-                        <div class="habit-streak glass-badge best-streak">
-                            <span class="streak-icon">⭐</span>
-                            <span class="streak-val">${h.bestStreak || currentStreak} Best</span>
-                        </div>
-                        <button class="edit-streak-btn" onclick="event.stopPropagation(); manualEditStreak('${h.id}')">✎</button>
-                    </div>
+            <div class="habit-left" onclick="openModal('${h.id}')">
+                <span class="habit-name">${h.name}</span>
+                <span class="habit-subtext">${h.goal || ''}</span>
+            </div>
+            
+            <div class="habit-middle" onclick="openModal('${h.id}')">
+                <div class="streak-pill">
+                    🔥 ${currentStreak}
+                </div>
+                <div class="streak-pill best">
+                    ⭐ ${h.bestStreak || currentStreak}
                 </div>
             </div>
-            <div class="habit-actions">
-                <button class="calendar-btn" onclick="event.stopPropagation(); openCalendarFor('${h.id}')">📅</button>
-                <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
-                    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+            
+            <div class="habit-right">
+                <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
+                    <div class="check-inner"></div>
                 </div>
             </div>
         `;
@@ -1046,6 +1046,10 @@ function openModal(id = null) {
     const modal = document.getElementById('habit-modal');
     const name = document.getElementById('habit-name');
     const goal = document.getElementById('habit-goal');
+    const title = document.getElementById('habit-modal-title');
+    const streakGroup = document.getElementById('streak-edit-group');
+    const currentStreakInput = document.getElementById('habit-current-streak');
+    const bestStreakInput = document.getElementById('habit-best-streak');
     
     if (!modal || !name) {
         console.error("Modal elements not found!");
@@ -1055,12 +1059,18 @@ function openModal(id = null) {
     if (id) { 
         const h = habits.find(x => x.id === id); 
         if (h) {
+            if (title) title.innerText = 'Edit Ritual';
             name.value = h.name; 
             goal.value = h.goal || ''; 
+            if (streakGroup) streakGroup.classList.remove('hidden');
+            if (currentStreakInput) currentStreakInput.value = calculateStreak(h);
+            if (bestStreakInput) bestStreakInput.value = h.bestStreak || calculateStreak(h);
         }
     } else { 
+        if (title) title.innerText = 'New Ritual';
         name.value = ''; 
         goal.value = ''; 
+        if (streakGroup) streakGroup.classList.add('hidden');
     }
     
     modal.classList.remove('hidden');
@@ -1087,6 +1097,32 @@ async function saveHabit() {
             h = habits.find(x => x.id === currentEditingHabitId); 
             h.name = name; 
             h.goal = goal; 
+            
+            const currentStreakInput = document.getElementById('habit-current-streak');
+            const bestStreakInput = document.getElementById('habit-best-streak');
+            
+            if (currentStreakInput && bestStreakInput) {
+                const newCurrentStreak = parseInt(currentStreakInput.value) || 0;
+                const newBestStreak = parseInt(bestStreakInput.value) || 0;
+                
+                h.bestStreak = Math.max(newBestStreak, newCurrentStreak);
+                
+                // Regenerate completedDates based on newCurrentStreak
+                const today = new Date().toISOString().split('T')[0];
+                const isCompletedToday = h.completedDates.includes(today);
+                
+                h.completedDates = [];
+                const d = new Date();
+                if (!isCompletedToday && newCurrentStreak > 0) {
+                    d.setDate(d.getDate() - 1);
+                }
+                
+                for (let i = 0; i < newCurrentStreak; i++) {
+                    const iterDate = new Date(d);
+                    iterDate.setDate(d.getDate() - i);
+                    h.completedDates.push(iterDate.toISOString().split('T')[0]);
+                }
+            }
         } else { 
             h = { id: generateId(), name, goal, completedDates: [], user_id: USER_ID };
             habits.push(h);
@@ -1104,16 +1140,36 @@ function renderCalendar() {
     const grid = document.getElementById('calendar-grid'); if (!grid) return; grid.innerHTML = '';
     const first = new Date(calendarYear, calendarMonth, 1).getDay(); const days = new Date(calendarYear, calendarMonth + 1, 0).getDate();
     document.getElementById('calendar-month-year').innerText = `${new Date(calendarYear, calendarMonth).toLocaleString('default', { month: 'long' })} ${calendarYear}`;
-    for (let i = 0; i < first; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day muted' }));
+    
+    // Add Days Headers
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const headerRow = document.createElement('div');
+    headerRow.className = 'calendar-day-headers';
+    dayNames.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'calendar-day-header';
+        el.innerText = d;
+        headerRow.appendChild(el);
+    });
+    grid.appendChild(headerRow);
+
+    const daysGrid = document.createElement('div');
+    daysGrid.className = 'calendar-days-grid';
+    grid.appendChild(daysGrid);
+
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    for (let i = 0; i < first; i++) daysGrid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day muted' }));
     for (let d = 1; d <= days; d++) {
         const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const isSet = activeHabitForCalendar.completedDates.includes(dateStr);
-        const el = document.createElement('div'); el.className = `calendar-day ${isSet ? 'completed' : ''}`;
+        const isToday = (dateStr === todayStr);
+        const el = document.createElement('div'); el.className = `calendar-day ${isSet ? 'completed' : ''} ${isToday ? 'today' : ''}`;
         el.innerText = d; el.onclick = () => {
             if (isSet) activeHabitForCalendar.completedDates = activeHabitForCalendar.completedDates.filter(x => x !== dateStr); else activeHabitForCalendar.completedDates.push(dateStr);
             saveAndSync('rituals', habits); renderCalendar(); renderHabits(); renderDashboard();
         };
-        grid.appendChild(el);
+        daysGrid.appendChild(el);
     }
 }
 function prevMonth() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderCalendar(); }
