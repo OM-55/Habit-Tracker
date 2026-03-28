@@ -46,6 +46,8 @@ let editMode = false;
 let expiryItems = []; // v50.0 NEW
 let habitSteps = []; // Compound habits
 let currentModalSteps = [];
+let taskLists = []; // Tasks v70.0
+let taskItems = [];
 let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
 let editingSubjectOriginalName = null;
 
@@ -179,6 +181,8 @@ async function fetchInitialData() {
         const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*');
         const { data: e, error: eErr } = await supabaseClient.from('expiry_items').select('*').eq('user_id', USER_ID);
         const { data: st, error: stErr } = await supabaseClient.from('habit_steps').select('*');
+        const { data: tl, error: tlErr } = await supabaseClient.from('task_lists').select('*');
+        const { data: ti, error: tiErr } = await supabaseClient.from('task_items').select('*');
 
         if (hErr) console.error("Rituals fetch error:", hErr);
         if (aErr) console.error("Attendance fetch error:", aErr);
@@ -187,6 +191,8 @@ async function fetchInitialData() {
         if (sErr) console.error("Stocks fetch error:", sErr);
         if (eErr) console.error("Expiry fetch error:", eErr);
         if (stErr) console.error("Steps fetch error:", stErr);
+        if (tlErr) console.error("Task lists fetch error:", tlErr);
+        if (tiErr) console.error("Task items fetch error:", tiErr);
 
         if (e) expiryItems = e.map(x => ({
             id: x.id,
@@ -237,6 +243,9 @@ async function fetchInitialData() {
             }
             localStorage.setItem('stellar_last_date', today);
         }
+
+        if (tl) taskLists = tl.map(x => ({ id: x.id, title: x.title, created_at: x.created_at }));
+        if (ti) taskItems = ti.map(x => ({ id: x.id, list_id: x.list_id, content: x.content, is_checked: x.is_checked, type: x.type, created_at: x.created_at }));
         
         console.log("Sync complete. Habits:", habits.length);
         
@@ -276,7 +285,8 @@ function switchView(view) {
         'habits': 'Daily Rituals',
         'attendance': 'Academy Tracker',
         'reminders': 'Reminders',
-        'stocks': 'Stock Tracker'
+        'stocks': 'Stock Tracker',
+        'tasks': 'Tasks & Notes'
     };
     const titleEl = document.getElementById('page-title');
     if (titleEl) titleEl.innerText = titles[view] || 'Stellar';
@@ -320,6 +330,7 @@ function switchView(view) {
     if (view === 'habits') renderHabits();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
+    if (view === 'tasks') renderTasksBoard();
 }
 
 /** 
@@ -1615,4 +1626,169 @@ async function manualEditStreak(id) {
         await saveAndSync('rituals', habits);
         renderHabits();
     }
+}
+
+// --- Tasks & Notes (v70.0) ---
+let currentTaskInputType = 'task'; // 'task' or 'note'
+let activeTaskListId = null;
+
+function renderTasksBoard() {
+    const grid = document.getElementById('tasks-board-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    const sortedLists = [...taskLists].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    if (sortedLists.length === 0) {
+        grid.innerHTML = '<div class="empty-state-modern" style="grid-column:1/-1;">No task lists yet. Create your first!</div>';
+        return;
+    }
+    
+    sortedLists.forEach(list => {
+        const items = taskItems.filter(i => i.list_id === list.id).sort((a,b) => {
+            if (a.is_checked === b.is_checked) return new Date(a.created_at) - new Date(b.created_at);
+            return a.is_checked ? 1 : -1;
+        });
+        
+        const card = document.createElement('div');
+        card.className = 'task-card glass-card';
+        card.onclick = () => openTaskListEditor(list.id);
+        
+        const header = document.createElement('div');
+        header.className = 'task-card-header';
+        header.innerHTML = `<h3 style="font-size:1.1rem; margin:0;">${list.title}</h3>`;
+        card.appendChild(header);
+        
+        const content = document.createElement('div');
+        content.className = 'task-card-content';
+        
+        items.slice(0, 5).forEach(it => {
+            const line = document.createElement('div');
+            if (it.type === 'note') {
+                line.className = 'task-item-line is-note';
+                line.innerText = it.content;
+            } else {
+                line.className = 'task-item-line';
+                line.innerHTML = `<div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}">${it.is_checked ? '✓' : ''}</div> <span class="${it.is_checked ? 'done' : ''}" style="${it.is_checked ? 'text-decoration:line-through;opacity:0.5;' : ''}">${it.content}</span>`;
+            }
+            content.appendChild(line);
+        });
+        if (items.length === 0) content.innerHTML = '<span style="color:var(--text-dim); font-size:0.85rem; font-style:italic;">Empty list</span>';
+        
+        card.appendChild(content);
+        grid.appendChild(card);
+    });
+}
+
+function createNewTaskList() {
+    const title = prompt("Enter new list name:");
+    if (!title || !title.trim()) return;
+    const newList = { id: generateId(), title: title.trim(), created_at: new Date().toISOString() };
+    taskLists.push(newList);
+    supabaseClient.from('task_lists').insert(newList).then();
+    renderTasksBoard();
+    openTaskListEditor(newList.id);
+}
+
+function openTaskListEditor(id) {
+    const list = taskLists.find(l => l.id === id);
+    if (!list) return;
+    activeTaskListId = id;
+    
+    document.getElementById('task-editor-title').innerText = list.title;
+    currentTaskInputType = 'task';
+    updateTaskTypeToggleUI();
+    renderTaskItemsEditor();
+    
+    const m = document.getElementById('task-editor-modal');
+    m.classList.remove('hidden');
+    m.classList.add('visible');
+    setTimeout(() => { document.getElementById('new-task-input').focus(); }, 100);
+}
+
+function closeTaskEditor() {
+    const m = document.getElementById('task-editor-modal');
+    m.classList.remove('visible');
+    m.classList.add('hidden');
+    activeTaskListId = null;
+    renderTasksBoard();
+}
+
+function renderTaskItemsEditor() {
+    const container = document.getElementById('task-editor-items');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const items = taskItems.filter(i => i.list_id === activeTaskListId).sort((a,b) => {
+        if (a.is_checked === b.is_checked) return new Date(a.created_at) - new Date(b.created_at);
+        return a.is_checked ? 1 : -1;
+    });
+    
+    items.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'task-input-row';
+        if (it.type === 'note') {
+            row.innerHTML = `
+                <div style="flex:1; font-style:italic; color:var(--text-dim);">${it.content}</div>
+                <button class="delete-btn-modern" style="padding:4px;" onclick="deleteTaskItem('${it.id}')">✕</button>
+            `;
+        } else {
+            row.innerHTML = `
+                <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}" style="cursor:pointer;" onclick="toggleTaskItemCheck('${it.id}')">${it.is_checked ? '✓' : ''}</div>
+                <div class="task-item-text ${it.is_checked ? 'done' : ''}">${it.content}</div>
+                <button class="delete-btn-modern" style="padding:4px;" onclick="deleteTaskItem('${it.id}')">✕</button>
+            `;
+        }
+        container.appendChild(row);
+    });
+}
+
+function toggleTaskType() {
+    currentTaskInputType = currentTaskInputType === 'task' ? 'note' : 'task';
+    updateTaskTypeToggleUI();
+}
+
+function updateTaskTypeToggleUI() {
+    const btn = document.getElementById('task-type-toggle');
+    const input = document.getElementById('new-task-input');
+    if (currentTaskInputType === 'task') {
+        btn.innerText = '[Task]';
+        input.placeholder = "Enter task...";
+    } else {
+        btn.innerText = '[Note]';
+        input.placeholder = "Enter quick note...";
+    }
+}
+
+async function addTaskItem() {
+    const input = document.getElementById('new-task-input');
+    const content = input.value.trim();
+    if (!content) return;
+    
+    const newItem = {
+        id: generateId(),
+        list_id: activeTaskListId,
+        content: content,
+        is_checked: false,
+        type: currentTaskInputType,
+        created_at: new Date().toISOString()
+    };
+    taskItems.push(newItem);
+    input.value = '';
+    renderTaskItemsEditor();
+    await supabaseClient.from('task_items').insert(newItem);
+}
+
+async function toggleTaskItemCheck(id) {
+    const it = taskItems.find(i => i.id === id);
+    if (!it || it.type === 'note') return;
+    it.is_checked = !it.is_checked;
+    renderTaskItemsEditor();
+    await supabaseClient.from('task_items').update({ is_checked: it.is_checked }).eq('id', id);
+}
+
+async function deleteTaskItem(id) {
+    taskItems = taskItems.filter(i => i.id !== id);
+    renderTaskItemsEditor();
+    await supabaseClient.from('task_items').delete().eq('id', id);
 }

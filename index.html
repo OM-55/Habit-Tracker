@@ -43,6 +43,9 @@
                 <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
+                <button id="nav-tasks" class="nav-item" onclick="switchView('tasks')">
+                    <span class="icon">📝</span> Tasks
+                </button>
                 <button id="nav-reminders" class="nav-item" onclick="switchView('reminders')">
                     <span class="icon">🔔</span> Reminders
                 </button>
@@ -196,6 +199,19 @@
                 </div>
                 <div id="expiry-list" class="content-stack"></div>
             </section>
+
+            <!-- Tasks View -->
+            <section id="tasks-view" class="view hidden">
+                <div class="header-top">
+                    <div>
+                        <h2 style="margin-bottom:0.2rem;">Tasks & Notes</h2>
+                        <p style="color:var(--text-dim);font-size:0.9rem;">Hybrid Lists</p>
+                    </div>
+                </div>
+                <div id="tasks-board-grid" class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+                <!-- FAB for tasks -->
+                <button class="fab-btn-tasks" onclick="createNewTaskList()">+</button>
+            </section>
         </main>
     </div>
 
@@ -339,6 +355,24 @@
         </div>
     </div>
 
+    <!-- Modals (Task Editor) -->
+    <div id="task-editor-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal" style="display:flex; flex-direction:column; max-height: 90vh;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="task-editor-title">List</h3>
+                <button class="secondary modern-btn" style="padding:4px 8px;" onclick="closeTaskEditor()">Close</button>
+            </div>
+            
+            <div id="task-editor-items" style="flex:1; overflow-y:auto; margin: 15px 0; display:flex; flex-direction:column; gap:8px;"></div>
+            
+            <div class="add-task-bar" style="display:flex; gap:8px; margin-top:auto; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
+                <button id="task-type-toggle" class="secondary modern-btn" onclick="toggleTaskType()" style="padding:0 12px;">[Task]</button>
+                <input type="text" id="new-task-input" placeholder="Enter content..." class="full-input" style="flex:1; margin-bottom:0;" onkeypress="if(event.key === 'Enter') addTaskItem()">
+                <button class="primary modern-btn" onclick="addTaskItem()">Add</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation (Mobile Only) -->
     <nav id="bottom-nav" class="mobile-nav">
         <button class="bottom-nav-item active" onclick="switchView('dashboard')">
@@ -352,6 +386,10 @@
         <button class="bottom-nav-item" onclick="switchView('attendance')">
             <span class="nav-icon">🎓</span>
             <span class="nav-label">Attendance</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView('tasks')">
+            <span class="nav-icon">📝</span>
+            <span class="nav-label">Tasks</span>
         </button>
         <button class="bottom-nav-item" onclick="switchView('reminders')">
             <span class="nav-icon">🔔</span>
