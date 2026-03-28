@@ -692,6 +692,10 @@ input:checked + .toggle-slider:before {
     flex-direction: column;
 }
 
+#attendance-view .summary-card {
+    max-height: none !important;
+}
+
 #subjects-container {
     flex: 1;
     overflow-y: auto;
@@ -1266,36 +1270,6 @@ input:checked + .toggle-slider:before {
     .view .header-top, .view .section-header {
         display: none !important;
     }
-.fab-btn {
-    position: fixed;
-    bottom: 2.5rem;
-    right: 2.5rem;
-    width: 64px;
-    height: 64px;
-    background: var(--primary);
-    color: white;
-    border-radius: 50%;
-    border: none;
-    font-size: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 10px 25px var(--primary-glow);
-    cursor: pointer;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
-    line-height: 0.9;
-    z-index: 100;
-}
-.fab-btn:hover {
-    transform: scale(1.1) rotate(90deg);
-    box-shadow: 0 15px 35px var(--primary-glow);
-}
-.fab-btn:active {
-    transform: scale(0.95);
-}
-@media (max-width: 768px) {
-    .fab-btn { bottom: 1.5rem; right: 1.5rem; width: 56px; height: 56px; font-size: 2.2rem; }
-}
 
 .stocks-grid {
     display: grid;

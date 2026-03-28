@@ -43,8 +43,14 @@
                 <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
+                <button id="nav-reminders" class="nav-item" onclick="switchView('reminders')">
+                    <span class="icon">🔔</span> Reminders
+                </button>
                 <button id="nav-stocks" class="nav-item" onclick="switchView('stocks')">
                     <span class="icon">📈</span> Stocks
+                </button>
+                <button id="nav-expiry" class="nav-item" onclick="switchView('expiry')">
+                    <span class="icon">⏳</span> Expiry Tracker
                 </button>
             </nav>
         </aside>
@@ -63,14 +69,14 @@
                         <div class="card-header"><h3>Expiry Tracker</h3></div>
                         <div id="dashboard-expiry-list" class="summary-list preview-list"></div>
                         <div class="card-footer" style="margin-top:auto;">
-                            <button class="text-link" onclick="openExpiryModal()">+ Add New</button>
+                            <button class="text-link" onclick="switchView('expiry')">Manage →</button>
                         </div>
                     </div>
 
                     <div class="dashboard-card glass-card">
                         <div class="card-header"><h3>Daily Rituals</h3></div>
                         <div id="habits-preview-list" class="ritual-cards-container"></div>
-                        <button class="text-link" onclick="navigate('habits')">View all →</button>
+                        <button class="text-link" onclick="switchView('habits')">View all →</button>
                     </div>
 
                     <div class="dashboard-card glass-card">
@@ -79,7 +85,7 @@
                             <span id="overall-attendance-badge" class="badge">0% Overall</span>
                         </div>
                         <div id="attendance-preview-list" class="preview-list academy-list"></div>
-                        <button class="text-link" onclick="navigate('attendance')">Open tracker →</button>
+                        <button class="text-link" onclick="switchView('attendance')">Open tracker →</button>
                     </div>
 
                     <div class="summary-card glass-card">
@@ -87,8 +93,8 @@
                             <h3>Reminder</h3>
                         </div>
                         <div id="dashboard-reminders" class="summary-list preview-reminders"></div>
-                        <div class="card-footer" style="margin-top:auto">
-                            <button class="text-link" onclick="openReminderModal()">+ Add New</button>
+                        <div class="card-footer">
+                            <button class="text-link" onclick="switchView('reminders')">View all →</button>
                         </div>
                     </div>
 
@@ -155,15 +161,40 @@
                 </div>
             </section>
 
+            <!-- Reminders View -->
+            <section id="reminders-view" class="view hidden">
+                <div class="header-top">
+                    <h2>Reminders</h2>
+                    <button class="circular-plus" onclick="openReminderModal()">+</button>
+                </div>
+                <div class="reminders-container" style="position: relative; min-height: 400px;">
+                    <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
+                    <div id="completed-reminders-section" class="reminders-section hidden">
+                        <h3 onclick="toggleCompletedReminders()" style="cursor: pointer;">✅ Completed <span id="completed-toggle-icon">▼</span></h3>
+                        <div id="completed-reminders-list" class="content-stack"></div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Stocks View -->
             <section id="stocks-view" class="view hidden">
-                <div class="section-header">
-                    <h2>Stock Tracker</h2>
-                    <p>Live Portfolio Performance</p>
+                <div class="header-top">
+                    <div>
+                        <h2 style="margin-bottom:0.2rem;">Stock Tracker</h2>
+                        <p style="color:var(--text-dim);font-size:0.9rem;">Live Portfolio Performance</p>
+                    </div>
+                    <button class="circular-plus" onclick="openStockModal()">+</button>
                 </div>
                 <div id="stocks-list" class="stocks-grid"></div>
-                <!-- FAB -->
-                <button class="fab-btn" onclick="openStockModal()">+</button>
+            </section>
+
+            <!-- Expiry Tracker View -->
+            <section id="expiry-view" class="view hidden">
+                <div class="header-top">
+                    <h2>Expiry Tracker</h2>
+                    <button class="circular-plus" onclick="openExpiryModal()">+</button>
+                </div>
+                <div id="expiry-list" class="content-stack"></div>
             </section>
         </main>
     </div>
@@ -266,6 +297,23 @@
         </div>
     </div>
 
+    <!-- Modals (Class Tracker) -->
+    <div id="class-subject-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>Edit Class/Subject</h3>
+            <div class="input-group">
+                <label>Subject Name</label>
+                <input type="text" id="class-subject-name" placeholder="E.g. AP Lab" class="full-input">
+                <label>Type</label>
+                <input type="text" id="class-subject-type" placeholder="E.g. Lecture, Lab" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeClassSubjectModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveClassSubject()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation (Mobile Only) -->
     <nav id="bottom-nav" class="mobile-nav">
         <button class="bottom-nav-item active" onclick="switchView('dashboard')">
@@ -279,6 +327,14 @@
         <button class="bottom-nav-item" onclick="switchView('attendance')">
             <span class="nav-icon">🎓</span>
             <span class="nav-label">Attendance</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView('reminders')">
+            <span class="nav-icon">🔔</span>
+            <span class="nav-label">Reminders</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchView('expiry')">
+            <span class="nav-icon">⏳</span>
+            <span class="nav-label">Expiry</span>
         </button>
     </nav>
 
