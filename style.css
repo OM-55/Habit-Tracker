@@ -112,14 +112,16 @@ html, body {
 
 /* Glassmorphism Styles */
 .glass-card {
-    background: var(--card-bg);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.25rem !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
+.glass-card:hover { border-color: rgba(255, 255, 255, 0.15); }
 
 /* Navbar & Drawer Layout v14.0 */
 #top-navbar {
@@ -305,21 +307,21 @@ html, body {
 .section-header .subtitle { color: var(--text-dim); font-size: 1.1rem; }
 .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 
-/* Dashboard Grid Default (v25.0 Ultimate Recovery) */
 .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr) !important; 
-    gap: 20px !important; 
+    gap: 1.5rem !important; 
     width: 100%;
+    align-items: stretch;
 }
 
 .dashboard-card {
-    padding: 1.25rem !important;
-    min-height: 200px !important; /* Reduced height v61.0 */
-    max-height: 280px !important; /* Caps height for row consistency */
+    min-height: auto !important;
+    max-height: 280px !important;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Keep it tidy */
+    overflow: hidden;
+    margin-bottom: 0 !important;
 }
 
 .dashboard-card .ritual-cards-container, 
@@ -334,16 +336,18 @@ html, body {
 .dashboard-card ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
 .card-header {
-    margin-bottom: 0.6rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 0.8rem;
+    margin-bottom: 1rem !important;
 }
 
-.card-header h3 {
-    font-size: 1.3rem !important;
-}
-
-.dashboard-card h3 {
-    font-size: 1.2rem !important;
-    margin-bottom: 8px !important;
+.card-header h3, .dashboard-card h3 {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    margin-bottom: 0 !important;
 }
 
 .dashboard-card .preview-list p, .dashboard-card .ritual-streak {
@@ -362,9 +366,9 @@ html, body {
 
 @media (max-width: 768px) {
     .dashboard-grid { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 1.5rem; 
+        display: flex !important; 
+        flex-direction: column !important; 
+        gap: 1rem !important; 
         width: 100%;
     }
     
@@ -373,7 +377,6 @@ html, body {
         overflow-x: hidden;
     }
 }
-.dashboard-card { display: flex; flex-direction: column; gap: 1.5rem; }
 .card-header h3 { font-size: 1.3rem; font-weight: 600; }
 
 /* Ritual Cards Container (Dashboard) */
@@ -840,15 +843,13 @@ input:checked + .toggle-slider:before {
 /* Reminders Styling */
 .reminders-card { border-left: 4px solid var(--primary); }
 .summary-card {
-    height: auto; /* Remove hard height v10.0 */
-    min-height: 300px;
+    min-height: auto !important;
+    max-height: 280px !important;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 2rem;
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--glass-border);
-    margin-bottom: 2rem;
+    margin-bottom: 0 !important;
+    overflow: hidden;
 }
 
 .summary-list {
@@ -1686,6 +1687,22 @@ input:checked + .toggle-slider:before {
     color: white;
     box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
     border-color: var(--success);
+}
+.delete-btn-modern {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.delete-btn-modern:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
 }
 .calendar-day.completed:hover {
     background: #1eb155;

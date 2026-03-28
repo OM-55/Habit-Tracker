@@ -377,6 +377,32 @@ function renderDashboard() {
         }
     }
 
+    const expiryList = document.getElementById('dashboard-expiry-list');
+    if (expiryList) {
+        expiryList.innerHTML = '';
+        const activeItems = expiryItems.filter(item => calculateDaysLeft(item.createdAt, item.initialDays) > 0);
+        if (activeItems.length === 0) {
+            expiryList.innerHTML = '<div class="empty-msg" style="padding:1rem 0; font-size:0.9rem; color:var(--text-dim);">No expiring items</div>';
+        } else {
+            activeItems.sort((a,b) => calculateDaysLeft(a.createdAt, a.initialDays) - calculateDaysLeft(b.createdAt, b.initialDays)).slice(0, 3).forEach(item => {
+                const daysLeft = calculateDaysLeft(item.createdAt, item.initialDays);
+                const el = document.createElement('div');
+                el.className = 'ritual-card-mini view-only';
+                el.style.display = 'flex';
+                el.style.justifyContent = 'space-between';
+                el.innerHTML = `
+                    <div class="ritual-info">
+                        <span class="ritual-name">${item.name}</span>
+                    </div>
+                    <div class="ritual-streak" style="background:${daysLeft === 1 ? 'rgba(251,191,36,0.1)' : 'transparent'}; color:${daysLeft === 1 ? '#fbbf24' : 'var(--text-dim)'}; border:${daysLeft === 1 ? '1px solid rgba(251,191,36,0.3)' : 'none'}; padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+                        ${daysLeft} d left
+                    </div>
+                `;
+                expiryList.appendChild(el);
+            });
+        }
+    }
+
     const hList = document.getElementById('habits-preview-list');
     if (hList) {
         hList.innerHTML = '';
@@ -890,8 +916,8 @@ function renderExpiryTracker() {
                 <span class="exp-days">${daysLeft} days left</span>
             </div>
             <div class="exp-status-badge">${daysLeft <= 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
-            <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+            <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')" title="Delete">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
             </button>
         `;
         list.appendChild(card);
@@ -1049,7 +1075,6 @@ function openModal(id = null) {
     const title = document.getElementById('habit-modal-title');
     const streakGroup = document.getElementById('streak-edit-group');
     const currentStreakInput = document.getElementById('habit-current-streak');
-    const bestStreakInput = document.getElementById('habit-best-streak');
     
     if (!modal || !name) {
         console.error("Modal elements not found!");
@@ -1064,7 +1089,6 @@ function openModal(id = null) {
             goal.value = h.goal || ''; 
             if (streakGroup) streakGroup.classList.remove('hidden');
             if (currentStreakInput) currentStreakInput.value = calculateStreak(h);
-            if (bestStreakInput) bestStreakInput.value = h.bestStreak || calculateStreak(h);
         }
     } else { 
         if (title) title.innerText = 'New Ritual';
@@ -1099,13 +1123,10 @@ async function saveHabit() {
             h.goal = goal; 
             
             const currentStreakInput = document.getElementById('habit-current-streak');
-            const bestStreakInput = document.getElementById('habit-best-streak');
             
-            if (currentStreakInput && bestStreakInput) {
+            if (currentStreakInput) {
                 const newCurrentStreak = parseInt(currentStreakInput.value) || 0;
-                const newBestStreak = parseInt(bestStreakInput.value) || 0;
-                
-                h.bestStreak = Math.max(newBestStreak, newCurrentStreak);
+                h.bestStreak = Math.max(h.bestStreak || 0, newCurrentStreak);
                 
                 // Regenerate completedDates based on newCurrentStreak
                 const today = new Date().toISOString().split('T')[0];
