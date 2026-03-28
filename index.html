@@ -357,18 +357,17 @@
 
     <!-- Modals (Task Editor) -->
     <div id="task-editor-modal" class="modal hidden">
-        <div class="modal-content glass-card dark-modal" style="display:flex; flex-direction:column; max-height: 90vh;">
+        <div class="modal-content glass-card dark-modal" style="display:flex; flex-direction:column; max-height: 90vh; max-width: 650px; width: 100%; padding: 24px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 id="task-editor-title">List</h3>
+                <h3 id="task-editor-title" style="margin:0;">List</h3>
                 <button class="secondary modern-btn" style="padding:4px 8px;" onclick="closeTaskEditor()">Close</button>
             </div>
             
             <div id="task-editor-items" style="flex:1; overflow-y:auto; margin: 15px 0; display:flex; flex-direction:column; gap:8px;"></div>
             
-            <div class="add-task-bar" style="display:flex; gap:8px; margin-top:auto; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
-                <button id="task-type-toggle" class="secondary modern-btn" onclick="toggleTaskType()" style="padding:0 12px;">[Task]</button>
-                <input type="text" id="new-task-input" placeholder="Enter content..." class="full-input" style="flex:1; margin-bottom:0;" onkeypress="if(event.key === 'Enter') addTaskItem()">
-                <button class="primary modern-btn" onclick="addTaskItem()">Add</button>
+            <div class="add-task-bar" style="display:flex; flex-direction:column; gap:8px; margin-top:auto; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
+                <textarea id="new-task-input" placeholder="Enter task or note..." class="full-input" style="min-height: 80px; resize: vertical; margin-bottom:0; width:100%;" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); addTaskItem(); }"></textarea>
+                <button class="primary modern-btn" onclick="addTaskItem()" style="align-self: flex-end; padding: 0.8rem 2rem;">Add Item</button>
             </div>
         </div>
     </div>

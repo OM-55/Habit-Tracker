@@ -1172,36 +1172,41 @@ async function toggleHabit(id) {
     const h = habits.find(x => x.id === id);
     if (!h) return;
     
+    // Maintain references to master habitSteps
     const hSteps = habitSteps.filter(s => s.habit_id === id);
 
-    // Toggle state locally (Manual Override completes all)
     if (h.completedDates.includes(today)) {
+        // C: If parent manually unchecked -> all steps = unchecked
         h.completedDates = h.completedDates.filter(d => d !== today);
         if (hSteps.length > 0) {
             hSteps.forEach(s => s.completed = false);
-            supabaseClient.from('habit_steps').update({ completed: false }).eq('habit_id', id).then();
+            await supabaseClient.from('habit_steps').update({ completed: false }).eq('habit_id', id);
         }
     } else {
+        // D: If parent manually checked -> all steps complete
         h.completedDates.push(today);
         if (hSteps.length > 0) {
             hSteps.forEach(s => s.completed = true);
-            supabaseClient.from('habit_steps').update({ completed: true }).eq('habit_id', id).then();
+            await supabaseClient.from('habit_steps').update({ completed: true }).eq('habit_id', id);
         }
     }
     
     await saveAndSync('rituals', habits);
     renderHabits();
     renderDashboard();
+    updateStats();
 }
 
 function updateStats() {
-    const total = habits.length; const today = new Date().toISOString().split('T')[0];
+    const total = habits.length; 
+    const today = new Date().toISOString().split('T')[0];
     const done = habits.filter(h => h.completedDates.includes(today)).length;
-    if (document.getElementById('completed-count')) {
-        const statsBox = document.getElementById('today-stats');
+    
+    const statsBox = document.getElementById('today-stats');
+    if (statsBox) {
         statsBox.innerHTML = `
-            <div class="stats-text-row">
-                <span style="font-size: 1.1rem; font-weight: 800;">${done} / ${total}</span>
+            <div class="stats-text-row" id="completed-count-wrapper">
+                <span style="font-size: 1.1rem; font-weight: 800;"><span id="completed-count">${done}</span> / <span id="total-count">${total}</span></span>
                 <span style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 400; letter-spacing: 0.5px;">Done Today</span>
             </div>
             <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
@@ -1702,13 +1707,17 @@ function renderTasksBoard() {
         
         items.slice(0, 5).forEach(it => {
             const line = document.createElement('div');
-            if (it.type === 'note') {
-                line.className = 'task-item-line is-note';
-                line.innerText = it.content;
-            } else {
-                line.className = 'task-item-line';
-                line.innerHTML = `<div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}">${it.is_checked ? '✓' : ''}</div> <span class="${it.is_checked ? 'done' : ''}" style="${it.is_checked ? 'text-decoration:line-through;opacity:0.5;' : ''}">${it.content}</span>`;
-            }
+            line.className = 'task-item-line';
+            line.style.transition = 'all 0.3s ease';
+            line.style.opacity = it.is_checked ? '0.6' : '1';
+            
+            line.innerHTML = `
+                <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}" style="transition: all 0.2s;">
+                    ${it.is_checked ? '✓' : ''}
+                </div> 
+                <span class="${it.is_checked ? 'done' : ''}" style="${it.is_checked ? 'text-decoration:line-through; color:var(--text-dim);' : ''}; font-size:1rem;">
+                    ${it.content}
+                </span>`;
             content.appendChild(line);
         });
         if (items.length === 0) content.innerHTML = '<span style="color:var(--text-dim); font-size:0.85rem; font-style:italic;">Empty list</span>';
@@ -1765,38 +1774,25 @@ function renderTaskItemsEditor() {
     items.forEach(it => {
         const row = document.createElement('div');
         row.className = 'task-input-row';
-        if (it.type === 'note') {
-            row.innerHTML = `
-                <div style="flex:1; font-style:italic; color:var(--text-dim);">${it.content}</div>
-                <button class="delete-btn-modern" style="padding:4px;" onclick="deleteTaskItem('${it.id}')">✕</button>
-            `;
-        } else {
-            row.innerHTML = `
-                <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}" style="cursor:pointer;" onclick="toggleTaskItemCheck('${it.id}')">${it.is_checked ? '✓' : ''}</div>
-                <div class="task-item-text ${it.is_checked ? 'done' : ''}">${it.content}</div>
-                <button class="delete-btn-modern" style="padding:4px;" onclick="deleteTaskItem('${it.id}')">✕</button>
-            `;
-        }
+        row.style.transition = 'all 0.3s ease';
+        row.style.opacity = it.is_checked ? '0.6' : '1';
+        
+        row.innerHTML = `
+            <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}" style="cursor:pointer; flex-shrink:0; transition: all 0.2s;" onclick="toggleTaskItemCheck('${it.id}')">
+                ${it.is_checked ? '✓' : ''}
+            </div>
+            <input type="text" class="task-item-edit-input" value="${it.content.replace(/"/g, '&quot;')}" 
+                style="flex:1; background:transparent; border:none; color:${it.is_checked ? 'var(--text-dim)' : 'white'}; text-decoration:${it.is_checked ? 'line-through' : 'none'}; font-size:1rem; padding:4px 8px; font-family:inherit; outline:none; transition: all 0.3s;"
+                onblur="editTaskItemContent('${it.id}', this.value)"
+                onkeydown="if(event.key === 'Enter') { this.blur(); }">
+            <button class="delete-btn-modern" style="padding:4px; flex-shrink:0;" onclick="deleteTaskItem('${it.id}')">✕</button>
+        `;
         container.appendChild(row);
     });
 }
 
-function toggleTaskType() {
-    currentTaskInputType = currentTaskInputType === 'task' ? 'note' : 'task';
-    updateTaskTypeToggleUI();
-}
+// Task types removed
 
-function updateTaskTypeToggleUI() {
-    const btn = document.getElementById('task-type-toggle');
-    const input = document.getElementById('new-task-input');
-    if (currentTaskInputType === 'task') {
-        btn.innerText = '[Task]';
-        input.placeholder = "Enter task...";
-    } else {
-        btn.innerText = '[Note]';
-        input.placeholder = "Enter quick note...";
-    }
-}
 
 async function addTaskItem() {
     const input = document.getElementById('new-task-input');
@@ -1808,7 +1804,7 @@ async function addTaskItem() {
         list_id: activeTaskListId,
         content: content,
         is_checked: false,
-        type: currentTaskInputType,
+        type: 'task', // Only tasks now as per user instruction
         created_at: new Date().toISOString()
     };
     taskItems.push(newItem);
@@ -1819,10 +1815,20 @@ async function addTaskItem() {
 
 async function toggleTaskItemCheck(id) {
     const it = taskItems.find(i => i.id === id);
-    if (!it || it.type === 'note') return;
+    if (!it) return;
     it.is_checked = !it.is_checked;
     renderTaskItemsEditor();
     await supabaseClient.from('task_items').update({ is_checked: it.is_checked }).eq('id', id);
+}
+
+async function editTaskItemContent(id, newContent) {
+    if (!newContent || !newContent.trim()) return;
+    const it = taskItems.find(i => i.id === id);
+    if (!it || it.content === newContent.trim()) return;
+    
+    it.content = newContent.trim();
+    renderTaskItemsEditor(); // visually confirm change
+    await supabaseClient.from('task_items').update({ content: it.content }).eq('id', id);
 }
 
 async function deleteTaskItem(id) {
