@@ -210,10 +210,35 @@
                     <label style="font-size: 0.85rem; color: var(--text-dim); padding-left: 5px;">Streak</label>
                     <input type="number" id="habit-current-streak" placeholder="0" class="full-input" min="0" style="margin-top: 5px;">
                 </div>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 0.85rem; color: var(--text-dim); padding-left: 5px;">Steps (optional)</label>
+                    <div id="habit-steps-container" style="display:flex; flex-direction:column; gap:8px; margin-top:5px; margin-bottom:10px;">
+                        <!-- dynamic steps go here -->
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="habit-new-step-name" placeholder="Step name" class="full-input" style="flex:1;">
+                        <button class="secondary modern-btn" onclick="addStepToHabitModal()" style="padding: 0 1rem; flex-shrink: 0;">+ Add</button>
+                    </div>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="secondary modern-btn" onclick="closeModal()">Cancel</button>
                 <button class="primary modern-btn" onclick="saveHabit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Habit Detail) -->
+    <div id="habit-detail-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="detail-habit-name">Ritual</h3>
+                <button class="secondary modern-btn" id="edit-habit-btn" style="padding:5px 12px; font-size:0.85rem;">Edit</button>
+            </div>
+            <div id="detail-steps-list" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="primary modern-btn" onclick="closeDetailModal()">Close</button>
             </div>
         </div>
     </div>

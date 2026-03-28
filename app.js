@@ -44,6 +44,8 @@ let currentView = 'dashboard';
 let selectedDay = "";
 let editMode = false;
 let expiryItems = []; // v50.0 NEW
+let habitSteps = []; // Compound habits
+let currentModalSteps = [];
 let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
 let editingSubjectOriginalName = null;
 
@@ -176,6 +178,7 @@ async function fetchInitialData() {
         const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
         const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*');
         const { data: e, error: eErr } = await supabaseClient.from('expiry_items').select('*').eq('user_id', USER_ID);
+        const { data: st, error: stErr } = await supabaseClient.from('habit_steps').select('*');
 
         if (hErr) console.error("Rituals fetch error:", hErr);
         if (aErr) console.error("Attendance fetch error:", aErr);
@@ -183,6 +186,7 @@ async function fetchInitialData() {
         if (rErr) console.error("Reminders fetch error:", rErr);
         if (sErr) console.error("Stocks fetch error:", sErr);
         if (eErr) console.error("Expiry fetch error:", eErr);
+        if (stErr) console.error("Steps fetch error:", stErr);
 
         if (e) expiryItems = e.map(x => ({
             id: x.id,
@@ -222,6 +226,17 @@ async function fetchInitialData() {
             date: x.date, 
             completed: x.completed || false 
         }));
+
+        if (st) {
+            habitSteps = st.map(x => ({ id: x.id, habit_id: x.habit_id, name: x.name, completed: x.completed || false }));
+            const today = new Date().toISOString().split('T')[0];
+            const lastDate = localStorage.getItem('stellar_last_date');
+            if (lastDate && lastDate !== today) {
+                habitSteps.forEach(s => s.completed = false);
+                await supabaseClient.from('habit_steps').update({ completed: false }).neq('name', '~~~dummy~~~');
+            }
+            localStorage.setItem('stellar_last_date', today);
+        }
         
         console.log("Sync complete. Habits:", habits.length);
         
@@ -425,21 +440,38 @@ function renderDashboard() {
         sortedHabits.forEach(h => {
             const isDone = h.completedDates.includes(today);
             const streak = calculateStreak(h);
-            const div = document.createElement('div');
-            div.className = `ritual-card-mini ${isDone ? 'completed' : ''} view-only`;
-            div.style.display = 'flex';
-            div.style.justifyContent = 'space-between';
-            div.style.alignItems = 'center';
-            div.style.marginBottom = '0.5rem';
+            const hSteps = habitSteps.filter(s => s.habit_id === h.id);
+            const totalSteps = hSteps.length;
+            const compSteps = hSteps.filter(s => s.completed).length;
 
+            let progressHtml = '';
+            let stepText = '';
+            if (totalSteps > 0) {
+                stepText = `<span style="font-size:0.75rem; color:var(--text-dim); margin-left:8px;">(${compSteps}/${totalSteps})</span>`;
+                const perc = (compSteps / totalSteps) * 100;
+                progressHtml = `
+                <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 6px; overflow: hidden; pointer-events: none;">
+                    <div style="width: ${perc}%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
+                </div>`;
+            }
+
+            const div = document.createElement('div');
+            div.className = `ritual-card-mini glass-card ${isDone ? 'completed' : ''}`;
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.marginBottom = '0.5rem';
+            
             div.innerHTML = `
-                <div class="ritual-info" style="margin-right: 15px;">
-                    <span class="ritual-name" style="display:block; margin-bottom: 2px;">${h.name}</span>
-                    <span class="ritual-streak" style="font-size: 0.75rem; color: var(--text-dim);">🔥 ${streak}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <div class="ritual-info" style="margin-right: 15px; flex:1; cursor:pointer;" onclick="openDetailModal('${h.id}')">
+                        <span class="ritual-name" style="display:block; margin-bottom: 2px;">${h.name} ${stepText}</span>
+                        <span class="ritual-streak" style="font-size: 0.75rem; color: var(--text-dim);">🔥 ${streak}</span>
+                    </div>
+                    <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')" style="margin-left: auto;">
+                        <div class="check-inner"></div>
+                    </div>
                 </div>
-                <div class="status-indicator ${isDone ? 'done' : ''}" style="margin-left: auto;">
-                    ${isDone ? '✓' : '—'}
-                </div>
+                ${progressHtml}
             `;
             hList.appendChild(div);
         });
@@ -1044,28 +1076,48 @@ function renderHabits() {
     habits.forEach(h => {
         const isDone = h.completedDates.includes(today);
         const currentStreak = calculateStreak(h);
+        
+        const hSteps = habitSteps.filter(s => s.habit_id === h.id);
+        const totalSteps = hSteps.length;
+        const compSteps = hSteps.filter(s => s.completed).length;
+        
+        let progressHtml = '';
+        let stepText = '';
+        if (totalSteps > 0) {
+            stepText = `<span style="font-size:0.8rem; color:var(--text-dim); margin-left:8px;">(${compSteps}/${totalSteps})</span>`;
+            const perc = (compSteps / totalSteps) * 100;
+            progressHtml = `
+            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-top: 10px; overflow: hidden; pointer-events: none;">
+                <div style="width: ${perc}%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
+            </div>`;
+        }
+
         const card = document.createElement('div'); 
         card.className = `habit-card-v2 glass-card ${isDone ? 'completed' : ''}`;
+        card.style.flexDirection = 'column';
+        card.style.alignItems = 'stretch';
+        card.style.gap = '0';
+        
         card.innerHTML = `
-            <div class="habit-left" onclick="openModal('${h.id}')">
-                <span class="habit-name">${h.name}</span>
-                <span class="habit-subtext">${h.goal || ''}</span>
-            </div>
-            
-            <div class="habit-middle" onclick="openModal('${h.id}')">
-                <div class="streak-pill">
-                    🔥 ${currentStreak}
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:1.5rem;">
+                <div class="habit-left" onclick="openDetailModal('${h.id}')">
+                    <span class="habit-name">${h.name} ${stepText}</span>
+                    <span class="habit-subtext">${h.goal || ''}</span>
                 </div>
-                <div class="streak-pill best">
-                    ⭐ ${h.bestStreak || currentStreak}
+                
+                <div class="habit-middle" onclick="openDetailModal('${h.id}')">
+                    <div class="streak-pill">
+                        🔥 ${currentStreak}
+                    </div>
+                </div>
+                
+                <div class="habit-right">
+                    <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
+                        <div class="check-inner"></div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="habit-right">
-                <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
-                    <div class="check-inner"></div>
-                </div>
-            </div>
+            ${progressHtml}
         `;
         l.appendChild(card);
     });
@@ -1077,11 +1129,21 @@ async function toggleHabit(id) {
     const h = habits.find(x => x.id === id);
     if (!h) return;
     
-    // Toggle state locally
+    const hSteps = habitSteps.filter(s => s.habit_id === id);
+
+    // Toggle state locally (Manual Override completes all)
     if (h.completedDates.includes(today)) {
         h.completedDates = h.completedDates.filter(d => d !== today);
+        if (hSteps.length > 0) {
+            hSteps.forEach(s => s.completed = false);
+            supabaseClient.from('habit_steps').update({ completed: false }).eq('habit_id', id).then();
+        }
     } else {
         h.completedDates.push(today);
+        if (hSteps.length > 0) {
+            hSteps.forEach(s => s.completed = true);
+            supabaseClient.from('habit_steps').update({ completed: true }).eq('habit_id', id).then();
+        }
     }
     
     await saveAndSync('rituals', habits);
@@ -1128,14 +1190,17 @@ function openModal(id = null) {
             goal.value = h.goal || ''; 
             if (streakGroup) streakGroup.classList.remove('hidden');
             if (currentStreakInput) currentStreakInput.value = calculateStreak(h);
+            currentModalSteps = habitSteps.filter(s => s.habit_id === id).map(s => ({...s}));
         }
     } else { 
         if (title) title.innerText = 'New Ritual';
         name.value = ''; 
         goal.value = ''; 
         if (streakGroup) streakGroup.classList.add('hidden');
+        currentModalSteps = [];
     }
     
+    renderModalSteps();
     modal.classList.remove('hidden');
     modal.classList.add('visible'); // Added for extra safety
     setTimeout(() => {
@@ -1149,6 +1214,115 @@ function closeModal() {
         m.classList.add('hidden'); 
     }
 }
+
+function renderModalSteps() {
+    const container = document.getElementById('habit-steps-container');
+    if (!container) return;
+    container.innerHTML = '';
+    currentModalSteps.forEach((step, index) => {
+        const div = document.createElement('div');
+        div.style = "display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px;";
+        div.innerHTML = `
+            <span>${step.name}</span>
+            <span onclick="removeModalStep(${index})" style="cursor:pointer; color:var(--error); font-weight:bold; font-size:1.1rem; padding:4px;">✕</span>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function addStepToHabitModal() {
+    const input = document.getElementById('habit-new-step-name');
+    const name = input.value.trim();
+    if (!name) return;
+    currentModalSteps.push({ id: generateId(), name: name, completed: false });
+    input.value = '';
+    renderModalSteps();
+}
+
+function removeModalStep(index) {
+    currentModalSteps.splice(index, 1);
+    renderModalSteps();
+}
+
+let activeDetailHabitId = null;
+
+function openDetailModal(id) {
+    const h = habits.find(x => x.id === id);
+    if (!h) return;
+    activeDetailHabitId = id;
+    
+    const m = document.getElementById('habit-detail-modal');
+    if (!m) return;
+    
+    document.getElementById('detail-habit-name').innerText = h.name;
+    const editBtn = document.getElementById('edit-habit-btn');
+    if (editBtn) {
+        editBtn.onclick = () => { closeDetailModal(); openModal(id); };
+    }
+    
+    renderDetailSteps();
+    m.classList.remove('hidden');
+    m.classList.add('visible');
+}
+
+function renderDetailSteps() {
+    const list = document.getElementById('detail-steps-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const hSteps = habitSteps.filter(s => s.habit_id === activeDetailHabitId);
+    
+    if (hSteps.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-dim);font-size:0.9rem;">No steps configured. Standard ritual.</p>';
+    } else {
+        hSteps.forEach(step => {
+            const div = document.createElement('div');
+            div.style = `display:flex; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.05); border-radius:8px; cursor:pointer; opacity:${step.completed ? '0.6' : '1'};`;
+            div.onclick = () => toggleStepDetail(step.id);
+            div.innerHTML = `
+                <div class="habit-check-v2 ${step.completed ? 'done' : ''}" style="width:28px; height:28px; margin-right:12px;">
+                    <div class="check-inner" style="width:8px; height:14px; margin-top:-2px;"></div>
+                </div>
+                <span style="font-weight:600; text-decoration:${step.completed ? 'line-through' : 'none'};">${step.name}</span>
+            `;
+            list.appendChild(div);
+        });
+    }
+}
+
+function closeDetailModal() {
+    const m = document.getElementById('habit-detail-modal');
+    if (m) { m.classList.remove('visible'); m.classList.add('hidden'); }
+    activeDetailHabitId = null;
+}
+
+async function toggleStepDetail(stepId) {
+    const step = habitSteps.find(s => s.id === stepId);
+    if (!step) return;
+    
+    step.completed = !step.completed;
+    renderDetailSteps();
+    
+    const hId = step.habit_id;
+    const hSteps = habitSteps.filter(s => s.habit_id === hId);
+    const allDone = hSteps.every(s => s.completed);
+    const h = habits.find(x => x.id === hId);
+    
+    const today = new Date().toISOString().split('T')[0];
+    const isHabitDone = h.completedDates.includes(today);
+
+    if (allDone && !isHabitDone) {
+        h.completedDates.push(today);
+    } else if (!allDone && isHabitDone) {
+        h.completedDates = h.completedDates.filter(d => d !== today);
+    }
+    
+    await saveAndSync('rituals', habits);
+    await supabaseClient.from('habit_steps').update({ completed: step.completed }).eq('id', stepId);
+    
+    renderHabits();
+    renderDashboard();
+}
+
 async function saveHabit() {
     try {
         const name = document.getElementById('habit-name').value.trim();
@@ -1187,6 +1361,33 @@ async function saveHabit() {
             h = { id: generateId(), name, goal, completedDates: [], user_id: USER_ID };
             habits.push(h);
         }
+
+        const dbHabitId = h.id;
+        const oldSteps = habitSteps.filter(s => s.habit_id === dbHabitId);
+        
+        for (const old of oldSteps) {
+            if (!currentModalSteps.find(s => s.id === old.id)) {
+                await supabaseClient.from('habit_steps').delete().eq('id', old.id);
+            }
+        }
+        for (const st of currentModalSteps) {
+            const exists = oldSteps.find(s => s.id === st.id);
+            if (exists) {
+                if (exists.name !== st.name) {
+                    exists.name = st.name;
+                    await supabaseClient.from('habit_steps').update({ name: st.name }).eq('id', st.id);
+                }
+            } else {
+                const newStep = { id: st.id, habit_id: dbHabitId, name: st.name, completed: false };
+                await supabaseClient.from('habit_steps').insert(newStep);
+            }
+        }
+        
+        // Rebuild local list safely
+        habitSteps = habitSteps.filter(s => s.habit_id !== dbHabitId);
+        currentModalSteps.forEach(st => {
+            habitSteps.push({ id: st.id, habit_id: dbHabitId, name: st.name, completed: st.completed || false });
+        });
 
         await saveAndSync('rituals', habits);
         closeModal();
