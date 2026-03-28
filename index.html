@@ -217,9 +217,9 @@
 
     <!-- Modals (Habit) -->
     <div id="habit-modal" class="modal hidden">
-        <div class="modal-content glass-card dark-modal">
+        <div class="modal-content glass-card dark-modal" style="max-height: 90vh; display: flex; flex-direction: column;">
             <h3 id="habit-modal-title">New Ritual</h3>
-            <div class="input-group">
+            <div class="input-group" style="overflow-y: auto; overflow-x: hidden; padding-right: 8px; flex: 1;">
                 <input type="text" id="habit-name" placeholder="Ritual Name" class="full-input">
                 <input type="text" id="habit-goal" placeholder="Daily Goal (e.g., 10m)" class="full-input">
                 <div id="streak-edit-group" class="hidden" style="margin-top: 5px;">
@@ -238,7 +238,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-actions">
+            <div class="modal-actions" style="margin-top: 15px; flex-shrink: 0;">
                 <button class="secondary modern-btn" onclick="closeModal()">Cancel</button>
                 <button class="primary modern-btn" onclick="saveHabit()">Save</button>
             </div>
@@ -372,34 +372,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Bottom Navigation (Mobile Only) -->
-    <nav id="bottom-nav" class="mobile-nav">
-        <button class="bottom-nav-item active" onclick="switchView('dashboard')">
-            <span class="nav-icon">📊</span>
-            <span class="nav-label">Dashboard</span>
-        </button>
-        <button class="bottom-nav-item" onclick="switchView('habits')">
-            <span class="nav-icon">✨</span>
-            <span class="nav-label">Rituals</span>
-        </button>
-        <button class="bottom-nav-item" onclick="switchView('attendance')">
-            <span class="nav-icon">🎓</span>
-            <span class="nav-label">Attendance</span>
-        </button>
-        <button class="bottom-nav-item" onclick="switchView('tasks')">
-            <span class="nav-icon">📝</span>
-            <span class="nav-label">Tasks</span>
-        </button>
-        <button class="bottom-nav-item" onclick="switchView('reminders')">
-            <span class="nav-icon">🔔</span>
-            <span class="nav-label">Reminders</span>
-        </button>
-        <button class="bottom-nav-item" onclick="switchView('expiry')">
-            <span class="nav-icon">⏳</span>
-            <span class="nav-label">Expiry</span>
-        </button>
-    </nav>
 
     <script src="app.js"></script>
 </body>

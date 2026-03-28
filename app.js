@@ -180,7 +180,7 @@ async function fetchInitialData() {
         const { data: r, error: rErr } = await supabaseClient.from('reminders').select('*').eq('user_id', USER_ID);
         const { data: s, error: sErr } = await supabaseClient.from('stocks').select('*');
         const { data: e, error: eErr } = await supabaseClient.from('expiry_items').select('*').eq('user_id', USER_ID);
-        const { data: st, error: stErr } = await supabaseClient.from('habit_steps').select('*');
+        const { data: st, error: stErr } = await supabaseClient.from('habit_steps').select('*').order('created_at', { ascending: true });
         const { data: tl, error: tlErr } = await supabaseClient.from('task_lists').select('*');
         const { data: ti, error: tiErr } = await supabaseClient.from('task_items').select('*');
 
@@ -425,6 +425,8 @@ function renderDashboard() {
                 el.style.display = 'flex';
                 el.style.justifyContent = 'space-between';
                 el.style.alignItems = 'center';
+                el.style.cursor = 'pointer';
+                el.onclick = () => switchView('expiry');
                 el.innerHTML = `
                     <div class="ritual-info" style="flex:1;">
                         <span class="ritual-name">${item.name}</span>
@@ -432,9 +434,7 @@ function renderDashboard() {
                     <div class="ritual-streak" style="background:${daysLeft === 1 ? 'rgba(251,191,36,0.1)' : 'transparent'}; color:${daysLeft === 1 ? '#fbbf24' : 'var(--text-dim)'}; border:${daysLeft === 1 ? '1px solid rgba(251,191,36,0.3)' : 'none'}; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-right: 10px;">
                         ${daysLeft} d left
                     </div>
-                    <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')" title="Delete" style="padding:4px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                    </button>
+                    <div style="font-size:1.2rem; color:var(--text-dim); opacity:0.5;">→</div>
                 `;
                 expiryList.appendChild(el);
             });
@@ -473,13 +473,13 @@ function renderDashboard() {
             div.style.marginBottom = '0.5rem';
             
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div class="ritual-info" style="margin-right: 15px; flex:1; cursor:pointer;" onclick="openDetailModal('${h.id}')">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; cursor:pointer;" onclick="switchView('habits')">
+                    <div class="ritual-info" style="margin-right: 15px; flex:1;">
                         <span class="ritual-name" style="display:block; margin-bottom: 2px;">${h.name} ${stepText}</span>
-                        <span class="ritual-streak" style="font-size: 0.75rem; color: var(--text-dim);">🔥 ${streak}</span>
+                        <span class="ritual-streak" style="font-size: 0.75rem; color: var(--text-dim);">🔥 ${streak} &nbsp; ⭐ ${h.bestStreak || streak}</span>
                     </div>
-                    <div class="habit-check ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')" style="margin-left: auto;">
-                        <div class="check-inner"></div>
+                    <div class="status-indicator ${isDone ? 'done' : ''}" style="margin-left: auto; color:${isDone ? 'var(--primary)' : 'var(--text-dim)'}; font-weight:bold;">
+                        ${isDone ? '✓' : '—'}
                     </div>
                 </div>
                 ${progressHtml}
@@ -853,14 +853,16 @@ function renderReminders() {
         const div = document.createElement('div');
         div.className = `reminder-item ${isToday ? 'reminder-today-highlight' : ''}`;
         div.id = `rem-card-${rem.id}`;
+        div.style.cursor = 'pointer';
+        div.onclick = () => switchView('reminders');
         
         div.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
                 <span class="rem-title" style="font-weight:600; color:${isToday ? 'var(--primary)' : 'var(--text-color)'};">${rem.title}</span>
                 <span class="rem-date" style="align-self:flex-start; font-size:0.8rem; color:${isToday ? 'var(--primary)' : 'var(--text-dim)'}; opacity:${isToday ? '0.8' : '1'};">${isToday ? '⚠ ' : ''}${formatDate(rem.date)}</span>
             </div>
-            <div style="display:flex; gap:8px;">
-                <button class="rem-btn complete-btn" onclick="toggleReminder('${rem.id}')" title="Complete" style="${isToday ? 'border-color:var(--primary);color:var(--primary);' : ''}">✓</button>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <span style="font-size:1.2rem; color:var(--text-dim); opacity:0.5;">→</span>
             </div>
         `;
         dashList.appendChild(div);
@@ -1145,8 +1147,10 @@ function renderHabits() {
                 </div>
                 
                 <div class="habit-middle" onclick="openDetailModal('${h.id}')">
-                    <div class="streak-pill">
-                        🔥 ${currentStreak}
+                    <div class="streak-pill" style="display:flex; gap:6px; align-items:center;">
+                        <span>🔥 ${currentStreak}</span>
+                        <span style="opacity:0.3;">|</span>
+                        <span>⭐ ${h.bestStreak || currentStreak}</span>
                     </div>
                 </div>
                 
@@ -1262,11 +1266,23 @@ function renderModalSteps() {
         const div = document.createElement('div');
         div.style = "display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px;";
         div.innerHTML = `
-            <span>${step.name}</span>
-            <span onclick="removeModalStep(${index})" style="cursor:pointer; color:var(--error); font-weight:bold; font-size:1.1rem; padding:4px;">✕</span>
+            <span style="flex:1;">${step.name}</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="secondary" style="padding:2px 6px; font-size:1rem; min-width:unset; width:auto; border-radius:4px;" onclick="moveModalStep(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.3;padding:2px 6px;font-size:1rem;min-width:unset;"' : ''}>↑</button>
+                <button class="secondary" style="padding:2px 6px; font-size:1rem; min-width:unset; width:auto; border-radius:4px;" onclick="moveModalStep(${index}, 1)" ${index === currentModalSteps.length - 1 ? 'disabled style="opacity:0.3;padding:2px 6px;font-size:1rem;min-width:unset;"' : ''}>↓</button>
+                <span onclick="removeModalStep(${index})" style="cursor:pointer; color:var(--error); font-weight:bold; font-size:1.1rem; padding:4px; margin-left:8px;">✕</span>
+            </div>
         `;
         container.appendChild(div);
     });
+}
+
+function moveModalStep(index, direction) {
+    if (index + direction < 0 || index + direction >= currentModalSteps.length) return;
+    const temp = currentModalSteps[index];
+    currentModalSteps[index] = currentModalSteps[index + direction];
+    currentModalSteps[index + direction] = temp;
+    renderModalSteps();
 }
 
 function addStepToHabitModal() {
@@ -1402,30 +1418,24 @@ async function saveHabit() {
         }
 
         const dbHabitId = h.id;
-        const oldSteps = habitSteps.filter(s => s.habit_id === dbHabitId);
         
-        for (const old of oldSteps) {
-            if (!currentModalSteps.find(s => s.id === old.id)) {
-                await supabaseClient.from('habit_steps').delete().eq('id', old.id);
-            }
-        }
-        for (const st of currentModalSteps) {
-            const exists = oldSteps.find(s => s.id === st.id);
-            if (exists) {
-                if (exists.name !== st.name) {
-                    exists.name = st.name;
-                    await supabaseClient.from('habit_steps').update({ name: st.name }).eq('id', st.id);
-                }
-            } else {
-                const newStep = { id: st.id, habit_id: dbHabitId, name: st.name, completed: false };
-                await supabaseClient.from('habit_steps').insert(newStep);
-            }
+        await supabaseClient.from('habit_steps').delete().eq('habit_id', dbHabitId);
+        
+        const stepsToInsert = currentModalSteps.map(st => ({
+            id: generateId(), // Refresh ID to avoid stale reference
+            habit_id: dbHabitId,
+            name: st.name,
+            completed: st.completed || false
+        }));
+
+        if (stepsToInsert.length > 0) {
+            await supabaseClient.from('habit_steps').insert(stepsToInsert);
         }
         
         // Rebuild local list safely
         habitSteps = habitSteps.filter(s => s.habit_id !== dbHabitId);
-        currentModalSteps.forEach(st => {
-            habitSteps.push({ id: st.id, habit_id: dbHabitId, name: st.name, completed: st.completed || false });
+        stepsToInsert.forEach(st => {
+            habitSteps.push(st);
         });
 
         await saveAndSync('rituals', habits);

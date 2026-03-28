@@ -254,12 +254,15 @@ html, body {
 #app-main {
     flex-grow: 1;
     margin-left: 280px; /* Desktop default */
-    padding: 3rem 4rem;
-    max-width: var(--max-content-width);
-    margin-right: auto;
-    transition: margin 0.3s ease;
-    overflow-y: auto; /* Mobile scroll fix */
+    padding: 24px;
     height: auto; /* Dynamic height */
+}
+
+.view {
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    animation: fadeIn 0.4s ease-out;
 }
 
 @media (max-width: 1024px) {
