@@ -50,6 +50,16 @@ let taskLists = []; // Tasks v70.0
 let taskItems = [];
 let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
 let editingSubjectOriginalName = null;
+let meditationExpanded = false;
+let selectedMeditationTime = 10;
+
+const meditationVideos = [
+    { title: "Ocean Calm", duration: 2, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_1.png" },
+    { title: "Zen Breath", duration: 2, file: "https://www.w3schools.com/html/movie.mp4", thumbnail: "meditation_thumb_2.png" },
+    { title: "Deep Forest", duration: 5, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_2.png" },
+    { title: "Inner Peace", duration: 10, file: "https://www.w3schools.com/html/movie.mp4", thumbnail: "meditation_thumb_1.png" },
+    { title: "Night Tranquil", duration: 20, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_2.png" }
+];
 
 function getSubjectDisplayName(sub, showType = true) {
     if (customSubjects[sub] && customSubjects[sub].name) {
@@ -1193,13 +1203,42 @@ function renderHabits() {
             </div>`;
         }
 
+        const isMeditation = h.name.toLowerCase() === 'meditation';
+        
+        let meditationHtml = '';
+        if (isMeditation && meditationExpanded) {
+            const filtered = meditationVideos.filter(v => v.duration === selectedMeditationTime);
+            meditationHtml = `
+                <div class="meditation-expansion">
+                    <div class="time-filters">
+                        ${[2, 5, 10, 20].map(t => `
+                            <button class="time-btn ${selectedMeditationTime === t ? 'active' : ''}" onclick="filterMeditationBy(${t})">${t} min</button>
+                        `).join('')}
+                    </div>
+                    <div class="video-carousel">
+                        ${filtered.map((v, idx) => `
+                            <div class="video-card" onclick="playMeditation('${v.file}', '${v.title}')">
+                                <div class="video-thumb" style="background-image: url('${v.thumbnail}')">
+                                    <div class="play-overlay"><div class="play-icon">▶</div></div>
+                                </div>
+                                <div class="video-info">
+                                    <span class="v-title">${v.title}</span>
+                                    <span class="v-duration">⏱ ${v.duration} min</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
         const card = document.createElement('div'); 
         card.className = `habit-card-v2 glass-card ${isDone ? 'completed' : ''}`;
         card.style.flexDirection = 'column';
         card.style.alignItems = 'stretch';
         card.style.gap = '0';
         
-        card.innerHTML = `
+        const mainContent = `
             <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:1.5rem;">
                 <div class="habit-left" onclick="openCalendarFor('${h.id}')">
                     <span class="habit-name">${h.name} ${stepText}</span>
@@ -1214,17 +1253,72 @@ function renderHabits() {
                     </div>
                 </div>
                 
-                <div class="habit-right">
+                <div class="habit-right" style="display:flex; align-items:center; gap:12px;">
+                    ${isMeditation ? `<button class="secondary modern-btn" onclick="toggleMeditationExpansion(event)" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">${meditationExpanded ? 'Close' : 'Start Session'}</button>` : ''}
                     <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
                         <div class="check-inner"></div>
                     </div>
                 </div>
             </div>
             ${progressHtml}
+            ${meditationHtml}
         `;
+        card.innerHTML = mainContent;
         l.appendChild(card);
     });
     updateStats();
+}
+
+function toggleMeditationExpansion(e) {
+    e.stopPropagation();
+    meditationExpanded = !meditationExpanded;
+    renderHabits();
+}
+
+function filterMeditationBy(time) {
+    selectedMeditationTime = time;
+    renderHabits();
+}
+
+function playMeditation(file, title) {
+    const modal = document.getElementById('meditation-player-modal');
+    const video = document.getElementById('meditation-video');
+    const titleEl = document.getElementById('meditation-video-title');
+    
+    titleEl.innerText = title;
+    video.src = file;
+    video.load();
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('visible');
+    
+    video.onended = () => {
+        markMeditationComplete();
+        closeMeditationPlayer();
+    };
+}
+
+function closeMeditationPlayer() {
+    const modal = document.getElementById('meditation-player-modal');
+    const video = document.getElementById('meditation-video');
+    video.pause();
+    modal.classList.remove('visible');
+    modal.classList.add('hidden');
+}
+
+function markMeditationCompleteManually() {
+    markMeditationComplete();
+    closeMeditationPlayer();
+}
+
+function markMeditationComplete() {
+    const meditationHabit = habits.find(h => h.name.toLowerCase() === 'meditation');
+    if (meditationHabit) {
+        const today = new Date().toLocaleDateString("en-CA");
+        if (!meditationHabit.completedDates.includes(today)) {
+            toggleHabit(meditationHabit.id);
+        }
+    }
 }
 
 async function toggleHabit(id) {
