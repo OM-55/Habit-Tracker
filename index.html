@@ -8,10 +8,9 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <meta name="theme-color" content="#0b0b0b">
-    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#070708">
     <link rel="icon" type="image/png" href="https://cdn-icons-png-flaticon.com/512/3248/3248443.png">
 </head>
 <body>
@@ -341,23 +340,6 @@
             <div class="modal-actions">
                 <button class="secondary modern-btn" onclick="closeStockModal()">Cancel</button>
                 <button class="primary modern-btn" onclick="saveStock()">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals (Class Tracker) -->
-    <div id="class-subject-modal" class="modal hidden">
-        <div class="modal-content glass-card dark-modal">
-            <h3>Edit Class/Subject</h3>
-            <div class="input-group">
-                <label>Subject Name</label>
-                <input type="text" id="class-subject-name" placeholder="E.g. AP Lab" class="full-input">
-                <label>Type</label>
-                <input type="text" id="class-subject-type" placeholder="E.g. Lecture, Lab" class="full-input">
-            </div>
-            <div class="modal-actions">
-                <button class="secondary modern-btn" onclick="closeClassSubjectModal()">Cancel</button>
-                <button class="primary modern-btn" onclick="saveClassSubject()">Save</button>
             </div>
         </div>
     </div>

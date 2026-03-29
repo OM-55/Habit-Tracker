@@ -490,11 +490,11 @@ function renderDashboard() {
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%; cursor:pointer;" onclick="navigate('habits')">
                     <div class="ritual-info-compact" style="display:flex; align-items:center; gap:12px; flex:1;">
-                        <span class="ritual-name" style="font-weight:700;">${h.name}</span>
-                        <span class="ritual-streak-inline" style="font-size: 0.8rem; color: var(--text-dim); opacity:0.8;">🔥 ${streak} &nbsp; ⭐ ${h.bestStreak || streak}</span>
+                        <span class="ritual-name" style="font-weight:700; font-size:1.05rem;">${h.name}</span>
+                        <span class="ritual-streak-inline">🔥 ${streak}</span>
                     </div>
-                    <div class="status-indicator ${isDone ? 'done' : ''}" style="color:${isDone ? 'var(--primary)' : 'var(--text-dim)'}; font-weight:bold; font-size:1.1rem;">
-                        ${isDone ? '✓' : '—'}
+                    <div class="status-indicator ${isDone ? 'done' : ''}" style="color:${isDone ? 'var(--success)' : 'var(--text-dim)'}; font-size:1.2rem;">
+                        ${isDone ? '✦' : '✧'}
                     </div>
                 </div>
             `;
@@ -565,11 +565,11 @@ function renderStocksDashboard() {
         div.style.justifyContent = 'space-between';
         div.innerHTML = `
             <div class="ritual-info" style="flex:1;">
-                <span class="ritual-name">${s.name.toUpperCase()}</span>
-                <span style="font-size:0.7rem; color:var(--text-dim); opacity:0.8; margin-left:8px;">₹${cur}</span>
+                <span class="ritual-name" style="font-weight:700;">${s.name.toUpperCase()}</span>
+                <span style="font-size:0.75rem; color:var(--text-dim); margin-left:8px;">₹${cur}</span>
             </div>
-            <div class="${profit >= 0 ? 'success-text' : 'error-text'}" style="font-weight:700;">
-                ${profit >= 0 ? '+' : ''}${perc}%
+            <div class="${profit >= 0 ? 'success-text' : 'error-text'}" style="font-weight:800; font-size:0.95rem;">
+                ${profit >= 0 ? '▲' : '▼'} ${Math.abs(perc)}%
             </div>
         `;
         list.appendChild(div);
