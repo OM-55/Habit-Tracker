@@ -67,55 +67,49 @@
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view">
                 <div class="dashboard-grid">
+                    <!-- 1. Daily Rituals -->
+                    <div class="dashboard-card glass-card" id="dash-rituals">
+                        <div class="card-header"><h3>Daily Rituals</h3></div>
+                        <div id="habits-preview-list" class="ritual-cards-container"></div>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('habits')">View all →</button></div>
+                    </div>
+
+                    <!-- 2. Reminders -->
+                    <div class="dashboard-card glass-card" id="dashboard-reminder-card">
+                        <div class="card-header"><h3>Reminders</h3></div>
+                        <div id="dashboard-reminders" class="summary-list preview-list"></div>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('reminders')">View all →</button></div>
+                    </div>
+
+                    <!-- 3. Expiry Tracker -->
                     <div class="dashboard-card glass-card" id="dashboard-expiry-card">
                         <div class="card-header"><h3>Expiry Tracker</h3></div>
                         <div id="dashboard-expiry-list" class="summary-list preview-list"></div>
-                        <div class="card-footer" style="margin-top:auto;">
-                            <button class="text-link" onclick="navigate('expiry')">Manage →</button>
-                        </div>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('expiry')">Manage Items →</button></div>
                     </div>
 
-                    <div class="dashboard-card glass-card">
-                        <div class="card-header"><h3>Daily Rituals</h3></div>
-                        <div id="habits-preview-list" class="ritual-cards-container"></div>
-                        <button class="text-link" onclick="navigate('habits')">View all →</button>
+                    <!-- 4. Tasks -->
+                    <div class="dashboard-card glass-card" id="dash-tasks">
+                        <div class="card-header"><h3>Tasks & Notes</h3></div>
+                        <div id="dashboard-tasks-list" class="summary-list preview-list"></div>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('tasks')">View All →</button></div>
                     </div>
 
-                    <div class="dashboard-card glass-card">
+                    <!-- 5. Academy -->
+                    <div class="dashboard-card glass-card" id="dash-academy">
                         <div class="card-header">
-                            <h3>Academy</h3>
+                            <h3>Academy Tracker</h3>
                             <span id="overall-attendance-badge" class="badge">0% Overall</span>
                         </div>
                         <div id="attendance-preview-list" class="preview-list academy-list"></div>
-                        <button class="text-link" onclick="navigate('attendance')">Open tracker →</button>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('attendance')">Open Tracker →</button></div>
                     </div>
 
-                    <div class="summary-card glass-card" id="dashboard-reminder-card" style="order: 4;">
-                        <div class="card-header">
-                            <h3>Reminder</h3>
-                        </div>
-                        <div id="dashboard-reminders" class="summary-list preview-reminders"></div>
-                        <div class="card-footer">
-                            <button class="text-link" onclick="navigate('reminders')">View all →</button>
-                        </div>
-                    </div>
-
-                    <div class="summary-card glass-card">
-                        <div class="card-header">
-                            <h3>Stock Market</h3>
-                        </div>
+                    <!-- 6. Stocks -->
+                    <div class="dashboard-card glass-card" id="dash-stocks">
+                        <div class="card-header"><h3>Stock Market</h3></div>
                         <div id="stocks-summary" class="summary-list preview-list"></div>
-                        <div class="card-footer">
-                            <button class="text-link" onclick="navigate('stocks')">View Tracker →</button>
-                        </div>
-                    </div>
-
-                    <div class="dashboard-card glass-card">
-                        <div class="card-header"><h3>Tasks & Notes</h3></div>
-                        <div id="dashboard-tasks-list" class="summary-list preview-list"></div>
-                        <div class="card-footer">
-                            <button class="text-link" onclick="navigate('tasks')">View All →</button>
-                        </div>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('stocks')">View Tracker →</button></div>
                     </div>
                 </div>
             </section>

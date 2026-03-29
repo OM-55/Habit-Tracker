@@ -1,8 +1,8 @@
 :root {
     --bg-dark: #070708;
     --sidebar-bg: #0c0c0e;
-    --card-bg: rgba(255, 255, 255, 0.035);
-    --primary: #818cf8; /* Softer, premium indigo */
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --primary: #818cf8;
     --primary-glow: rgba(129, 140, 248, 0.25);
     --text-white: #f8fafc;
     --text-dim: #94a3b8;
@@ -13,8 +13,8 @@
     --radius-xl: 32px;
     --radius-lg: 20px;
     --radius-md: 14px;
-    --max-content-width: 1400px;
-    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --max-content-width: 1300px; /* Balanced width */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Meditation Styles */
@@ -319,7 +319,7 @@ html, body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 280px;
+    width: var(--sidebar-width);
     height: 100%;
     background: var(--sidebar-bg);
     border-right: 1px solid var(--glass-border);
@@ -327,6 +327,7 @@ html, body {
     padding: 2.5rem 1.2rem;
     display: flex !important;
     flex-direction: column !important;
+    transition: var(--transition);
 }
 
 .sidebar-header {
@@ -405,15 +406,19 @@ html, body {
 
 #app-main {
     flex-grow: 1;
-    margin-left: 280px; /* Desktop default */
-    padding: 24px;
-    height: auto; /* Dynamic height */
+    margin-left: var(--sidebar-width);
+    padding: 40px;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center views */
 }
 
 .view {
-    max-width: 1100px;
-    margin: 0 auto;
+    max-width: var(--max-content-width);
     width: 100%;
+    margin: 0 auto;
     animation: fadeIn 0.4s ease-out;
 }
 
@@ -449,8 +454,10 @@ html, body {
         margin-left: 0 !important; 
         margin-top: 64px; 
         padding: 1.5rem !important;
+        padding-bottom: 120px !important; /* Extra space for mobile Nav */
         max-width: 100vw;
-        overflow-x: hidden;
+        height: calc(100vh - 64px);
+        overflow-y: auto;
     }
     
     #drawer-overlay.visible { opacity: 1; visibility: visible; }
@@ -465,25 +472,30 @@ html, body {
 .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr) !important; 
-    gap: 1.8rem !important; 
-    padding: 1rem 0;
+    gap: 2rem !important; 
+    width: 100%;
+    padding-bottom: 40px;
 }
 
-.dashboard-card, .summary-card {
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+.dashboard-card, .summary-card, .glass-card {
     background: var(--card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
+    padding: 1.8rem !important;
+    display: flex;
+    flex-direction: column;
+    height: 380px; /* Fixed height for balance on dashboard */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     transition: var(--transition);
 }
 
-.dashboard-card:hover, .summary-card:hover {
-    background: rgba(255, 255, 255, 0.05);
+.dashboard-card:hover, .summary-card:hover, .glass-card:hover {
+    background: rgba(255, 255, 255, 0.06);
     border-color: var(--primary);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4), 0 0 20px var(--primary-glow);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--primary-glow);
 }
 
 .dashboard-card .ritual-cards-container, 
@@ -498,9 +510,12 @@ html, body {
 }
 
 .card-header {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 0.8rem;
-    margin-bottom: 1rem !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 1rem;
+    margin-bottom: 1.2rem !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .card-header h3, .dashboard-card h3 {
@@ -588,25 +603,148 @@ html, body {
 
 .ritual-card-mini .ritual-info {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
 }
 
 .ritual-card-mini .ritual-name {
-    font-weight: 600;
-    font-size: 0.9rem !important;
+    font-weight: 700;
+    font-size: 1rem !important;
 }
 
-.ritual-card-mini .ritual-streak {
-    font-size: 0.7rem;
-    color: var(--primary);
-    font-weight: 500;
-    background: rgba(99, 102, 241, 0.08);
-    padding: 1px 8px;
-    border-radius: 4px;
-    width: fit-content;
-    margin-top: 2px;
+.status-indicator {
+    font-size: 1.25rem;
+    color: var(--text-dim);
+    transition: var(--transition);
 }
+
+.ritual-card-mini.completed .status-indicator {
+    color: var(--success);
+}
+
+.dashboard-card .card-footer {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 1.2rem 0 0.5rem;
+    margin-top: auto;
+}
+
+/* Habit Card v2 (Main List) */
+.habit-card-v2 {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem !important;
+    margin-bottom: 2rem;
+    height: auto !important;
+}
+
+.habit-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+}
+
+.habit-info-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.habit-info-group .habit-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.habit-info-group .habit-goal {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+}
+
+.habit-stats-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+}
+
+.streak-pill {
+    background: rgba(255,255,255,0.05);
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.streak-sep { margin: 0 10px; opacity: 0.2; }
+
+.steps-count {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.habit-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.meditation-btn { padding: 8px 20px; font-size: 0.85rem; border-radius: 10px; }
+
+.habit-steps-mini-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+}
+
+/* Stats Banner Reconstruction */
+.stats-banner {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.2rem !important;
+    margin-bottom: 3.5rem !important;
+    padding: 2.5rem !important;
+    height: auto !important;
+    text-align: center;
+}
+
+.stats-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stats-count {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    font-size: 1rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+}
+
+.progress-bar.mini { width: 100%; max-width: 400px; height: 8px !important; }
 
 .scrollable-list { 
     max-height: none; 
@@ -1682,12 +1820,10 @@ input:checked + .toggle-slider:before {
     #app-main {
         margin-left: 0 !important;
         margin-top: 64px !important;
-        padding: 1rem !important;
-        padding-bottom: 80px !important; /* Space for bottom nav */
+        padding: 1.5rem !important;
+        padding-bottom: 120px !important;
         max-width: 100vw;
-        overflow-x: hidden;
-        min-height: auto !important;
-        display: block !important;
+        height: calc(100vh - 64px);
     }
 
     body, html {

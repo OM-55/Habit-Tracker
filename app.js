@@ -486,17 +486,13 @@ function renderDashboard() {
             const isDone = h.completedDates.includes(today);
             const streak = calculateStreak(h);
             const div = document.createElement('div');
-            div.className = `ritual-card-mini row-compact glass-card ${isDone ? 'completed' : ''}`;
+            div.className = `ritual-card-mini ${isDone ? 'completed' : ''}`;
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; cursor:pointer;" onclick="navigate('habits')">
-                    <div class="ritual-info-compact" style="display:flex; align-items:center; gap:12px; flex:1;">
-                        <span class="ritual-name" style="font-weight:700; font-size:1.05rem;">${h.name}</span>
-                        <span class="ritual-streak-inline">🔥 ${streak}</span>
-                    </div>
-                    <div class="status-indicator ${isDone ? 'done' : ''}" style="color:${isDone ? 'var(--success)' : 'var(--text-dim)'}; font-size:1.2rem;">
-                        ${isDone ? '✦' : '✧'}
-                    </div>
+                <div class="ritual-info" onclick="navigate('habits')">
+                    <span class="ritual-name">${h.name}</span>
+                    <span class="ritual-streak-inline">🔥 ${streak}</span>
                 </div>
+                <div class="status-indicator">${isDone ? '✦' : '✧'}</div>
             `;
             hList.appendChild(div);
         });
@@ -1180,26 +1176,21 @@ function renderHabits() {
     if (!l) return; 
     l.innerHTML = '';
     const today = new Date().toLocaleDateString("en-CA");
-    
-    // Sort A-Z
     const sortedHabits = [...habits].sort((a, b) => a.name.localeCompare(b.name));
     
     sortedHabits.forEach(h => {
         const isDone = h.completedDates.includes(today);
         const currentStreak = calculateStreak(h);
-        
         const hSteps = habitSteps.filter(s => s.habit_id === h.id);
         const totalSteps = hSteps.length;
         const compSteps = hSteps.filter(s => s.completed).length;
         
         let progressHtml = '';
-        let stepText = '';
         if (totalSteps > 0) {
-            stepText = `<span style="font-size:0.8rem; color:var(--text-dim); margin-left:8px;">(${compSteps}/${totalSteps})</span>`;
             const perc = (compSteps / totalSteps) * 100;
             progressHtml = `
-            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-top: 10px; overflow: hidden; pointer-events: none;">
-                <div style="width: ${perc}%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
+            <div class="habit-steps-mini-progress">
+                <div class="progress-fill" style="width: ${perc}%;"></div>
             </div>`;
         }
 
@@ -1216,14 +1207,14 @@ function renderHabits() {
                         `).join('')}
                     </div>
                     <div class="video-carousel">
-                        ${filtered.map((v, idx) => `
+                        ${filtered.map(v => `
                             <div class="video-card" onclick="playMeditation('${v.file}', '${v.title}')">
                                 <div class="video-thumb" style="background-image: url('${v.thumbnail}')">
                                     <div class="play-overlay"><div class="play-icon">▶</div></div>
                                 </div>
                                 <div class="video-info">
                                     <span class="v-title">${v.title}</span>
-                                    <span class="v-duration">⏱ ${v.duration} min</span>
+                                    <span class="v-duration">${v.duration} min</span>
                                 </div>
                             </div>
                         `).join('')}
@@ -1234,27 +1225,26 @@ function renderHabits() {
 
         const card = document.createElement('div'); 
         card.className = `habit-card-v2 glass-card ${isDone ? 'completed' : ''}`;
-        card.style.flexDirection = 'column';
-        card.style.alignItems = 'stretch';
-        card.style.gap = '0';
+        card.style.width = '100%'; 
         
-        const mainContent = `
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:1.5rem;">
-                <div class="habit-left" onclick="openCalendarFor('${h.id}')">
-                    <span class="habit-name">${h.name} ${stepText}</span>
-                    <span class="habit-subtext">${h.goal || ''}</span>
+        card.innerHTML = `
+            <div class="habit-main-row">
+                <div class="habit-info-group" onclick="openCalendarFor('${h.id}')">
+                    <span class="habit-name">${h.name}</span>
+                    <span class="habit-goal">${h.goal || ''}</span>
                 </div>
                 
-                <div class="habit-middle" onclick="openCalendarFor('${h.id}')">
-                    <div class="streak-pill" style="display:flex; gap:6px; align-items:center;">
+                <div class="habit-stats-group" onclick="openCalendarFor('${h.id}')">
+                    <div class="streak-pill">
                         <span>🔥 ${currentStreak}</span>
-                        <span style="opacity:0.3;">|</span>
+                        <span class="streak-sep">|</span>
                         <span>⭐ ${h.bestStreak || currentStreak}</span>
                     </div>
+                    ${totalSteps > 0 ? `<span class="steps-count">${compSteps}/${totalSteps} Steps</span>` : ''}
                 </div>
                 
-                <div class="habit-right" style="display:flex; align-items:center; gap:12px;">
-                    ${isMeditation ? `<button class="secondary modern-btn" onclick="toggleMeditationExpansion(event)" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">${meditationExpanded ? 'Close' : 'Start Session'}</button>` : ''}
+                <div class="habit-actions-group">
+                    ${isMeditation ? `<button class="secondary modern-btn meditation-btn" onclick="toggleMeditationExpansion(event)">${meditationExpanded ? 'Close' : 'Start Session'}</button>` : ''}
                     <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
                         <div class="check-inner"></div>
                     </div>
@@ -1263,7 +1253,6 @@ function renderHabits() {
             ${progressHtml}
             ${meditationHtml}
         `;
-        card.innerHTML = mainContent;
         l.appendChild(card);
     });
     updateStats();
@@ -1363,11 +1352,11 @@ function updateStats() {
     const statsBox = document.getElementById('today-stats');
     if (statsBox) {
         statsBox.innerHTML = `
-            <div class="stats-text-row" id="completed-count-wrapper">
-                <span style="font-size: 1.1rem; font-weight: 800;"><span id="completed-count">${done}</span> / <span id="total-count">${total}</span></span>
-                <span style="font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; font-weight: 400; letter-spacing: 0.5px;">Done Today</span>
+            <div class="stats-main">
+                <span class="stats-count">${done} / ${total}</span>
+                <span class="stats-label">Done Today</span>
             </div>
-            <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
+            <div class="progress-bar mini"><div class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
         `;
     }
 }
