@@ -144,7 +144,7 @@ function toggleDrawer() {
     overlay.classList.toggle('hidden');
 }
 
-function navigate(view) {
+function navigate(view, params = {}) {
     // Update Views
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(`${view}-view`).classList.remove('hidden');
@@ -155,7 +155,9 @@ function navigate(view) {
         'habits': 'Daily Rituals',
         'attendance': 'Academy Tracker',
         'reminders': 'Reminders',
-        'stocks': 'Stock Tracker'
+        'stocks': 'Stock Tracker',
+        'tasks': 'Tasks & Notes',
+        'expiry': 'Expiry Tracker'
     };
     document.getElementById('page-title').innerText = titles[view] || 'Stellar';
 
@@ -169,12 +171,23 @@ function navigate(view) {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('drawer-overlay');
     sidebar.classList.remove('open');
-    overlay.classList.remove('visible');
-    overlay.classList.add('hidden');
+    if (overlay) {
+        overlay.classList.remove('visible');
+        overlay.classList.add('hidden');
+    }
 
     if (view === 'reminders') renderFullReminders();
     if (view === 'dashboard') renderDashboard();
     if (view === 'expiry') renderExpiryTracker();
+    if (view === 'habits') renderHabits();
+    if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
+    if (view === 'stocks') renderStocks();
+    if (view === 'tasks') {
+        renderTasksBoard();
+        if (params.id) {
+            setTimeout(() => openTaskListEditor(params.id), 100);
+        }
+    }
     
     currentView = view;
 }
@@ -221,7 +234,8 @@ async function fetchInitialData() {
             id: x.id, 
             name: x.name, 
             goal: x.goal, 
-            completedDates: x.completed_dates || [] 
+            completedDates: x.completed_dates || [],
+            history: x.history || {}
         }));
         if (a) attendance = a.map(x => ({ 
             id: x.id, 
@@ -249,9 +263,6 @@ async function fetchInitialData() {
             if (lastDate && lastDate !== todayIST) {
                 console.log("New day detected (IST). Resetting habits and steps...");
                 habitSteps.forEach(s => s.completed = false);
-                // Also reset habits completion for the new day
-                // Habits are already empty for a new date because completedDates won't have todayIST yet
-                
                 // Update Supabase for steps
                 await supabaseClient.from('habit_steps').update({ completed: false }).neq('name', '~~~dummy~~~');
             }
@@ -432,26 +443,26 @@ function renderDashboard() {
         if (activeItems.length === 0) {
             expiryList.innerHTML = '<div class="empty-msg" style="padding:1rem 0; font-size:0.9rem; color:var(--text-dim);">No expiring items</div>';
         } else {
-            activeItems.sort((a,b) => calculateDaysLeft(a.createdAt, a.initialDays) - calculateDaysLeft(b.createdAt, b.initialDays)).slice(0, 3).forEach(item => {
+            activeItems.sort((a,b) => calculateDaysLeft(a.createdAt, a.initialDays) - calculateDaysLeft(b.createdAt, b.initialDays)).slice(0, 4).forEach(item => {
                 const daysLeft = calculateDaysLeft(item.createdAt, item.initialDays);
                 const el = document.createElement('div');
                 el.className = 'ritual-card-mini dashboard-expiry-item';
-                el.style.display = 'flex';
-                el.style.justifyContent = 'space-between';
-                el.style.alignItems = 'center';
-                el.style.cursor = 'pointer';
-                el.onclick = () => switchView('expiry');
                 el.innerHTML = `
                     <div class="ritual-info" style="flex:1;">
                         <span class="ritual-name">${item.name}</span>
                     </div>
                     <div class="ritual-streak" style="background:${daysLeft === 1 ? 'rgba(251,191,36,0.1)' : 'transparent'}; color:${daysLeft === 1 ? '#fbbf24' : 'var(--text-dim)'}; border:${daysLeft === 1 ? '1px solid rgba(251,191,36,0.3)' : 'none'}; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-right: 10px;">
-                        ${daysLeft} d left
+                        ${daysLeft} d 
                     </div>
-                    <div style="font-size:1.2rem; color:var(--text-dim); opacity:0.5;">→</div>
                 `;
+                el.onclick = () => navigate('expiry');
                 expiryList.appendChild(el);
             });
+            const viewAll = document.createElement('button');
+            viewAll.className = 'text-link view-all-btn';
+            viewAll.innerHTML = 'View All →';
+            viewAll.onclick = () => navigate('expiry');
+            expiryList.appendChild(viewAll);
         }
     }
 
@@ -459,53 +470,37 @@ function renderDashboard() {
     if (hList) {
         hList.innerHTML = '';
         const today = new Date().toLocaleDateString("en-CA");
-        // Sort A-Z as per USER REQUEST
-        const sortedHabits = [...habits].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 10);
+        const sortedHabits = [...habits].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 4);
         
         sortedHabits.forEach(h => {
             const isDone = h.completedDates.includes(today);
             const streak = calculateStreak(h);
-            const hSteps = habitSteps.filter(s => s.habit_id === h.id);
-            const totalSteps = hSteps.length;
-            const compSteps = hSteps.filter(s => s.completed).length;
-
-            let progressHtml = '';
-            let stepText = '';
-            if (totalSteps > 0) {
-                stepText = `<span style="font-size:0.75rem; color:var(--text-dim); margin-left:8px;">(${compSteps}/${totalSteps})</span>`;
-                const perc = (compSteps / totalSteps) * 100;
-                progressHtml = `
-                <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 6px; overflow: hidden; pointer-events: none;">
-                    <div style="width: ${perc}%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
-                </div>`;
-            }
-
             const div = document.createElement('div');
-            div.className = `ritual-card-mini glass-card ${isDone ? 'completed' : ''}`;
-            div.style.display = 'flex';
-            div.style.flexDirection = 'column';
-            div.style.marginBottom = '0.5rem';
-            
+            div.className = `ritual-card-mini row-compact glass-card ${isDone ? 'completed' : ''}`;
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; cursor:pointer;" onclick="switchView('habits')">
-                    <div class="ritual-info" style="margin-right: 15px; flex:1;">
-                        <span class="ritual-name" style="display:block; margin-bottom: 2px;">${h.name} ${stepText}</span>
-                        <span class="ritual-streak" style="font-size: 0.75rem; color: var(--text-dim);">🔥 ${streak} &nbsp; ⭐ ${h.bestStreak || streak}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; cursor:pointer;" onclick="navigate('habits')">
+                    <div class="ritual-info-compact" style="display:flex; align-items:center; gap:12px; flex:1;">
+                        <span class="ritual-name" style="font-weight:700;">${h.name}</span>
+                        <span class="ritual-streak-inline" style="font-size: 0.8rem; color: var(--text-dim); opacity:0.8;">🔥 ${streak} &nbsp; ⭐ ${h.bestStreak || streak}</span>
                     </div>
-                    <div class="status-indicator ${isDone ? 'done' : ''}" style="margin-left: auto; color:${isDone ? 'var(--primary)' : 'var(--text-dim)'}; font-weight:bold;">
+                    <div class="status-indicator ${isDone ? 'done' : ''}" style="color:${isDone ? 'var(--primary)' : 'var(--text-dim)'}; font-weight:bold; font-size:1.1rem;">
                         ${isDone ? '✓' : '—'}
                     </div>
                 </div>
-                ${progressHtml}
             `;
             hList.appendChild(div);
         });
+        const viewAll = document.createElement('button');
+        viewAll.className = 'text-link view-all-btn';
+        viewAll.innerHTML = 'View All →';
+        viewAll.onclick = () => navigate('habits');
+        hList.appendChild(viewAll);
     }
 
     const aList = document.getElementById('attendance-preview-list');
     if (aList) {
         aList.innerHTML = '';
-        const subjectsToRender = [...new Set([...baseSubs, ...Object.keys(customSubjects)])];
+        const subjectsToRender = [...new Set([...baseSubs, ...Object.keys(customSubjects)])].slice(0, 4);
         subjectsToRender.forEach(sub => {
             const stats = getSubjectStats(sub);
             const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(0) : 0;
@@ -521,14 +516,22 @@ function renderDashboard() {
             `;
             aList.appendChild(div);
         });
+        const viewAllAcc = document.createElement('button');
+        viewAllAcc.className = 'text-link view-all-btn';
+        viewAllAcc.innerHTML = 'View All →';
+        viewAllAcc.onclick = () => navigate('attendance');
+        aList.appendChild(viewAllAcc);
+        
         let totalC = 0; let totalA = 0;
         baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
-        const overall = totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0;
+        const overall = (totalC > 0 ? (totalA / totalC * 100).toFixed(0) : 0);
         const badge = document.getElementById('overall-attendance-badge');
         if (badge) badge.innerText = `${overall}% Overall`;
     }
 
+    renderReminders();
     renderStocksDashboard();
+    renderTasksBoard();
 }
 
 function renderStocksDashboard() {
@@ -547,13 +550,13 @@ function renderStocksDashboard() {
         const perc = ((profit / (s.buy_price * s.quantity)) * 100).toFixed(1);
         
         const div = document.createElement('div');
-        div.className = 'ritual-card-mini view-only';
+        div.className = 'ritual-card-mini view-only row-compact';
         div.style.display = 'flex';
         div.style.justifyContent = 'space-between';
         div.innerHTML = `
-            <div class="ritual-info">
+            <div class="ritual-info" style="flex:1;">
                 <span class="ritual-name">${s.name.toUpperCase()}</span>
-                <span style="font-size:0.7rem; color:var(--text-dim);">₹${cur}</span>
+                <span style="font-size:0.7rem; color:var(--text-dim); opacity:0.8; margin-left:8px;">₹${cur}</span>
             </div>
             <div class="${profit >= 0 ? 'success-text' : 'error-text'}" style="font-weight:700;">
                 ${profit >= 0 ? '+' : ''}${perc}%
@@ -561,6 +564,11 @@ function renderStocksDashboard() {
         `;
         list.appendChild(div);
     });
+    const viewAllStocks = document.createElement('button');
+    viewAllStocks.className = 'text-link view-all-btn';
+    viewAllStocks.innerHTML = 'View All →';
+    viewAllStocks.onclick = () => navigate('stocks');
+    list.appendChild(viewAllStocks);
 }
 
 function getSubjectStats(sub) {
@@ -572,7 +580,6 @@ function getSubjectStats(sub) {
     return { total: manual.total + loggedTotal, attended: manual.attended + loggedAttended };
 }
 
-// --- Attendance ---
 function renderSubjects() {
     const container = document.getElementById('subjects-container');
     if (!container) return;
@@ -789,7 +796,7 @@ async function saveAndSync(table, data) {
         let payload;
         if (table === 'rituals') {
             payload = data.map(h => ({ 
-                id: h.id, user_id: USER_ID, name: h.name, goal: h.goal, completed_dates: h.completedDates || [] 
+                id: h.id, user_id: USER_ID, name: h.name, goal: h.goal, completed_dates: h.completedDates || [], history: h.history || {}
             }));
         } else if (table === 'attendance') {
             payload = data.map(a => ({ 
@@ -893,22 +900,25 @@ function renderReminders() {
     sorted.slice(0, 4).forEach(rem => {
         const isToday = rem.date <= todayStr;
         const div = document.createElement('div');
-        div.className = `reminder-item ${isToday ? 'reminder-today-highlight' : ''}`;
+        div.className = `reminder-item row-compact ${isToday ? 'reminder-today-highlight' : ''}`;
         div.id = `rem-card-${rem.id}`;
         div.style.cursor = 'pointer';
-        div.onclick = () => switchView('reminders');
+        div.onclick = () => navigate('reminders');
         
         div.innerHTML = `
-            <div style="display:flex; flex-direction:column; gap:4px; flex:1;">
-                <span class="rem-title" style="font-weight:600; color:${isToday ? 'var(--primary)' : 'var(--text-color)'};">${rem.title}</span>
-                <span class="rem-date" style="align-self:flex-start; font-size:0.8rem; color:${isToday ? 'var(--primary)' : 'var(--text-dim)'}; opacity:${isToday ? '0.8' : '1'};">${isToday ? '⚠ ' : ''}${formatDate(rem.date)}</span>
+            <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                <span class="rem-title" style="font-weight:700; color:${isToday ? 'var(--primary)' : 'var(--text-color)'}; font-size:0.9rem;">${rem.title}</span>
+                <span class="rem-date" style="font-size:0.75rem; color:var(--text-dim); opacity:0.7;">${isToday ? '⚠ ' : ''}${formatDate(rem.date)}</span>
             </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <span style="font-size:1.2rem; color:var(--text-dim); opacity:0.5;">→</span>
-            </div>
+            <div style="font-size:1.1rem; color:var(--text-dim); opacity:0.4;">→</div>
         `;
         dashList.appendChild(div);
     });
+    const viewAll = document.createElement('button');
+    viewAll.className = 'text-link view-all-btn';
+    viewAll.innerHTML = 'View All →';
+    viewAll.onclick = () => navigate('reminders');
+    dashList.appendChild(viewAll);
 }
 
 function formatDate(ds) {
@@ -1041,7 +1051,12 @@ async function deleteReminder(id) {
 function calculateDaysLeft(createdAtStr, initialDays) {
     const created = new Date(createdAtStr);
     const now = new Date();
-    const diffTime = now - created;
+    
+    // Normalize to midnight for calendar-based logic
+    const createdDate = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = nowDate - createdDate;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     return initialDays - diffDays;
 }
@@ -1186,12 +1201,12 @@ function renderHabits() {
         
         card.innerHTML = `
             <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:1.5rem;">
-                <div class="habit-left" onclick="openDetailModal('${h.id}')">
+                <div class="habit-left" onclick="openCalendarFor('${h.id}')">
                     <span class="habit-name">${h.name} ${stepText}</span>
                     <span class="habit-subtext">${h.goal || ''}</span>
                 </div>
                 
-                <div class="habit-middle" onclick="openDetailModal('${h.id}')">
+                <div class="habit-middle" onclick="openCalendarFor('${h.id}')">
                     <div class="streak-pill" style="display:flex; gap:6px; align-items:center;">
                         <span>🔥 ${currentStreak}</span>
                         <span style="opacity:0.3;">|</span>
@@ -1213,23 +1228,27 @@ function renderHabits() {
 }
 
 async function toggleHabit(id) {
-    const today = new Date().toLocaleDateString("en-CA");
+    const todayIST = new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
+    const todayYYYYMMDD = new Date().toLocaleDateString("en-CA");
     const h = habits.find(x => x.id === id);
     if (!h) return;
     
     // Maintain references to master habitSteps
     const hSteps = habitSteps.filter(s => s.habit_id === id);
 
-    if (h.completedDates.includes(today)) {
+    if (h.completedDates.includes(todayYYYYMMDD)) {
         // C: If parent manually unchecked -> all steps = unchecked
-        h.completedDates = h.completedDates.filter(d => d !== today);
+        h.completedDates = h.completedDates.filter(d => d !== todayYYYYMMDD);
+        if (h.history) delete h.history[todayIST];
         if (hSteps.length > 0) {
             hSteps.forEach(s => s.completed = false);
             await supabaseClient.from('habit_steps').update({ completed: false }).eq('habit_id', id);
         }
     } else {
         // D: If parent manually checked -> all steps complete
-        h.completedDates.push(today);
+        h.completedDates.push(todayYYYYMMDD);
+        if (!h.history) h.history = {};
+        h.history[todayIST] = true;
         if (hSteps.length > 0) {
             hSteps.forEach(s => s.completed = true);
             await supabaseClient.from('habit_steps').update({ completed: true }).eq('habit_id', id);
@@ -1495,7 +1514,11 @@ async function saveHabit() {
         console.error("Save ritual failed:", err);
     }
 }
-function openCalendarFor(id) { activeHabitForCalendar = habits.find(h => h.id === id); renderCalendar(); document.getElementById('calendar-modal').classList.remove('hidden'); }
+function openCalendarFor(id) { 
+    activeHabitForCalendar = habits.find(h => h.id === id); 
+    renderCalendar(); 
+    document.getElementById('calendar-modal').classList.remove('hidden'); 
+}
 function closeCalendar() { document.getElementById('calendar-modal').classList.add('hidden'); }
 function renderCalendar() {
     const grid = document.getElementById('calendar-grid'); if (!grid) return; grid.innerHTML = '';
@@ -1522,12 +1545,29 @@ function renderCalendar() {
 
     for (let i = 0; i < first; i++) daysGrid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day muted' }));
     for (let d = 1; d <= days; d++) {
-        const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const isSet = activeHabitForCalendar.completedDates.includes(dateStr);
-        const isToday = (dateStr === todayStr);
+        const dateObj = new Date(calendarYear, calendarMonth, d);
+        const dateStrEN = dateObj.toLocaleDateString("en-IN");
+        const dateStrCA = dateObj.toLocaleDateString("en-CA");
+        
+        // Check both historical formats for backward compatibility
+        const isSet = (activeHabitForCalendar.history && activeHabitForCalendar.history[dateStrEN]) || 
+                     activeHabitForCalendar.completedDates.includes(dateStrCA);
+        
+        const isToday = (dateStrCA === todayStr);
         const el = document.createElement('div'); el.className = `calendar-day ${isSet ? 'completed' : ''} ${isToday ? 'today' : ''}`;
-        el.innerText = d; el.onclick = () => {
-            if (isSet) activeHabitForCalendar.completedDates = activeHabitForCalendar.completedDates.filter(x => x !== dateStr); else activeHabitForCalendar.completedDates.push(dateStr);
+        el.innerText = d; 
+        el.onclick = () => {
+            if (!activeHabitForCalendar.history) activeHabitForCalendar.history = {};
+            
+            if (isSet) {
+                if (activeHabitForCalendar.history[dateStrEN]) delete activeHabitForCalendar.history[dateStrEN];
+                activeHabitForCalendar.completedDates = activeHabitForCalendar.completedDates.filter(x => x !== dateStrCA);
+            } else {
+                activeHabitForCalendar.history[dateStrEN] = true;
+                if (!activeHabitForCalendar.completedDates.includes(dateStrCA)) {
+                    activeHabitForCalendar.completedDates.push(dateStrCA);
+                }
+            }
             saveAndSync('rituals', habits); renderCalendar(); renderHabits(); renderDashboard();
         };
         daysGrid.appendChild(el);
@@ -1723,17 +1763,35 @@ let activeTaskListId = null;
 
 function renderTasksBoard() {
     const grid = document.getElementById('tasks-board-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
+    const isDashboard = currentView === 'dashboard';
+    const targetGrid = isDashboard ? document.getElementById('dashboard-tasks-list') : grid;
+    
+    if (!targetGrid) return;
+    targetGrid.innerHTML = '';
     
     const sortedLists = [...taskLists].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    const finalLists = isDashboard ? sortedLists.slice(0, 4) : sortedLists;
     
-    if (sortedLists.length === 0) {
-        grid.innerHTML = '<div class="empty-state-modern" style="grid-column:1/-1;">No task lists yet. Create your first!</div>';
+    if (finalLists.length === 0) {
+        targetGrid.innerHTML = '<div class="empty-state-modern" style="grid-column:1/-1;">No task lists yet.</div>';
         return;
     }
     
-    sortedLists.forEach(list => {
+    finalLists.forEach(list => {
+        if (isDashboard) {
+            const el = document.createElement('div');
+            el.className = 'ritual-card-mini task-preview-item';
+            el.innerHTML = `
+                <div class="ritual-info">
+                    <span class="ritual-name" style="font-weight:700;">${list.title}</span>
+                </div>
+                <div style="font-size:1.1rem; color:var(--text-dim); opacity:0.4;">→</div>
+            `;
+            el.onclick = () => navigate('tasks', { id: list.id });
+            targetGrid.appendChild(el);
+            return;
+        }
+
         const items = taskItems.filter(i => i.list_id === list.id).sort((a,b) => {
             if (a.is_checked === b.is_checked) return new Date(a.created_at) - new Date(b.created_at);
             return a.is_checked ? 1 : -1;
@@ -1754,11 +1812,9 @@ function renderTasksBoard() {
         items.slice(0, 5).forEach(it => {
             const line = document.createElement('div');
             line.className = 'task-item-line';
-            line.style.transition = 'all 0.3s ease';
             line.style.opacity = it.is_checked ? '0.6' : '1';
-            
             line.innerHTML = `
-                <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}" style="transition: all 0.2s;">
+                <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}">
                     ${it.is_checked ? '✓' : ''}
                 </div> 
                 <span class="${it.is_checked ? 'done' : ''}" style="${it.is_checked ? 'text-decoration:line-through; color:var(--text-dim);' : ''}; font-size:1rem;">
@@ -1767,10 +1823,17 @@ function renderTasksBoard() {
             content.appendChild(line);
         });
         if (items.length === 0) content.innerHTML = '<span style="color:var(--text-dim); font-size:0.85rem; font-style:italic;">Empty list</span>';
-        
         card.appendChild(content);
         grid.appendChild(card);
     });
+
+    if (isDashboard) {
+        const viewAll = document.createElement('button');
+        viewAll.className = 'text-link view-all-btn';
+        viewAll.innerHTML = 'View All →';
+        viewAll.onclick = () => navigate('tasks');
+        targetGrid.appendChild(viewAll);
+    }
 }
 
 function createNewTaskList() {

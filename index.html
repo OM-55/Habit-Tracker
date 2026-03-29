@@ -34,25 +34,25 @@
                 <button class="close-drawer" onclick="toggleDrawer()">×</button>
             </div>
             <nav id="main-nav">
-                <button id="nav-dashboard" class="nav-item active" onclick="switchView('dashboard')">
+                <button id="nav-dashboard" class="nav-item active" onclick="navigate('dashboard')">
                     <span class="icon">📊</span> Dashboard
                 </button>
-                <button id="nav-habits" class="nav-item" onclick="switchView('habits')">
+                <button id="nav-habits" class="nav-item" onclick="navigate('habits')">
                     <span class="icon">✨</span> Daily Rituals
                 </button>
-                <button id="nav-attendance" class="nav-item" onclick="switchView('attendance')">
+                <button id="nav-attendance" class="nav-item" onclick="navigate('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
-                <button id="nav-tasks" class="nav-item" onclick="switchView('tasks')">
+                <button id="nav-tasks" class="nav-item" onclick="navigate('tasks')">
                     <span class="icon">📝</span> Tasks
                 </button>
-                <button id="nav-reminders" class="nav-item" onclick="switchView('reminders')">
+                <button id="nav-reminders" class="nav-item" onclick="navigate('reminders')">
                     <span class="icon">🔔</span> Reminders
                 </button>
-                <button id="nav-stocks" class="nav-item" onclick="switchView('stocks')">
+                <button id="nav-stocks" class="nav-item" onclick="navigate('stocks')">
                     <span class="icon">📈</span> Stocks
                 </button>
-                <button id="nav-expiry" class="nav-item" onclick="switchView('expiry')">
+                <button id="nav-expiry" class="nav-item" onclick="navigate('expiry')">
                     <span class="icon">⏳</span> Expiry Tracker
                 </button>
             </nav>
@@ -72,14 +72,14 @@
                         <div class="card-header"><h3>Expiry Tracker</h3></div>
                         <div id="dashboard-expiry-list" class="summary-list preview-list"></div>
                         <div class="card-footer" style="margin-top:auto;">
-                            <button class="text-link" onclick="switchView('expiry')">Manage →</button>
+                            <button class="text-link" onclick="navigate('expiry')">Manage →</button>
                         </div>
                     </div>
 
                     <div class="dashboard-card glass-card">
                         <div class="card-header"><h3>Daily Rituals</h3></div>
                         <div id="habits-preview-list" class="ritual-cards-container"></div>
-                        <button class="text-link" onclick="switchView('habits')">View all →</button>
+                        <button class="text-link" onclick="navigate('habits')">View all →</button>
                     </div>
 
                     <div class="dashboard-card glass-card">
@@ -88,7 +88,7 @@
                             <span id="overall-attendance-badge" class="badge">0% Overall</span>
                         </div>
                         <div id="attendance-preview-list" class="preview-list academy-list"></div>
-                        <button class="text-link" onclick="switchView('attendance')">Open tracker →</button>
+                        <button class="text-link" onclick="navigate('attendance')">Open tracker →</button>
                     </div>
 
                     <div class="summary-card glass-card" id="dashboard-reminder-card" style="order: 4;">
@@ -97,7 +97,7 @@
                         </div>
                         <div id="dashboard-reminders" class="summary-list preview-reminders"></div>
                         <div class="card-footer">
-                            <button class="text-link" onclick="switchView('reminders')">View all →</button>
+                            <button class="text-link" onclick="navigate('reminders')">View all →</button>
                         </div>
                     </div>
 
@@ -105,9 +105,17 @@
                         <div class="card-header">
                             <h3>Stock Market</h3>
                         </div>
-                        <div id="stocks-summary" class="summary-list"></div>
+                        <div id="stocks-summary" class="summary-list preview-list"></div>
                         <div class="card-footer">
-                            <button class="text-link" onclick="switchView('stocks')">View Tracker →</button>
+                            <button class="text-link" onclick="navigate('stocks')">View Tracker →</button>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card glass-card">
+                        <div class="card-header"><h3>Tasks & Notes</h3></div>
+                        <div id="dashboard-tasks-list" class="summary-list preview-list"></div>
+                        <div class="card-footer">
+                            <button class="text-link" onclick="navigate('tasks')">View All →</button>
                         </div>
                     </div>
                 </div>
