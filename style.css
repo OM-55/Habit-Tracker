@@ -13,9 +13,27 @@
     --radius-xl: 32px;
     --radius-lg: 20px;
     --radius-md: 14px;
-    --max-content-width: 1300px; /* Balanced width */
+    --max-content-width: 1300px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #070708 100%);
+    background-attachment: fixed;
+    color: var(--text-white);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.hidden { display: none !important; }
 
 /* Meditation Styles */
 .meditation-expansion {
@@ -472,9 +490,9 @@ html, body {
 .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(3, 1fr) !important; 
-    gap: 2rem !important; 
+    gap: 2.5rem !important; 
     width: 100%;
-    padding-bottom: 40px;
+    padding-bottom: 60px;
 }
 
 .dashboard-card, .summary-card, .glass-card {
@@ -483,10 +501,10 @@ html, body {
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
-    padding: 1.8rem !important;
+    padding: 2rem !important;
     display: flex;
     flex-direction: column;
-    height: 380px; /* Fixed height for balance on dashboard */
+    min-height: 420px; /* Increased min-height for balance */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     transition: var(--transition);
 }
@@ -494,8 +512,8 @@ html, body {
 .dashboard-card:hover, .summary-card:hover, .glass-card:hover {
     background: rgba(255, 255, 255, 0.06);
     border-color: var(--primary);
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--primary-glow);
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--primary-glow);
 }
 
 .dashboard-card .ritual-cards-container, 
@@ -610,11 +628,11 @@ html, body {
 
 .ritual-card-mini .ritual-name {
     font-weight: 700;
-    font-size: 1rem !important;
+    font-size: 1.05rem !important;
 }
 
 .status-indicator {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     color: var(--text-dim);
     transition: var(--transition);
 }
@@ -629,13 +647,147 @@ html, body {
     margin-top: auto;
 }
 
-/* Habit Card v2 (Main List) */
+/* --- Habit Cards (Main View) --- */
 .habit-card-v2 {
     display: flex;
     flex-direction: column;
-    padding: 2rem !important;
+    padding: 2.2rem !important;
     margin-bottom: 2rem;
     height: auto !important;
+    animation: slideUp 0.5s ease-out;
+}
+
+.habit-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2.5rem;
+    width: 100%;
+}
+
+.habit-info-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.habit-info-group .habit-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, white, #cbd5e1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.habit-info-group .habit-goal {
+    font-size: 1rem;
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
+.habit-stats-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+}
+
+.streak-pill {
+    background: rgba(255,255,255,0.06);
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+.streak-sep { margin: 0 12px; opacity: 0.2; }
+
+.steps-count {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.habit-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.meditation-btn { 
+    padding: 10px 24px; 
+    font-size: 0.9rem; 
+    border-radius: 12px; 
+    font-weight: 700;
+}
+
+.habit-steps-mini-progress {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    margin-top: 2rem;
+    overflow: hidden;
+}
+
+/* Stats Banner Styling */
+.stats-banner {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.5rem !important;
+    margin-bottom: 4rem !important;
+    padding: 3.5rem !important;
+    height: auto !important;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(0,0,0,0));
+}
+
+.stats-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stats-count {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.8rem;
+    background: linear-gradient(to bottom, #fff, var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stats-label {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+}
+
+.progress-bar.mini { width: 100%; max-width: 500px; height: 10px !important; }
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .habit-main-row {
