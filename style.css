@@ -719,9 +719,9 @@ input:checked + .toggle-slider:before {
 }
 
 #attendance-summary {
-    max-height: none !important; /* Show more without scroll v42.0 */
-    overflow-y: visible !important;
-    padding-right: 0;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+    padding-right: 1rem !important;
 }
 
 @media (max-width: 1200px) {
@@ -1323,6 +1323,10 @@ input:checked + .toggle-slider:before {
     animation: modalSlide 0.3s ease-out;
 }
 
+#task-editor-modal .modal-content {
+    max-width: 700px !important;
+}
+
 /* Ritual UI Refinements (v31.0) */
 .stats-wrapper {
     display: flex;
@@ -1868,4 +1872,43 @@ input:checked + .toggle-slider:before {
 .task-item-text.done {
     text-decoration: line-through;
     opacity: 0.5;
+}
+
+/* Step Control Buttons (Compact Inline) */
+.step-tool-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-white) !important;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.step-tool-btn:hover:not(:disabled) {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+.step-tool-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.step-delete-btn {
+    color: var(--error) !important;
+    font-size: 16px !important;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

@@ -51,8 +51,11 @@ let taskItems = [];
 let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
 let editingSubjectOriginalName = null;
 
-function getSubjectDisplayName(sub) {
-    if (customSubjects[sub] && customSubjects[sub].name) return `${customSubjects[sub].name} (${customSubjects[sub].type || 'Session'})`;
+function getSubjectDisplayName(sub, showType = true) {
+    if (customSubjects[sub] && customSubjects[sub].name) {
+        const type = customSubjects[sub].type || 'Session';
+        return showType ? `${customSubjects[sub].name} (${type})` : customSubjects[sub].name;
+    }
     return sub;
 }
 
@@ -106,9 +109,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function saveToLocalStorage() {
-    const backup = { habits, attendance, reminders, stocks, manualStats };
+    const backup = { habits, attendance, reminders, stocks, manualStats, expiryItems, habitSteps, taskLists, taskItems };
     localStorage.setItem('stellar_backup', JSON.stringify(backup));
-    console.log("Local backup saved.");
+    console.log("Local backup saved with all data modules.");
 }
 
 function loadFromLocalStorage() {
@@ -121,8 +124,13 @@ function loadFromLocalStorage() {
             if (parsed.reminders) reminders = parsed.reminders;
             if (parsed.stocks) stocks = parsed.stocks;
             if (parsed.manualStats) manualStats = parsed.manualStats;
-            console.log("Restored from local backup.");
-            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard();
+            if (parsed.expiryItems) expiryItems = parsed.expiryItems;
+            if (parsed.habitSteps) habitSteps = parsed.habitSteps;
+            if (parsed.taskLists) taskLists = parsed.taskLists;
+            if (parsed.taskItems) taskItems = parsed.taskItems;
+            
+            console.log("Restored all modules from local backup.");
+            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard(); renderTasksBoard();
         } catch (e) { console.error("Local load failed", e); }
     }
 }
@@ -235,13 +243,19 @@ async function fetchInitialData() {
 
         if (st) {
             habitSteps = st.map(x => ({ id: x.id, habit_id: x.habit_id, name: x.name, completed: x.completed || false }));
-            const today = new Date().toISOString().split('T')[0];
+            const todayIST = new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
             const lastDate = localStorage.getItem('stellar_last_date');
-            if (lastDate && lastDate !== today) {
+            
+            if (lastDate && lastDate !== todayIST) {
+                console.log("New day detected (IST). Resetting habits and steps...");
                 habitSteps.forEach(s => s.completed = false);
+                // Also reset habits completion for the new day
+                // Habits are already empty for a new date because completedDates won't have todayIST yet
+                
+                // Update Supabase for steps
                 await supabaseClient.from('habit_steps').update({ completed: false }).neq('name', '~~~dummy~~~');
             }
-            localStorage.setItem('stellar_last_date', today);
+            localStorage.setItem('stellar_last_date', todayIST);
         }
 
         if (tl) taskLists = tl.map(x => ({ id: x.id, title: x.title, created_at: x.created_at }));
@@ -444,9 +458,9 @@ function renderDashboard() {
     const hList = document.getElementById('habits-preview-list');
     if (hList) {
         hList.innerHTML = '';
-        const today = new Date().toISOString().split('T')[0];
-        // Sort by streak and take top 5
-        const sortedHabits = [...habits].sort((a, b) => calculateStreak(b) - calculateStreak(a)).slice(0, 5);
+        const today = new Date().toLocaleDateString("en-CA");
+        // Sort A-Z as per USER REQUEST
+        const sortedHabits = [...habits].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 10);
         
         sortedHabits.forEach(h => {
             const isDone = h.completedDates.includes(today);
@@ -491,15 +505,15 @@ function renderDashboard() {
     const aList = document.getElementById('attendance-preview-list');
     if (aList) {
         aList.innerHTML = '';
-        const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
-        baseSubs.forEach(sub => {
+        const subjectsToRender = [...new Set([...baseSubs, ...Object.keys(customSubjects)])];
+        subjectsToRender.forEach(sub => {
             const stats = getSubjectStats(sub);
             const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(0) : 0;
             const div = document.createElement('div');
             div.className = 'ritual-card-mini academy-card-mini view-only'; 
             div.innerHTML = `
                 <div class="ritual-info">
-                    <span class="ritual-name">${getSubjectDisplayName(sub)}</span>
+                    <span class="ritual-name">${getSubjectDisplayName(sub, false)}</span>
                 </div>
                 <div class="habit-streak" style="background:transparent; padding:0; font-size:1rem;">
                     → ${perc}%
@@ -669,18 +683,22 @@ function renderAttendanceSummary() {
     summary.innerHTML = '';
 
     const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
+    const subjectsToRender = [...new Set([...baseSubs, ...Object.keys(customSubjects)])].sort();
 
-    baseSubs.forEach(sub => {
+    subjectsToRender.forEach(sub => {
         const stats = getSubjectStats(sub);
         const perc = stats.total > 0 ? (stats.attended / stats.total * 100).toFixed(1) : 0;
         const card = document.createElement('div');
         card.className = 'glass-card stat-card';
         card.style.marginBottom = '1.2rem';
-        const manual = manualStats[sub] || { total: 0, attended: 0 };
         
         card.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
-                <strong>${getSubjectDisplayName(sub)}</strong> <span style="color:var(--primary)">${perc}%</span>
+                <strong>${getSubjectDisplayName(sub, false)}</strong> 
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="color:var(--primary); font-weight:800;">${perc}%</span>
+                    <button class="secondary modern-btn" style="padding:4px 8px; font-size:0.7rem; box-shadow:none;" onclick="openEditAttendanceStats('${sub}')">Edit</button>
+                </div>
             </div>
             <div style="font-size:0.85rem;color:var(--text-dim);">
                 <span>Total: ${stats.total} | Attended: ${stats.attended}</span>
@@ -691,6 +709,24 @@ function renderAttendanceSummary() {
         `;
         summary.appendChild(card);
     });
+}
+
+function openEditAttendanceStats(sub) {
+    const stats = manualStats[sub] || { total: 0, attended: 0 };
+    const newTotal = prompt(`Enter Total classes for ${sub}:`, stats.total);
+    if (newTotal === null) return;
+    const newAttended = prompt(`Enter Attended classes for ${sub}:`, stats.attended);
+    if (newAttended === null) return;
+    
+    manualStats[sub] = { 
+        total: parseInt(newTotal) || 0, 
+        attended: parseInt(newAttended) || 0 
+    };
+    
+    console.log(`Updated manual stats for ${sub}:`, manualStats[sub]);
+    saveAndSync('manual_stats', manualStats);
+    renderAttendanceSummary();
+    renderDashboard();
 }
 
 function updateManualStat(sub, type, val) {
@@ -747,10 +783,9 @@ function unlockApp() {
     document.getElementById('app-container').classList.remove('hidden'); 
 }
 
-// --- Sync ---
 async function saveAndSync(table, data) {
     try {
-        console.log(`Syncing ${table} to Supabase...`);
+        console.log(`Syncing ${table} to Supabase...`, data);
         let payload;
         if (table === 'rituals') {
             payload = data.map(h => ({ 
@@ -768,16 +803,23 @@ async function saveAndSync(table, data) {
             payload = Object.keys(data).map(s => ({ subject: s, total: data[s].total, attended: data[s].attended, user_id: USER_ID }));
         } else if (table === 'stocks') {
             payload = data.map(s => ({ id: s.id, user_id: USER_ID, name: s.name, buy_price: s.buy_price, quantity: s.quantity }));
+        } else if (table === 'expiry_items') {
+            payload = data.map(e => ({ id: e.id, user_id: USER_ID, name: e.name, days_left: e.initialDays, created_at: e.createdAt }));
+        } else if (table === 'task_lists') {
+            payload = data.map(l => ({ id: l.id, user_id: USER_ID, title: l.title, created_at: l.created_at }));
+        } else if (table === 'task_items') {
+            payload = data.map(it => ({ id: it.id, list_id: it.list_id, content: it.content, is_checked: it.is_checked, type: it.type || 'task', created_at: it.created_at }));
         }
 
-        const { error } = await supabaseClient.from(table).upsert(payload);
-        if (error) throw error;
+        if (payload) {
+            const { error } = await supabaseClient.from(table).upsert(payload);
+            if (error) throw error;
+            console.log(`Synced ${table} successfully`);
+        }
 
-        console.log(`Synced ${table} successfully`);
-        await fetchInitialData(); // Re-fetch to confirm and update UI
+        saveToLocalStorage();
     } catch (e) {
         console.error(`Sync failed for ${table}:`, e);
-        // Fallback: save to localStorage anyway
         saveToLocalStorage();
     }
 }
@@ -820,7 +862,7 @@ function renderReminders() {
     if (!dashList) return;
     dashList.innerHTML = '';
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
     const activeReminders = reminders.filter(r => !r.completed);
     
     // Check priority
@@ -888,7 +930,7 @@ function renderFullReminders() {
     activeList.innerHTML = '';
     completedList.innerHTML = '';
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
     const activeReminders = reminders.filter(r => !r.completed);
     const completedReminders = reminders.filter(r => r.completed);
     
@@ -1097,9 +1139,9 @@ async function deleteExpiryItem(id) {
 
 // --- Common ---
 function calculateStreak(h) {
-    let s = 0; let d = new Date(); const today = d.toISOString().split('T')[0];
+    let s = 0; let d = new Date(); const today = d.toLocaleDateString("en-CA");
     if (!h.completedDates.includes(today)) d.setDate(d.getDate()-1);
-    while (h.completedDates.includes(d.toISOString().split('T')[0])) { s++; d.setDate(d.getDate()-1); }
+    while (h.completedDates.includes(d.toLocaleDateString("en-CA"))) { s++; d.setDate(d.getDate()-1); }
     
     // Update Best Streak
     if (!h.bestStreak || s > h.bestStreak) {
@@ -1112,9 +1154,12 @@ function renderHabits() {
     const l = document.getElementById('habit-list'); 
     if (!l) return; 
     l.innerHTML = '';
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString("en-CA");
     
-    habits.forEach(h => {
+    // Sort A-Z
+    const sortedHabits = [...habits].sort((a, b) => a.name.localeCompare(b.name));
+    
+    sortedHabits.forEach(h => {
         const isDone = h.completedDates.includes(today);
         const currentStreak = calculateStreak(h);
         
@@ -1168,7 +1213,7 @@ function renderHabits() {
 }
 
 async function toggleHabit(id) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString("en-CA");
     const h = habits.find(x => x.id === id);
     if (!h) return;
     
@@ -1199,7 +1244,7 @@ async function toggleHabit(id) {
 
 function updateStats() {
     const total = habits.length; 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString("en-CA");
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     
     const statsBox = document.getElementById('today-stats');
@@ -1269,13 +1314,14 @@ function renderModalSteps() {
     container.innerHTML = '';
     currentModalSteps.forEach((step, index) => {
         const div = document.createElement('div');
-        div.style = "display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:8px;";
+        div.className = 'glass-card';
+        div.style = "display:flex; justify-content:space-between; align-items:center; padding:8px 12px !important; border-radius:12px; margin-bottom:0; background:rgba(255,255,255,0.03);";
         div.innerHTML = `
-            <span style="flex:1;">${step.name}</span>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <button class="secondary" style="padding:2px 6px; font-size:1rem; min-width:unset; width:auto; border-radius:4px;" onclick="moveModalStep(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.3;padding:2px 6px;font-size:1rem;min-width:unset;"' : ''}>↑</button>
-                <button class="secondary" style="padding:2px 6px; font-size:1rem; min-width:unset; width:auto; border-radius:4px;" onclick="moveModalStep(${index}, 1)" ${index === currentModalSteps.length - 1 ? 'disabled style="opacity:0.3;padding:2px 6px;font-size:1rem;min-width:unset;"' : ''}>↓</button>
-                <span onclick="removeModalStep(${index})" style="cursor:pointer; color:var(--error); font-weight:bold; font-size:1.1rem; padding:4px; margin-left:8px;">✕</span>
+            <span style="flex:1; font-weight:600; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:10px;">${step.name}</span>
+            <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+                <button class="step-tool-btn" onclick="moveModalStep(${index}, -1)" ${index === 0 ? 'disabled' : ''}>↑</button>
+                <button class="step-tool-btn" onclick="moveModalStep(${index}, 1)" ${index === currentModalSteps.length - 1 ? 'disabled' : ''}>↓</button>
+                <button class="step-delete-btn" onclick="removeModalStep(${index})" style="background:none; border:none; margin-left:4px;">✕</button>
             </div>
         `;
         container.appendChild(div);
@@ -1339,7 +1385,7 @@ function renderDetailSteps() {
             div.style = `display:flex; align-items:center; padding:10px 12px; background:rgba(255,255,255,0.05); border-radius:8px; cursor:pointer; opacity:${step.completed ? '0.6' : '1'};`;
             div.onclick = () => toggleStepDetail(step.id);
             div.innerHTML = `
-                <div class="habit-check-v2 ${step.completed ? 'done' : ''}" style="width:28px; height:28px; margin-right:12px;">
+                <div class="habit-check-v2 ${step.completed ? 'done' : ''}" style="width:32px; height:32px; min-width:32px; margin-right:12px;">
                     <div class="check-inner" style="width:8px; height:14px; margin-top:-2px;"></div>
                 </div>
                 <span style="font-weight:600; text-decoration:${step.completed ? 'line-through' : 'none'};">${step.name}</span>
@@ -1367,7 +1413,7 @@ async function toggleStepDetail(stepId) {
     const allDone = hSteps.every(s => s.completed);
     const h = habits.find(x => x.id === hId);
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString("en-CA");
     const isHabitDone = h.completedDates.includes(today);
 
     if (allDone && !isHabitDone) {
@@ -1402,7 +1448,7 @@ async function saveHabit() {
                 h.bestStreak = Math.max(h.bestStreak || 0, newCurrentStreak);
                 
                 // Regenerate completedDates based on newCurrentStreak
-                const today = new Date().toISOString().split('T')[0];
+                const today = new Date().toLocaleDateString("en-CA");
                 const isCompletedToday = h.completedDates.includes(today);
                 
                 h.completedDates = [];
@@ -1472,7 +1518,7 @@ function renderCalendar() {
     daysGrid.className = 'calendar-days-grid';
     grid.appendChild(daysGrid);
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local
 
     for (let i = 0; i < first; i++) daysGrid.appendChild(Object.assign(document.createElement('div'), { className: 'calendar-day muted' }));
     for (let d = 1; d <= days; d++) {
@@ -1797,20 +1843,25 @@ function renderTaskItemsEditor() {
 async function addTaskItem() {
     const input = document.getElementById('new-task-input');
     const content = input.value.trim();
-    if (!content) return;
+    if (!content) {
+        alert("Task cannot be empty!");
+        return;
+    }
     
     const newItem = {
         id: generateId(),
         list_id: activeTaskListId,
         content: content,
         is_checked: false,
-        type: 'task', // Only tasks now as per user instruction
+        type: 'task',
         created_at: new Date().toISOString()
     };
     taskItems.push(newItem);
     input.value = '';
     renderTaskItemsEditor();
-    await supabaseClient.from('task_items').insert(newItem);
+    
+    console.log("Task added locally, syncing...");
+    await saveAndSync('task_items', taskItems);
 }
 
 async function toggleTaskItemCheck(id) {
