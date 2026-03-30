@@ -28,7 +28,8 @@ const TIMETABLE = {
     "Thursday": ["ACAD", "IKS Lecture"],
     "Friday": ["IKS Practical", "Python 1", "Python 2"]
 };
-const baseSubs = [...new Set(Object.values(TIMETABLE).flat())];
+const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
+
 
 
 // State
@@ -697,8 +698,8 @@ function renderAttendanceSummary() {
     if (!summary) return;
     summary.innerHTML = '';
 
-    const baseSubs = ["AP Lab", "AC Lab", "Workshop", "EG", "Math", "Physics", "Chemistry", "DSA", "ACAD", "IKS Lecture", "IKS Practical", "Python"];
     const subjectsToRender = [...new Set([...baseSubs, ...Object.keys(customSubjects)])].sort();
+
 
     subjectsToRender.forEach(sub => {
         const stats = getSubjectStats(sub);
