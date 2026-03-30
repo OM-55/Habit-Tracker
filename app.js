@@ -28,6 +28,8 @@ const TIMETABLE = {
     "Thursday": ["ACAD", "IKS Lecture"],
     "Friday": ["IKS Practical", "Python 1", "Python 2"]
 };
+const baseSubs = [...new Set(Object.values(TIMETABLE).flat())];
+
 
 // State
 let habits = [];
