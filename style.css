@@ -2607,7 +2607,7 @@ input:checked + .toggle-slider:before {
     flex: 1 !important;
 }
 
-/* --- FINAL UI FIXES (V4.1): CLASS TRACKER OVERHAUL & PC STAGNATION --- */
+/* --- FINAL UI FIXES (V4.2): CLASS TRACKER SPATIAL REFINEMENT --- */
 .class-tracker {
     display: flex !important;
     flex-direction: column !important;
@@ -2615,24 +2615,41 @@ input:checked + .toggle-slider:before {
     text-align: left !important;
 }
 
+.day-selector {
+    display: flex !important;
+    gap: 1.2rem !important; /* INCREASED GAP */
+    margin-bottom: 1.5rem !important;
+    justify-content: center !important;
+}
+
+.day-btn {
+    min-width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    font-size: 1rem !important;
+}
+
 .subject-list {
     flex-grow: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 1rem !important; /* INCREASED GAP TO USE SPACE */
     overflow-y: visible !important;
+    justify-content: flex-start !important;
 }
 
 .subject-card {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 10px 16px !important;
+    padding: 12px 18px !important;
     background: rgba(255,255,255,0.03) !important;
-    border: 1px solid var(--glass-border) !important; /* REMOVED RED BORDER */
+    border: 1px solid var(--glass-border) !important;
     border-radius: 12px !important;
     width: 100% !important;
-    text-align: left !important;
 }
 
 .subject-card .left {
@@ -2645,20 +2662,22 @@ input:checked + .toggle-slider:before {
 
 .subject-card .right {
     display: flex !important;
-    gap: 15px !important;
+    gap: 20px !important;
     align-items: center !important;
     justify-content: flex-end !important;
+    text-align: right !important;
 }
 
 .subject-name {
-    font-weight: 600 !important;
-    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
     margin: 0 !important;
+    color: white !important;
 }
 
 .subject-type {
-    font-size: 0.75rem !important;
-    opacity: 0.6 !important;
+    font-size: 0.8rem !important;
+    opacity: 0.7 !important;
     color: var(--text-dim) !important;
 }
 
@@ -2670,7 +2689,7 @@ input:checked + .toggle-slider:before {
 }
 
 .toggle-group label:not(.toggle-switch) {
-    font-size: 8px !important;
+    font-size: 9px !important;
     text-transform: uppercase !important;
     font-weight: 800 !important;
     color: var(--text-dim) !important;
@@ -2680,24 +2699,10 @@ input:checked + .toggle-slider:before {
 .save-btn {
     margin-top: auto !important;
     width: 100% !important;
-    margin-top: 10px !important;
-    padding: 0.8rem 1.5rem !important;
-}
-
-.day-selector {
-    display: flex !important;
-    gap: 10px !important;
-    margin-bottom: 1rem !important;
-    justify-content: center !important;
-}
-
-.day-btn {
-    min-width: 35px !important;
-    height: 35px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
+    margin-top: 1.2rem !important;
+    padding: 1rem 2rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
 }
 
 /* OVERRIDE ALL CENTER ALIGNMENTS FOR CLASS TRACKER */
@@ -2711,7 +2716,7 @@ input:checked + .toggle-slider:before {
     #attendance-view .content-stack {
         display: flex !important;
         flex-direction: row !important;
-        gap: 1.5rem !important;
+        gap: 2rem !important;
         height: calc(100vh - 120px) !important;
         overflow: hidden !important;
         align-items: stretch !important;
@@ -2728,14 +2733,11 @@ input:checked + .toggle-slider:before {
         flex: 1 !important;
         height: 100% !important;
         overflow-y: auto !important;
-        padding-right: 10px !important;
+        padding-right: 15px !important;
     }
 
-    /* Tighten class-tracker even more for PC to fit save button */
-    .subject-card { padding: 6px 12px !important; }
-    .subject-list { gap: 4px !important; }
-    .day-selector { gap: 6px !important; margin-bottom: 0.5rem !important; }
-    .day-btn { width: 30px !important; height: 30px !important; min-width: 30px !important; }
+    /* Use vertical space for subjects on PC */
+    .subject-list { gap: 1.2rem !important; }
 }
 
 /* Ritual Spacing Fix */
