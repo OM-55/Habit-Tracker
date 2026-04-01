@@ -483,9 +483,32 @@ html, body {
 }
 
 .section-header { margin-bottom: 3rem; }
-.section-header h2 { font-size: 2.4rem; font-weight: 600; margin-bottom: 0.6rem; will-change: transform; }
+.section-header h2 { font-size: 2.4rem; font-weight: 600; margin-bottom: 0.6rem; }
 .section-header .subtitle { color: var(--text-dim); font-size: 1.1rem; }
-.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; }
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    width: fit-content;
+}
+
+.stats-header-compact {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+#completed-count, #total-count {
+    color: var(--text-white);
+}
 
 .dashboard-grid { 
     display: grid; 
@@ -720,41 +743,42 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    min-width: 160px;
+    gap: 6px;
+    flex: 1; /* Center it */
 }
 
 .streak-pill {
     background: rgba(255,255,255,0.06);
-    padding: 10px 20px;
+    padding: 6px 16px;
     border-radius: 100px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     color: white;
 }
 
-.streak-sep { margin: 0 12px; opacity: 0.2; }
+.streak-sep { margin: 0 8px; opacity: 0.2; }
 
 .steps-count {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     font-weight: 800;
     color: var(--primary);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .habit-actions-group {
     display: flex;
     align-items: center;
-    gap: 2.5rem;
+    gap: 1.5rem;
+    justify-content: flex-end;
 }
 
 .meditation-btn { 
-    padding: 10px 24px; 
-    font-size: 0.9rem; 
-    border-radius: 12px; 
+    padding: 8px 16px; 
+    font-size: 0.8rem; 
+    border-radius: 10px; 
     font-weight: 700;
 }
 
@@ -2489,4 +2513,72 @@ input:checked + .toggle-slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+/* Refined Class Subject Rows */
+.subject-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 1rem !important;
+    gap: 1rem;
+}
+
+.subject-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.subject-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-white);
+}
+
+.subject-type-small {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.subject-actions-right {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.toggle-pair {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.toggle-pair .toggle-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Modal Enhancements */
+#habit-modal .modal-content {
+    max-width: 500px;
+}
+
+.habit-modal-meditation-action {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(129, 140, 248, 0.1);
+    border-radius: 12px;
+    border: 1px solid var(--primary-glow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.habit-modal-meditation-action span {
+    font-weight: 700;
+    font-size: 0.9rem;
 }

@@ -118,12 +118,11 @@
             <section id="habits-view" class="view hidden">
                 <div class="header-top">
                     <h2>Daily Rituals</h2>
-                    <button class="circular-plus" onclick="openModal()">+</button>
-                </div>
-                <div class="stats-wrapper">
-                    <div id="today-stats" class="stats-banner glass-card compact-stats">
-                        <span id="completed-count">0</span> / <span id="total-count">0</span> Done Today
-                        <div class="progress-bar mini"><div id="daily-progress" class="progress-fill" style="width: 0%"></div></div>
+                    <div class="header-actions">
+                        <div id="ritual-stats-header" class="stats-header-compact">
+                            <span id="completed-count">0</span>/<span id="total-count">0</span> DONE TODAY
+                        </div>
+                        <button class="circular-plus" onclick="openModal()">+</button>
                     </div>
                 </div>
                 <div id="habit-list" class="content-stack"></div>

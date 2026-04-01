@@ -573,32 +573,31 @@ function renderSubjects() {
     const container = document.getElementById('subjects-container');
     if (!container) return;
     container.innerHTML = '';
-    const locked = isDayLocked(selectedDay);
+    const canEdit = editMode;
     const subjects = TIMETABLE[selectedDay] || [];
     
     subjects.forEach(sub => {
         const div = document.createElement('div');
         div.className = 'subject-row glass-card';
-        div.style.marginBottom = '1rem';
         div.dataset.subject = sub;
         
         div.innerHTML = `
             <div class="subject-info" style="cursor:pointer;" onclick="openClassSubjectModal('${sub}')" title="Click to rename subject">
-                <span class="subject-name">${getSubjectDisplayName(sub)}</span>
-                <span class="subject-slot">${getSubjectType(sub)}</span>
+                <span class="subject-name">${getSubjectDisplayName(sub, false)}</span>
+                <span class="subject-type-small">${getSubjectType(sub)}</span>
             </div>
-            <div class="check-inputs">
-                <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
-                    <span class="toggle-label" style="font-size:0.75rem; color:var(--text-dim); margin-bottom: 2px;">Class Happened</span>
+            <div class="subject-actions-right">
+                <div class="toggle-pair">
+                    <span class="toggle-label">Class Happened</span>
                     <label class="toggle-switch">
-                        <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${locked ? 'disabled' : ''}>
+                        <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${!canEdit ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div class="toggle-group" style="display:flex; flex-direction:column; align-items:center; gap:0.4rem;">
-                    <span class="toggle-label" style="font-size:0.75rem; color:var(--text-dim); margin-bottom: 2px;">Attended</span>
+                <div class="toggle-pair">
+                    <span class="toggle-label">Attended</span>
                     <label class="toggle-switch">
-                        <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${locked ? 'disabled' : ''}>
+                        <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${!canEdit ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -1208,13 +1207,13 @@ function renderHabits() {
         card.style.width = '100%'; 
         
         card.innerHTML = `
-            <div class="habit-main-row">
-                <div class="habit-info-group" onclick="openCalendarFor('${h.id}')">
+            <div class="habit-main-row" onclick="openModal('${h.id}')">
+                <div class="habit-info-group">
                     <span class="habit-name">${h.name}</span>
                     <span class="habit-goal">${h.goal || ''}</span>
                 </div>
                 
-                <div class="habit-stats-group" onclick="openCalendarFor('${h.id}')">
+                <div class="habit-stats-group">
                     <div class="streak-pill">
                         <span>🔥 ${currentStreak}</span>
                         <span class="streak-sep">|</span>
@@ -1224,14 +1223,12 @@ function renderHabits() {
                 </div>
                 
                 <div class="habit-actions-group">
-                    ${isMeditation ? `<button class="secondary modern-btn meditation-btn" onclick="toggleMeditationExpansion(event)">${meditationExpanded ? 'Close' : 'Start Session'}</button>` : ''}
-                    <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
+                    <div class="habit-check-v2 ${isDone ? 'done' : ''}" onclick="event.stopPropagation(); toggleHabit('${h.id}')">
                         <div class="check-inner"></div>
                     </div>
                 </div>
             </div>
             ${progressHtml}
-            ${meditationHtml}
         `;
         l.appendChild(card);
     });
@@ -1329,16 +1326,10 @@ function updateStats() {
     const today = new Date().toLocaleDateString("en-CA");
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     
-    const statsBox = document.getElementById('today-stats');
-    if (statsBox) {
-        statsBox.innerHTML = `
-            <div class="stats-main">
-                <span class="stats-count">${done} / ${total}</span>
-                <span class="stats-label">Done Today</span>
-            </div>
-            <div class="progress-bar mini"><div class="progress-fill" style="width: ${total > 0 ? (done / total) * 100 : 0}%"></div></div>
-        `;
-    }
+    const countEl = document.getElementById('completed-count');
+    const totalEl = document.getElementById('total-count');
+    if (countEl) countEl.innerText = done;
+    if (totalEl) totalEl.innerText = total;
 }
 
 // --- Modal & Calendar ---
@@ -1357,6 +1348,10 @@ function openModal(id = null) {
         return;
     }
 
+    // Clean up any old meditation UI
+    const oldMed = modal.querySelector('.habit-modal-meditation-action');
+    if (oldMed) oldMed.remove();
+
     if (id) { 
         const h = habits.find(x => x.id === id); 
         if (h) {
@@ -1366,6 +1361,17 @@ function openModal(id = null) {
             if (streakGroup) streakGroup.classList.remove('hidden');
             if (currentStreakInput) currentStreakInput.value = calculateStreak(h);
             currentModalSteps = habitSteps.filter(s => s.habit_id === id).map(s => ({...s}));
+
+            // Special for Meditation
+            if (h.name.toLowerCase() === 'meditation') {
+                const medDiv = document.createElement('div');
+                medDiv.className = 'habit-modal-meditation-action';
+                medDiv.innerHTML = `
+                    <span>Meditation Ready</span>
+                    <button class="primary modern-btn" onclick="closeModal(); toggleMeditationExpansion(event);">Start Session</button>
+                `;
+                name.parentNode.insertBefore(medDiv, name.nextSibling);
+            }
         }
     } else { 
         if (title) title.innerText = 'New Ritual';
