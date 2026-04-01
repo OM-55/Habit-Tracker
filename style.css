@@ -2582,3 +2582,35 @@ input:checked + .toggle-slider:before {
     font-weight: 700;
     font-size: 0.9rem;
 }
+
+/* Final Overrides for Centering and Layout */
+.habit-main-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+}
+
+.habit-info-group {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+}
+
+.habit-stats-group {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 !important;
+}
+
+.habit-actions-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    justify-content: flex-end !important;
+    flex: 1 !important;
+}
