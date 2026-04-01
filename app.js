@@ -55,6 +55,7 @@ let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') 
 let editingSubjectOriginalName = null;
 let meditationExpanded = false;
 let selectedMeditationTime = 10;
+let expandedRituals = new Set(); // Track expanded rituals for steps
 
 const meditationVideos = [
     { title: "Ocean Calm", duration: 2, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_1.png" },
@@ -582,7 +583,7 @@ function renderSubjects() {
         div.dataset.subject = sub;
         
         div.innerHTML = `
-            <div class="subject-info" style="cursor:pointer;" onclick="openClassSubjectModal('${sub}')" title="Click to rename subject">
+            <div class="subject-info" onclick="openClassSubjectModal('${sub}')" title="Click to rename subject">
                 <span class="subject-name">${getSubjectDisplayName(sub, false)}</span>
                 <span class="subject-type-small">${getSubjectType(sub)}</span>
             </div>
@@ -692,7 +693,7 @@ function renderAttendanceSummary() {
                 <strong>${getSubjectDisplayName(sub, false)}</strong> 
                 <div style="display:flex; gap:10px; align-items:center;">
                     <span style="color:var(--primary); font-weight:800;">${perc}%</span>
-                    <button class="secondary modern-btn" style="padding:4px 8px; font-size:0.7rem; box-shadow:none;" onclick="openEditAttendanceStats('${sub}')">Edit</button>
+                    <button class="secondary modern-btn ${!editMode ? 'hidden' : ''}" style="padding:4px 8px; font-size:0.7rem; box-shadow:none;" onclick="openEditAttendanceStats('${sub}')">Edit</button>
                 </div>
             </div>
             <div style="font-size:0.85rem;color:var(--text-dim);">
@@ -1138,6 +1139,24 @@ async function deleteExpiryItem(id) {
 
 
 // --- Common ---
+function handleRitualClick(id) {
+    const h = habits.find(x => x.id === id);
+    if (!h) return;
+    
+    if (h.name.toLowerCase() === 'meditation') {
+        meditationExpanded = !meditationExpanded;
+        renderHabits();
+        return;
+    }
+    
+    const hSteps = habitSteps.filter(s => s.habit_id === id);
+    if (hSteps.length > 0) {
+        if (expandedRituals.has(id)) expandedRituals.delete(id);
+        else expandedRituals.add(id);
+        renderHabits();
+    }
+}
+
 function calculateStreak(h) {
     let s = 0; let d = new Date(); const today = d.toLocaleDateString("en-CA");
     if (!h.completedDates.includes(today)) d.setDate(d.getDate()-1);
@@ -1205,11 +1224,27 @@ function renderHabits() {
         const card = document.createElement('div'); 
         card.className = `habit-card-v2 glass-card ${isDone ? 'completed' : ''}`;
         card.style.width = '100%'; 
+        card.onclick = () => handleRitualClick(h.id);
+        
+        let stepsListHtml = '';
+        if (expandedRituals.has(h.id) && totalSteps > 0) {
+            stepsListHtml = `
+            <div class="ritual-steps-expansion" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px;">
+                ${hSteps.map(s => `
+                <div class="step-expand-row" style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="event.stopPropagation(); toggleStepDetail('${s.id}')">
+                    <div class="habit-check-v2 ${s.completed ? 'done' : ''}" style="width:26px; height:26px; min-width:26px;">
+                        <div class="check-inner" style="width:7px; height:12px; margin-top:-2px;"></div>
+                    </div>
+                    <span style="font-weight:600; font-size:0.95rem; color:${s.completed ? 'var(--text-dim)' : 'white'}; text-decoration:${s.completed ? 'line-through' : 'none'};">${s.name}</span>
+                </div>
+                `).join('')}
+            </div>`;
+        }
         
         card.innerHTML = `
-            <div class="habit-main-row" onclick="openModal('${h.id}')">
+            <div class="habit-main-row">
                 <div class="habit-info-group">
-                    <span class="habit-name">${h.name}</span>
+                    <span class="habit-name" onclick="event.stopPropagation(); openModal('${h.id}')">${h.name}</span>
                     <span class="habit-goal">${h.goal || ''}</span>
                 </div>
                 
@@ -1219,7 +1254,7 @@ function renderHabits() {
                         <span class="streak-sep">|</span>
                         <span>⭐ ${h.bestStreak || currentStreak}</span>
                     </div>
-                    ${totalSteps > 0 ? `<span class="steps-count">${compSteps}/${totalSteps} Steps</span>` : ''}
+                    ${totalSteps > 0 ? `<span class="steps-count">${compSteps}/${totalSteps} ${expandedRituals.has(h.id) ? '▲' : '▼'}</span>` : ''}
                 </div>
                 
                 <div class="habit-actions-group">
@@ -1229,6 +1264,8 @@ function renderHabits() {
                 </div>
             </div>
             ${progressHtml}
+            ${meditationHtml}
+            ${stepsListHtml}
         `;
         l.appendChild(card);
     });

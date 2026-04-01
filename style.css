@@ -2607,6 +2607,56 @@ input:checked + .toggle-slider:before {
     flex: 1 !important;
 }
 
+/* --- FINAL UI FIXES (V3.0) --- */
+#attendance-view .content-stack { display: flex !important; flex-direction: row !important; gap: 1.5rem !important; height: calc(100vh - 120px) !important; align-items: stretch !important; overflow: hidden !important; }
+#class-tracker-wrapper { flex: 0 0 50% !important; height: 100% !important; overflow: hidden !important; max-width: 50% !important; }
+#attendance-view .summary-card { flex: 0 0 50% !important; height: 100% !important; overflow-y: auto !important; padding: 1.5rem !important; max-width: 50% !important; border-left: 1px solid var(--glass-border) !important; }
+#subjects-container { flex: 1 !important; overflow-y: auto !important; padding-right: 8px !important; }
+.subject-row { display: flex !important; justify-content: space-between !important; align-items: center !important; text-align: left !important; padding: 0.6rem 1.2rem !important; margin-bottom: 0.6rem !important; background: rgba(255,255,255,0.03) !important; border: 1px solid var(--glass-border) !important; }
+.subject-info { display: flex !important; flex-direction: column !important; gap: 2px !important; text-align: left !important; flex: 1 !important; }
+.subject-name { font-size: 1.05rem !important; font-weight: 700 !important; margin: 0 !important; color: white !important; }
+.subject-type-small { font-size: 0.8rem !important; color: var(--text-dim) !important; }
+.subject-actions-right { display: flex !important; gap: 1.5rem !important; align-items: center !important; }
+.toggle-pair { display: flex !important; flex-direction: column !important; align-items: flex-end !important; gap: 4px !important; }
+.toggle-pair .toggle-label { font-size: 0.65rem !important; text-transform: uppercase !important; font-weight: 800 !important; color: var(--text-dim) !important; letter-spacing: 0.5px !important; }
+
+.expiry-card { display: flex !important; justify-content: space-between !important; align-items: center !important; text-align: left !important; padding: 0.8rem 1.2rem !important; margin-bottom: 0.8rem !important; }
+.exp-info { display: flex !important; flex-direction: column !important; gap: 2px !important; flex: 1 !important; text-align: left !important; align-items: flex-start !important; }
+.exp-name { font-size: 1.05rem !important; font-weight: 700 !important; color: white !important; }
+.exp-days { font-size: 0.85rem !important; color: var(--text-dim) !important; }
+.exp-status-badge { margin-right: 15px !important; margin-left: auto !important; }
+
+.habit-card-v2 { display: flex !important; flex-direction: column !important; padding: 1.2rem !important; margin-bottom: 0.8rem !important; height: auto !important; }
+.habit-main-row { display: flex !important; justify-content: space-between !important; align-items: center !important; gap: 1.5rem !important; width: 100% !important; cursor: pointer !important; }
+.habit-info-group { flex: 1 !important; display: flex !important; flex-direction: column !important; gap: 4px !important; text-align: left !important; }
+.habit-name { font-size: 1.4rem !important; font-weight: 800 !important; color: white !important; cursor: pointer !important; background: none !important; -webkit-text-fill-color: initial !important; }
+.habit-name:hover { color: var(--primary) !important; text-shadow: 0 0 10px var(--primary-glow); }
+.habit-stats-group { flex: 1 !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 12px !important; }
+.streak-pill { padding: 5px 14px !important; font-size: 0.9rem !important; border-radius: 100px !important; background: rgba(255,255,255,0.04) !important; border: 1px solid var(--glass-border) !important; color: white !important; }
+.steps-count { font-size: 0.75rem !important; font-weight: 800 !important; color: var(--primary) !important; white-space: nowrap !important; }
+
+/* Global Cleanup */
+#app-main { padding: 25px 40px !important; }
+.dashboard-grid { gap: 1.8rem !important; padding-bottom: 40px !important; margin: 0 auto !important; }
+.dashboard-card { padding: 1.2rem !important; margin-bottom: 0 !important; }
+.view { max-width: 1250px !important; }
+.header-top { margin-bottom: 1.5rem !important; }
+
+/* Modal Inputs */
+.task-item-edit-input { pointer-events: auto !important; cursor: text !important; }
+.task-input-row { pointer-events: auto !important; }
+
+@media (max-width: 768px) {
+    #attendance-view .content-stack { flex-direction: column !important; height: auto !important; overflow: visible !important; }
+    #class-tracker-wrapper, #attendance-view .summary-card { flex: 1 1 auto !important; width: 100% !important; height: auto !important; max-width: 100% !important; border: none !important; }
+    #subjects-container { max-height: 450px !important; }
+    #app-main { padding: 1.2rem !important; }
+    .habit-main-row { gap: 1rem !important; }
+    .streak-pill { padding: 3px 10px !important; font-size: 0.8rem !important; }
+    .habit-name { font-size: 1.1rem !important; }
+    .dashboard-grid { gap: 1rem !important; display: flex !important; flex-direction: column !important; }
+}
+
 .habit-actions-group {
     display: flex !important;
     align-items: center !important;
