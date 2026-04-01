@@ -650,18 +650,21 @@ html, body {
 }
 
 .text-link, .view-all-btn {
-    background: none !important;
+    background: transparent !important;
     border: none !important;
     padding: 0 !important;
     color: var(--primary) !important;
     font-size: 0.85rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
     cursor: pointer;
     transition: var(--transition);
-    opacity: 0.7;
+    opacity: 0.8;
     width: fit-content;
     text-decoration: none;
     box-shadow: none !important;
+    outline: none !important;
 }
 
 .text-link:hover, .view-all-btn:hover {
@@ -675,10 +678,10 @@ html, body {
 .habit-card-v2 {
     display: flex;
     flex-direction: column;
-    padding: 2.2rem !important;
-    margin-bottom: 2rem;
+    padding: 1.25rem !important;
+    margin-bottom: 1.25rem !important;
     height: auto !important;
-    animation: slideUp 0.5s ease-out;
+    min-height: auto !important;
 }
 
 .habit-main-row {
@@ -1211,17 +1214,17 @@ input:checked + .toggle-slider:before {
     margin-top: 2rem;
 }
 
-#attendance-summary {
+.preview-list, .summary-list, .ritual-cards-container, .academy-list {
     overflow-y: auto !important;
-    padding-right: 0.5rem !important;
+    padding-right: 0.2rem !important;
     height: auto !important;
-    max-height: 280px !important;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    max-height: 420px !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-#attendance-summary::-webkit-scrollbar {
-    display: none;
+.preview-list::-webkit-scrollbar, .summary-list::-webkit-scrollbar, .ritual-cards-container::-webkit-scrollbar, .academy-list::-webkit-scrollbar {
+    display: none !important;
 }
 
 @media (max-width: 1200px) {

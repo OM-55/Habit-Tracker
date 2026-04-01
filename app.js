@@ -1377,10 +1377,8 @@ function openModal(id = null) {
     
     renderModalSteps();
     modal.classList.remove('hidden');
-    modal.classList.add('visible'); // Added for extra safety
-    setTimeout(() => {
-        try { name.focus(); } catch(e) { console.warn("Focus failed", e); }
-    }, 100);
+    modal.classList.add('visible');
+    try { name.focus(); } catch(e) { console.warn("Focus failed", e); }
 }
 function closeModal() { 
     const m = document.getElementById('habit-modal');
