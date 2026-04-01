@@ -74,7 +74,7 @@ function getSubjectDisplayName(sub, showType = true) {
 
 function getSubjectType(sub) {
     if (customSubjects[sub] && customSubjects[sub].type) return customSubjects[sub].type;
-    return "Standard Session";
+    return "";
 }
 async function renameHabit(id, oldName) {
     const newName = prompt("Enter new ritual name:", oldName);
@@ -471,11 +471,6 @@ function renderDashboard() {
                 el.onclick = () => navigate('expiry');
                 expiryList.appendChild(el);
             });
-            const viewAll = document.createElement('button');
-            viewAll.className = 'text-link view-all-btn';
-            viewAll.innerHTML = 'View All →';
-            viewAll.onclick = () => navigate('expiry');
-            expiryList.appendChild(viewAll);
         }
     }
 
@@ -499,11 +494,6 @@ function renderDashboard() {
             `;
             hList.appendChild(div);
         });
-        const viewAll = document.createElement('button');
-        viewAll.className = 'text-link view-all-btn';
-        viewAll.innerHTML = 'View All →';
-        viewAll.onclick = () => navigate('habits');
-        hList.appendChild(viewAll);
     }
 
     const aList = document.getElementById('attendance-preview-list');
@@ -525,11 +515,6 @@ function renderDashboard() {
             `;
             aList.appendChild(div);
         });
-        const viewAllAcc = document.createElement('button');
-        viewAllAcc.className = 'text-link view-all-btn';
-        viewAllAcc.innerHTML = 'View All →';
-        viewAllAcc.onclick = () => navigate('attendance');
-        aList.appendChild(viewAllAcc);
         
         let totalC = 0; let totalA = 0;
         baseSubs.forEach(sub => { const s = getSubjectStats(sub); totalC += s.total; totalA += s.attended; });
@@ -573,11 +558,6 @@ function renderStocksDashboard() {
         `;
         list.appendChild(div);
     });
-    const viewAllStocks = document.createElement('button');
-    viewAllStocks.className = 'text-link view-all-btn';
-    viewAllStocks.innerHTML = 'View All →';
-    viewAllStocks.onclick = () => navigate('stocks');
-    list.appendChild(viewAllStocks);
 }
 
 function getSubjectStats(sub) {
@@ -923,11 +903,6 @@ function renderReminders() {
         `;
         dashList.appendChild(div);
     });
-    const viewAll = document.createElement('button');
-    viewAll.className = 'text-link view-all-btn';
-    viewAll.innerHTML = 'View All →';
-    viewAll.onclick = () => navigate('reminders');
-    dashList.appendChild(viewAll);
 }
 
 function formatDate(ds) {
@@ -1093,10 +1068,12 @@ function renderExpiryTracker() {
                 <span class="exp-name">${item.name}</span>
                 <span class="exp-days">${daysLeft} days left</span>
             </div>
-            <div class="exp-status-badge">${daysLeft <= 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
-            <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')" title="Delete">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-            </button>
+            <div style="display:flex; align-items:center;">
+                <div class="exp-status-badge">${daysLeft <= 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
+                <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')" title="Delete">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                </button>
+            </div>
         `;
         list.appendChild(card);
     });
@@ -1913,13 +1890,6 @@ function renderTasksBoard() {
         grid.appendChild(card);
     });
 
-    if (isDashboard) {
-        const viewAll = document.createElement('button');
-        viewAll.className = 'text-link view-all-btn';
-        viewAll.innerHTML = 'View All →';
-        viewAll.onclick = () => navigate('tasks');
-        targetGrid.appendChild(viewAll);
-    }
 }
 
 function createNewTaskList() {
