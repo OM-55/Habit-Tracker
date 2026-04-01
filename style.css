@@ -2607,21 +2607,87 @@ input:checked + .toggle-slider:before {
     flex: 1 !important;
 }
 
-/* --- FINAL UI FIXES (V3.0) --- */
-/* --- FINAL UI FIXES (V4.0) --- */
-#attendance-view .content-stack { display: flex !important; flex-direction: row !important; gap: 1.5rem !important; height: calc(100vh - 120px) !important; align-items: stretch !important; overflow: hidden !important; }
-#class-tracker-wrapper { flex: 0 0 50% !important; height: 100% !important; overflow: hidden !important; max-width: 50% !important; display: flex !important; flex-direction: column !important; }
-.attendance-tracker-card { height: 100% !important; display: flex !important; flex-direction: column !important; padding: 1.5rem !important; min-height: auto !important; }
-#subjects-container { flex: 1 !important; overflow-y: visible !important; padding-right: 0px !important; display: flex !important; flex-direction: column !important; justify-content: flex-start !important; }
-.subject-row { display: flex !important; justify-content: space-between !important; align-items: center !important; text-align: left !important; padding: 0.8rem 1.2rem !important; margin-bottom: 0.8rem !important; background: rgba(255,255,255,0.03) !important; border: 1px solid var(--glass-border) !important; }
-.subject-info { display: flex !important; flex-direction: column !important; gap: 2px !important; text-align: left !important; flex: 1 !important; }
-.subject-name { font-size: 1.05rem !important; font-weight: 700 !important; margin: 0 !important; color: white !important; }
-.subject-type-small { font-size: 0.8rem !important; color: var(--text-dim) !important; margin: 0 !important; }
-.subject-actions-right { display: flex !important; gap: 1.5rem !important; align-items: center !important; justify-content: flex-end !important; }
-.toggle-pair { display: flex !important; flex-direction: column !important; align-items: center !important; gap: 4px !important; }
-.toggle-pair .toggle-label { font-size: 0.6rem !important; text-transform: uppercase !important; font-weight: 800 !important; color: var(--text-dim) !important; letter-spacing: 0.5px !important; }
+/* --- FINAL UI FIXES (V4.1): CLASS TRACKER OVERHAUL --- */
+.class-tracker {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    text-align: left !important;
+}
 
-#save-attendance-btn { margin-top: auto !important; width: 100% !important; padding: 1.2rem !important; }
+.subject-list {
+    flex-grow: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    overflow-y: visible !important;
+}
+
+.subject-card {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 16px 20px !important;
+    background: rgba(255,255,255,0.03) !important;
+    border: 2px solid red !important; /* DEBUG CHECK */
+    border-radius: 12px !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+
+.subject-card .left {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    flex: 1 !important;
+}
+
+.subject-card .right {
+    display: flex !important;
+    gap: 20px !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+}
+
+.subject-name {
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+}
+
+.subject-type {
+    font-size: 0.8rem !important;
+    opacity: 0.6 !important;
+    color: var(--text-dim) !important;
+}
+
+.toggle-group {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.toggle-group label:not(.toggle-switch) {
+    font-size: 10px !important;
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    color: var(--text-dim) !important;
+    letter-spacing: 0.5px !important;
+}
+
+.save-btn {
+    margin-top: auto !important;
+    width: 100% !important;
+    margin-top: 15px !important;
+}
+
+/* OVERRIDE ALL CENTER ALIGNMENTS FOR CLASS TRACKER */
+.attendance-tracker-card, .class-tracker-wrapper, .class-tracker {
+    text-align: left !important;
+    align-items: stretch !important;
+}
 
 /* Ritual Spacing Fix */
 .habit-card-v2 { display: flex !important; flex-direction: column !important; padding: 1rem !important; margin-bottom: 0.8rem !important; height: auto !important; gap: 4px !important; }
@@ -2644,6 +2710,10 @@ input:checked + .toggle-slider:before {
 .dashboard-card { padding: 1.2rem !important; margin-bottom: 0 !important; }
 .view { max-width: 1300px !important; width: 100% !important; margin: 0 auto !important; }
 
+/* Modal & Input Accessibility */
+.task-item-edit-input { pointer-events: auto !important; cursor: text !important; }
+.task-input-row { pointer-events: auto !important; }
+
 @media (max-width: 1024px) {
     #attendance-view .content-stack { flex-direction: column !important; height: auto !important; overflow: visible !important; }
     #class-tracker-wrapper, #attendance-view .summary-card { flex: 1 1 auto !important; width: 100% !important; height: auto !important; max-width: 100% !important; border: none !important; }
@@ -2659,3 +2729,4 @@ input:checked + .toggle-slider:before {
     justify-content: flex-end !important;
     flex: 1 !important;
 }
+

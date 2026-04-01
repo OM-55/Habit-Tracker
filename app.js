@@ -579,24 +579,24 @@ function renderSubjects() {
     
     subjects.forEach(sub => {
         const div = document.createElement('div');
-        div.className = 'subject-row glass-card';
+        div.className = 'subject-card glass-card';
         div.dataset.subject = sub;
         
         div.innerHTML = `
-            <div class="subject-info" onclick="if(editMode) openClassSubjectModal('${sub}')" style="cursor: ${canEdit ? 'pointer' : 'default'};" title="${canEdit ? 'Click to rename' : ''}">
-                <span class="subject-name">${getSubjectDisplayName(sub, false)}</span>
-                <span class="subject-type-small">${getSubjectType(sub)}</span>
+            <div class="left" onclick="if(editMode) openClassSubjectModal('${sub}')" style="cursor: ${canEdit ? 'pointer' : 'default'};" title="${canEdit ? 'Click to rename' : ''}">
+                <div class="subject-name">${getSubjectDisplayName(sub, false)}</div>
+                <div class="subject-type">${getSubjectType(sub)}</div>
             </div>
-            <div class="subject-actions-right">
-                <div class="toggle-pair">
-                    <span class="toggle-label">Class Happened</span>
+            <div class="right">
+                <div class="toggle-group">
+                    <label>Happened</label>
                     <label class="toggle-switch">
                         <input type="checkbox" class="class-happened" onchange="validateCheck(this)" ${!canEdit ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div class="toggle-pair">
-                    <span class="toggle-label">Attended</span>
+                <div class="toggle-group">
+                    <label>Attended</label>
                     <label class="toggle-switch">
                         <input type="checkbox" class="attended" disabled onchange="handleMutual(this, '${sub}')" ${!canEdit ? 'disabled' : ''}>
                         <span class="toggle-slider"></span>
@@ -609,7 +609,7 @@ function renderSubjects() {
 }
 
 function validateCheck(cb) {
-    const row = cb.closest('.subject-row');
+    const row = cb.closest('.subject-card');
     const att = row.querySelector('.attended');
     att.disabled = !cb.checked;
     if (!cb.checked) att.checked = false;
@@ -617,7 +617,7 @@ function validateCheck(cb) {
 
 function handleMutual(cb, sub) {
     if (selectedDay !== 'Monday' || !cb.checked) return;
-    const rows = document.querySelectorAll('.subject-row');
+    const rows = document.querySelectorAll('.subject-card');
     if (sub === 'AP Lab') {
         const ac = Array.from(rows).find(r => r.dataset.subject === 'AC Lab');
         if (ac) ac.querySelector('.attended').checked = false;
@@ -630,7 +630,7 @@ function handleMutual(cb, sub) {
 async function saveAttendanceDay() {
     try {
         const today = new Date().toLocaleDateString('en-CA');
-        const rows = document.querySelectorAll('.subject-row');
+        const rows = document.querySelectorAll('.subject-card');
         rows.forEach(row => {
             const sub = row.dataset.subject;
             const happened = row.querySelector('.class-happened').checked;

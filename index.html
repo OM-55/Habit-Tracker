@@ -135,9 +135,9 @@
                 </button>
                 <div class="content-stack">
                     <div id="class-tracker-wrapper" class="mobile-collapsible">
-                        <div class="attendance-tracker-card glass-card">
-                            <div class="header-top">
-                                <h2>Class Tracker</h2>
+                        <div class="attendance-tracker-card glass-card class-tracker">
+                            <div class="card-header">
+                                <h3 style="margin:0;">Class Tracker</h3>
                                 <div class="toggle-control">
                                     <span class="toggle-label">Edit</span>
                                     <label class="toggle-switch">
@@ -153,8 +153,8 @@
                                 <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">T</button>
                                 <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">F</button>
                             </div>
-                            <div id="subjects-container"></div>
-                            <button id="save-attendance-btn" class="primary modern-btn" onclick="saveAttendanceDay()">Save Day</button>
+                            <div id="subjects-container" class="subject-list"></div>
+                            <button id="save-attendance-btn" class="primary modern-btn save-btn" onclick="saveAttendanceDay()">Save Day</button>
                         </div>
                     </div>
                     <div class="summary-card glass-card">
