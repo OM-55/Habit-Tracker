@@ -2607,7 +2607,7 @@ input:checked + .toggle-slider:before {
     flex: 1 !important;
 }
 
-/* --- FINAL UI FIXES (V4.1): CLASS TRACKER OVERHAUL --- */
+/* --- FINAL UI FIXES (V4.1): CLASS TRACKER OVERHAUL & PC STAGNATION --- */
 .class-tracker {
     display: flex !important;
     flex-direction: column !important;
@@ -2619,7 +2619,7 @@ input:checked + .toggle-slider:before {
     flex-grow: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 8px !important;
     overflow-y: visible !important;
 }
 
@@ -2627,9 +2627,9 @@ input:checked + .toggle-slider:before {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 16px 20px !important;
+    padding: 10px 16px !important;
     background: rgba(255,255,255,0.03) !important;
-    border: 2px solid red !important; /* DEBUG CHECK */
+    border: 1px solid var(--glass-border) !important; /* REMOVED RED BORDER */
     border-radius: 12px !important;
     width: 100% !important;
     text-align: left !important;
@@ -2645,19 +2645,19 @@ input:checked + .toggle-slider:before {
 
 .subject-card .right {
     display: flex !important;
-    gap: 20px !important;
+    gap: 15px !important;
     align-items: center !important;
     justify-content: flex-end !important;
 }
 
 .subject-name {
     font-weight: 600 !important;
-    font-size: 1.1rem !important;
+    font-size: 1.05rem !important;
     margin: 0 !important;
 }
 
 .subject-type {
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     opacity: 0.6 !important;
     color: var(--text-dim) !important;
 }
@@ -2666,11 +2666,11 @@ input:checked + .toggle-slider:before {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 4px !important;
 }
 
 .toggle-group label:not(.toggle-switch) {
-    font-size: 10px !important;
+    font-size: 8px !important;
     text-transform: uppercase !important;
     font-weight: 800 !important;
     color: var(--text-dim) !important;
@@ -2680,13 +2680,62 @@ input:checked + .toggle-slider:before {
 .save-btn {
     margin-top: auto !important;
     width: 100% !important;
-    margin-top: 15px !important;
+    margin-top: 10px !important;
+    padding: 0.8rem 1.5rem !important;
+}
+
+.day-selector {
+    display: flex !important;
+    gap: 10px !important;
+    margin-bottom: 1rem !important;
+    justify-content: center !important;
+}
+
+.day-btn {
+    min-width: 35px !important;
+    height: 35px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
 }
 
 /* OVERRIDE ALL CENTER ALIGNMENTS FOR CLASS TRACKER */
 .attendance-tracker-card, .class-tracker-wrapper, .class-tracker {
     text-align: left !important;
     align-items: stretch !important;
+}
+
+/* PC STAGNATION LOGIC */
+@media (min-width: 1025px) {
+    #attendance-view .content-stack {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 1.5rem !important;
+        height: calc(100vh - 120px) !important;
+        overflow: hidden !important;
+        align-items: stretch !important;
+    }
+
+    #class-tracker-wrapper {
+        flex: 0 0 45% !important;
+        height: 100% !important;
+        max-width: 45% !important;
+        overflow: hidden !important;
+    }
+
+    .summary-card.glass-card {
+        flex: 1 !important;
+        height: 100% !important;
+        overflow-y: auto !important;
+        padding-right: 10px !important;
+    }
+
+    /* Tighten class-tracker even more for PC to fit save button */
+    .subject-card { padding: 6px 12px !important; }
+    .subject-list { gap: 4px !important; }
+    .day-selector { gap: 6px !important; margin-bottom: 0.5rem !important; }
+    .day-btn { width: 30px !important; height: 30px !important; min-width: 30px !important; }
 }
 
 /* Ritual Spacing Fix */
