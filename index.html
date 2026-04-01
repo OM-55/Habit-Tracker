@@ -378,11 +378,28 @@
     </nav>
 
     <!-- Modals (Task Editor) -->
+    <!-- Create Task List Modal -->
+    <div id="create-task-list-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3 style="margin-top:0;">Create New List</h3>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <input type="text" id="new-list-title" class="full-input" placeholder="List name (e.g., Grocery)">
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="secondary modern-btn" onclick="closeCreateTaskModal()">Cancel</button>
+                    <button class="primary modern-btn" onclick="confirmCreateTaskList()">Create List</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="task-editor-modal" class="modal hidden">
-        <div class="modal-content glass-card dark-modal" style="display:flex; flex-direction:column; max-height: 90vh; max-width: 650px; width: 100%; padding: 24px;">
+        <div class="modal-content glass-card dark-modal" style="display:flex; flex-direction:column; max-height: 90vh; max-width: 700px; width: 100%; padding: 24px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 id="task-editor-title" style="margin:0;">List</h3>
-                <button class="secondary modern-btn" style="padding:4px 8px;" onclick="closeTaskEditor()">Close</button>
+                <input type="text" id="task-editor-title-input" 
+                    style="background:transparent; border:none; color:white; font-size:1.5rem; font-weight:800; font-family:inherit; outline:none; margin:0; flex:1;" 
+                    onblur="renameActiveTaskList(this.value)"
+                    onkeydown="if(event.key === 'Enter') this.blur();">
+                <button class="secondary modern-btn" style="padding:4px 8px; margin-left:15px;" onclick="closeTaskEditor()">Close</button>
             </div>
             
             <div id="task-editor-items" style="flex:1; overflow-y:auto; margin: 15px 0; display:flex; flex-direction:column; gap:8px;"></div>

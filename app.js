@@ -583,7 +583,7 @@ function renderSubjects() {
         div.dataset.subject = sub;
         
         div.innerHTML = `
-            <div class="subject-info" onclick="openClassSubjectModal('${sub}')" title="Click to rename subject">
+            <div class="subject-info" onclick="if(editMode) openClassSubjectModal('${sub}')" style="cursor: ${canEdit ? 'pointer' : 'default'};" title="${canEdit ? 'Click to rename' : ''}">
                 <span class="subject-name">${getSubjectDisplayName(sub, false)}</span>
                 <span class="subject-type-small">${getSubjectType(sub)}</span>
             </div>
@@ -1068,7 +1068,7 @@ function renderExpiryTracker() {
                 <span class="exp-name">${item.name}</span>
                 <span class="exp-days">${daysLeft} days left</span>
             </div>
-            <div style="display:flex; align-items:center;">
+            <div class="exp-right">
                 <div class="exp-status-badge">${daysLeft <= 0 ? 'EXPIRED' : daysLeft === 1 ? 'LOW' : 'GOOD'}</div>
                 <button class="delete-btn-modern" onclick="deleteExpiryItem('${item.id}')" title="Delete">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
@@ -1229,7 +1229,7 @@ function renderHabits() {
         let stepsListHtml = '';
         if (expandedRituals.has(h.id) && totalSteps > 0) {
             stepsListHtml = `
-            <div class="ritual-steps-expansion" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px;">
+            <div class="ritual-steps-expansion" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 6px;">
                 ${hSteps.map(s => `
                 <div class="step-expand-row" style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="event.stopPropagation(); toggleStepDetail('${s.id}')">
                     <div class="habit-check-v2 ${s.completed ? 'done' : ''}" style="width:26px; height:26px; min-width:26px;">
@@ -1902,45 +1902,61 @@ function renderTasksBoard() {
         });
         
         const card = document.createElement('div');
-        card.className = 'task-card glass-card';
+        card.className = 'habit-card-v2 glass-card task-card-v2';
+        card.style.cursor = 'pointer';
         card.onclick = () => openTaskListEditor(list.id);
         
-        const header = document.createElement('div');
-        header.className = 'task-card-header';
-        header.innerHTML = `<h3 style="font-size:1.1rem; margin:0;">${list.title}</h3>`;
-        card.appendChild(header);
-        
-        const content = document.createElement('div');
-        content.className = 'task-card-content';
-        
-        items.slice(0, 5).forEach(it => {
-            const line = document.createElement('div');
-            line.className = 'task-item-line';
-            line.style.opacity = it.is_checked ? '0.6' : '1';
-            line.innerHTML = `
-                <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}">
-                    ${it.is_checked ? '✓' : ''}
-                </div> 
-                <span class="${it.is_checked ? 'done' : ''}" style="${it.is_checked ? 'text-decoration:line-through; color:var(--text-dim);' : ''}; font-size:1rem;">
-                    ${it.content}
-                </span>`;
-            content.appendChild(line);
-        });
-        if (items.length === 0) content.innerHTML = '<span style="color:var(--text-dim); font-size:0.85rem; font-style:italic;">Empty list</span>';
-        card.appendChild(content);
+        card.innerHTML = `
+            <div class="habit-main-row">
+                <div class="habit-info-group">
+                    <span class="habit-name" style="font-size:1.2rem;">${list.title}</span>
+                    <span class="habit-goal">${items.length} items</span>
+                </div>
+                <div style="font-size:1.1rem; color:var(--text-dim); opacity:0.4;">→</div>
+            </div>
+            <div class="task-card-content" style="margin-top:10px; display:flex; flex-direction:column; gap:5px;">
+                ${items.slice(0, 3).map(it => `
+                    <div style="display:flex; align-items:center; gap:8px; opacity:${it.is_checked ? '0.5' : '1'};">
+                        <div style="width:6px; height:6px; border-radius:50%; background:var(--primary);"></div>
+                        <span style="font-size:0.9rem; ${it.is_checked ? 'text-decoration:line-through' : ''}; color:white;">${it.content}</span>
+                    </div>
+                `).join('')}
+                ${items.length === 0 ? '<span style="color:var(--text-dim); font-size:0.85rem; font-style:italic;">Empty list</span>' : ''}
+            </div>
+        `;
         grid.appendChild(card);
     });
 
 }
 
 function createNewTaskList() {
-    const title = prompt("Enter new list name:");
-    if (!title || !title.trim()) return;
-    const newList = { id: generateId(), title: title.trim(), created_at: new Date().toISOString() };
+    const modal = document.getElementById('create-task-list-modal');
+    document.getElementById('new-list-title').value = '';
+    modal.classList.remove('hidden');
+    modal.classList.add('visible');
+}
+
+function closeCreateTaskModal() {
+    document.getElementById('create-task-list-modal').classList.replace('visible','hidden');
+}
+
+async function confirmCreateTaskList() {
+    const title = document.getElementById('new-list-title').value.trim();
+    if (!title) return;
+    const newList = { id: generateId(), title, created_at: new Date().toISOString(), user_id: USER_ID };
     taskLists.push(newList);
     supabaseClient.from('task_lists').insert(newList).then();
     renderTasksBoard();
+    closeCreateTaskModal();
     openTaskListEditor(newList.id);
+}
+
+async function renameActiveTaskList(newTitle) {
+    if (!newTitle || !newTitle.trim()) return;
+    const list = taskLists.find(l => l.id === activeTaskListId);
+    if (!list || list.title === newTitle.trim()) return;
+    list.title = newTitle.trim();
+    await supabaseClient.from('task_lists').update({ title: list.title }).eq('id', activeTaskListId);
 }
 
 function openTaskListEditor(id) {
@@ -1948,7 +1964,8 @@ function openTaskListEditor(id) {
     if (!list) return;
     activeTaskListId = id;
     
-    document.getElementById('task-editor-title').innerText = list.title;
+    const titleInput = document.getElementById('task-editor-title-input');
+    if (titleInput) titleInput.value = list.title;
     currentTaskInputType = 'task';
     updateTaskTypeToggleUI();
     renderTaskItemsEditor();
