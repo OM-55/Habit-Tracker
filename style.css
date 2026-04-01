@@ -2607,7 +2607,7 @@ input:checked + .toggle-slider:before {
     flex: 1 !important;
 }
 
-/* --- FINAL UI FIXES (V4.2): CLASS TRACKER SPATIAL REFINEMENT --- */
+/* --- FINAL UI FIXES (V4.3): ABSOLUTE SPATIAL & ALIGNMENT ENFORCEMENT --- */
 .class-tracker {
     display: flex !important;
     flex-direction: column !important;
@@ -2617,39 +2617,43 @@ input:checked + .toggle-slider:before {
 
 .day-selector {
     display: flex !important;
-    gap: 1.2rem !important; /* INCREASED GAP */
-    margin-bottom: 1.5rem !important;
+    gap: 1.2rem !important;
+    margin-bottom: 1.2rem !important;
     justify-content: center !important;
+    width: 100% !important;
 }
 
 .day-btn {
-    min-width: 40px !important;
-    height: 40px !important;
+    min-width: 36px !important;
+    height: 36px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
 }
 
 .subject-list {
     flex-grow: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    gap: 1rem !important; /* INCREASED GAP TO USE SPACE */
+    gap: 0.8rem !important;
     overflow-y: visible !important;
     justify-content: flex-start !important;
+    width: 100% !important;
 }
 
 .subject-card {
     display: flex !important;
+    flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
-    padding: 12px 18px !important;
+    padding: 8px 20px !important;
     background: rgba(255,255,255,0.03) !important;
     border: 1px solid var(--glass-border) !important;
     border-radius: 12px !important;
     width: 100% !important;
+    margin: 0 !important;
 }
 
 .subject-card .left {
@@ -2657,15 +2661,16 @@ input:checked + .toggle-slider:before {
     flex-direction: column !important;
     align-items: flex-start !important;
     text-align: left !important;
-    flex: 1 !important;
+    flex: 0 0 auto !important;
 }
 
 .subject-card .right {
     display: flex !important;
-    gap: 20px !important;
+    flex-direction: row !important;
+    gap: 1.5rem !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    text-align: right !important;
+    flex: 0 0 auto !important;
 }
 
 .subject-name {
@@ -2676,7 +2681,7 @@ input:checked + .toggle-slider:before {
 }
 
 .subject-type {
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     opacity: 0.7 !important;
     color: var(--text-dim) !important;
 }
@@ -2699,16 +2704,15 @@ input:checked + .toggle-slider:before {
 .save-btn {
     margin-top: auto !important;
     width: 100% !important;
-    margin-top: 1.2rem !important;
-    padding: 1rem 2rem !important;
+    margin-top: 1rem !important;
+    padding: 0.8rem !important;
     font-weight: 700 !important;
-    letter-spacing: 0.5px !important;
 }
 
 /* OVERRIDE ALL CENTER ALIGNMENTS FOR CLASS TRACKER */
-.attendance-tracker-card, .class-tracker-wrapper, .class-tracker {
+.attendance-tracker-card, .class-tracker-wrapper, .class-tracker, #subjects-container {
     text-align: left !important;
-    align-items: stretch !important;
+    align-items: flex-start !important;
 }
 
 /* PC STAGNATION LOGIC */
@@ -2716,7 +2720,7 @@ input:checked + .toggle-slider:before {
     #attendance-view .content-stack {
         display: flex !important;
         flex-direction: row !important;
-        gap: 2rem !important;
+        gap: 1.5rem !important;
         height: calc(100vh - 120px) !important;
         overflow: hidden !important;
         align-items: stretch !important;
@@ -2733,11 +2737,12 @@ input:checked + .toggle-slider:before {
         flex: 1 !important;
         height: 100% !important;
         overflow-y: auto !important;
-        padding-right: 15px !important;
+        padding: 1.5rem !important;
     }
 
-    /* Use vertical space for subjects on PC */
-    .subject-list { gap: 1.2rem !important; }
+    /* Use vertical space for subjects on PC, but keep save button visible */
+    .subject-list { gap: 0.8rem !important; }
+    .subject-card { padding: 6px 18px !important; }
 }
 
 /* Ritual Spacing Fix */
