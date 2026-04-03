@@ -204,6 +204,14 @@ function navigate(view, params = {}) {
     }
     
     currentView = view;
+
+    // Toggle Mobile FAB (Floating Action Button)
+    const mobileFAB = document.getElementById('mobile-add-btn');
+    if (mobileFAB) {
+        const allowedViews = ['dashboard', 'habits', 'reminders', 'stocks', 'expiry', 'tasks'];
+        const isAllowed = allowedViews.includes(view);
+        mobileFAB.classList.toggle('hidden', !isAllowed);
+    }
 }
 
 async function fetchInitialData() {
@@ -370,6 +378,14 @@ function switchView(view) {
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
     if (view === 'tasks') renderTasksBoard();
+
+    // 7. Toggle Mobile FAB (Floating Action Button)
+    const mobileFAB = document.getElementById('mobile-add-btn');
+    if (mobileFAB) {
+        const allowedViews = ['dashboard', 'habits', 'reminders', 'stocks', 'expiry', 'tasks'];
+        const isAllowed = allowedViews.includes(view);
+        mobileFAB.classList.toggle('hidden', !isAllowed);
+    }
 }
 
 /** 
@@ -379,7 +395,6 @@ function handleAdd() {
     const view = String(currentView).trim().toLowerCase();
     console.log("handleAdd START. View:", view);
     if (view === 'habits' || view === 'dashboard' || view === 'stellar') {
-        console.log("Calling openModal from handleAdd");
         openModal();
     } else if (view === 'reminders') {
         openReminderModal();
@@ -387,8 +402,9 @@ function handleAdd() {
         openStockModal();
     } else if (view === 'expiry') {
         openExpiryModal();
+    } else if (view === 'tasks') {
+        createNewTaskList();
     } else {
-        console.log("Defaulting to openModal");
         openModal();
     }
 }

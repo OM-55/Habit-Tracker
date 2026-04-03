@@ -2179,6 +2179,45 @@ input:checked + .toggle-slider:before {
         flex: 1;
         min-width: 44px;
     }
+
+    /* MOBILE BACKGROUND SYNC (v10.0) */
+    body {
+        background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #070708 100%) !important;
+        background-attachment: fixed !important;
+    }
+
+    /* MOBILE ADD BUTTON (FAB) */
+    .mobile-add-btn {
+        display: flex !important;
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6c63ff, #8b7fff);
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(108, 99, 255, 0.4);
+        z-index: 999;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .mobile-add-btn:active {
+        transform: scale(0.9);
+    }
+
+    #app-main {
+        padding-bottom: 120px !important;
+    }
+}
+
+/* HIDE FAB ON DESKTOP */
+.mobile-add-btn {
+    display: none;
 }
 
 /* Expiry Tracker UI (v50.0) */
@@ -2782,11 +2821,65 @@ input:checked + .toggle-slider:before {
     .dashboard-grid { display: grid !important; grid-template-columns: 1fr !important; }
 }
 
-.habit-actions-group {
+/* --- NOTES SYSTEM (V5.0) --- */
+.note-card {
+    padding: 1.5rem !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--glass-border) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     display: flex !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    cursor: default !important;
+    min-height: 200px !important;
+    height: auto !important;
+}
+
+.note-card:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.note-title {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    color: white !important;
+    width: 100% !important;
+    padding: 0 !important;
+    font-family: inherit !important;
+}
+
+.note-title::placeholder {
+    color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.note-content {
+    margin-top: 4px !important;
+    min-height: 120px !important;
+    outline: none !important;
+    cursor: text !important;
+    color: var(--text-dim) !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    white-space: pre-wrap !important;
+    flex-grow: 1 !important;
+}
+
+.note-content:empty:before {
+    content: "Start writing your notes...";
+    color: rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+}
+
+#notes-board-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
     gap: 1.5rem !important;
-    justify-content: flex-end !important;
-    flex: 1 !important;
+    padding-bottom: 50px !important;
 }
 
