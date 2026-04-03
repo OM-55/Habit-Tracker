@@ -205,12 +205,12 @@ function navigate(view, params = {}) {
     
     currentView = view;
 
-    // Toggle Mobile FAB (Floating Action Button)
-    const mobileFAB = document.getElementById('mobile-add-btn');
-    if (mobileFAB) {
-        const allowedViews = ['dashboard', 'habits', 'reminders', 'stocks', 'expiry', 'tasks'];
+    // Toggle Mobile Header Action Button (Header ADD)
+    const headerAddBtn = document.getElementById('header-add-btn');
+    if (headerAddBtn) {
+        const allowedViews = ['habits', 'reminders', 'stocks', 'expiry', 'tasks'];
         const isAllowed = allowedViews.includes(view);
-        mobileFAB.classList.toggle('hidden', !isAllowed);
+        headerAddBtn.classList.toggle('hidden', !isAllowed);
     }
 }
 
@@ -355,15 +355,12 @@ function switchView(view) {
         else globalActions.classList.add('hidden');
     }
     
-    // 5a. Conditional Header "+" Button (v60.0)
+    // 5a. Conditional Header Action Button (v70.0)
     const headerAddBtn = document.getElementById('header-add-btn');
     if (headerAddBtn) {
-        const allowedViews = ['habits', 'reminders', 'stocks', 'expiry'];
-        if (allowedViews.includes(view)) {
-            headerAddBtn.classList.remove('hidden');
-        } else {
-            headerAddBtn.classList.add('hidden');
-        }
+        const allowedViews = ['habits', 'reminders', 'stocks', 'expiry', 'tasks'];
+        const isAllowed = allowedViews.includes(view);
+        headerAddBtn.classList.toggle('hidden', !isAllowed);
     }
 
     // 5b. Expiry Alert Visibility (v61.0)
@@ -379,13 +376,9 @@ function switchView(view) {
     if (view === 'stocks') renderStocks();
     if (view === 'tasks') renderTasksBoard();
 
-    // 7. Toggle Mobile FAB (Floating Action Button)
+    // 7. Toggle Mobile Header Action Button (Legacy FAB cleanup)
     const mobileFAB = document.getElementById('mobile-add-btn');
-    if (mobileFAB) {
-        const allowedViews = ['dashboard', 'habits', 'reminders', 'stocks', 'expiry', 'tasks'];
-        const isAllowed = allowedViews.includes(view);
-        mobileFAB.classList.toggle('hidden', !isAllowed);
-    }
+    if (mobileFAB) mobileFAB.classList.add('hidden');
 }
 
 /** 

@@ -16,12 +16,9 @@
 <body>
     <!-- Top Navbar -->
     <header id="top-navbar">
-        <button id="menu-toggle" onclick="toggleDrawer()">☰</button>
+        <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
         <h1 id="page-title">Dashboard</h1>
-        <div class="header-right">
-            <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
-            <button class="header-icon-btn" onclick="handleMenu()"><span>⋮</span></button>
-        </div>
+        <button id="menu-toggle" onclick="toggleDrawer()">☰</button>
     </header>
 
     <!-- Main App Container -->
@@ -410,9 +407,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Floating Action Button (Mobile) -->
-    <button id="mobile-add-btn" class="mobile-add-btn hidden" onclick="handleAdd()">+</button>
 
     <script src="app.js"></script>
 </body>
