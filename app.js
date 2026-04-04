@@ -172,13 +172,22 @@ function navigate(view, params = {}) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(`${view}-view`).classList.remove('hidden');
 
-    const titleEl = document.getElementById('page-title');
-    if (titleEl) titleEl.innerText = titles[view] || 'Stellar';
+    // Update Title
+    const titles = {
+        'dashboard': 'Dashboard',
+        'habits': 'Daily Rituals',
+        'attendance': 'Academy Tracker',
+        'reminders': 'Reminders',
+        'stocks': 'Stock Tracker',
+        'notes': 'Notes',
+        'expiry': 'Expiry Tracker'
+    };
+    document.getElementById('page-title').innerText = titles[view] || 'Stellar';
 
     // Update Nav Active State
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
-        if (item.innerText.toLowerCase().includes(view.toLowerCase())) item.classList.add('active');
+        if (item.innerText.toLowerCase().includes(view)) item.classList.add('active');
     });
 
     // Close Drawer
@@ -193,12 +202,19 @@ function navigate(view, params = {}) {
     if (view === 'reminders') renderFullReminders();
     if (view === 'dashboard') renderDashboard();
     if (view === 'expiry') renderExpiryTracker();
-    if (view === 'habits') renderDailyRituals();
+    if (view === 'habits') renderHabits();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
     if (view === 'notes') renderNotesBoard();
     
     currentView = view;
+
+    const headerAddBtn = document.getElementById('header-add-btn');
+    if (headerAddBtn) {
+        const allowedViews = ['habits', 'reminders', 'notes'];
+        const isAllowed = allowedViews.includes(view);
+        headerAddBtn.classList.toggle('hidden', !isAllowed);
+    }
 }
 
 async function fetchInitialData() {
@@ -299,7 +315,7 @@ function renderPage(view) {
     console.log(`[UI] Refreshing View: ${view}`);
     
     if (view === 'dashboard') { renderDashboard(); renderReminders(); renderStocksDashboard(); }
-    else if (view === 'habits') renderDailyRituals();
+    else if (view === 'habits') renderHabits();
     else if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     else if (view === 'reminders') { renderFullReminders(); renderReminders(); }
     else if (view === 'notes') renderNotesBoard();
@@ -312,143 +328,91 @@ function renderPage(view) {
 function switchView(view) {
     currentView = view;
     
+    // 1. Sidebar Auto-Close (Mobile Fix v40.0)
     const sidebar = document.getElementById('sidebar');
     if (sidebar && sidebar.classList.contains('open')) {
         toggleDrawer();
     }
 
+    // 2. Clear Views
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-    const viewEl = document.getElementById(`${view}-view`);
-    if (viewEl) viewEl.classList.remove('hidden');
+    document.getElementById(`${view}-view`).classList.remove('hidden');
 
+    // 3. Update Mobile Header Title
     const titles = {
         'dashboard': 'Dashboard',
         'habits': 'Daily Rituals',
         'attendance': 'Academy Tracker',
         'reminders': 'Reminders',
         'stocks': 'Stock Tracker',
-        'notes': 'Notes',
-        'expiry': 'Expiry Tracker'
+        'notes': 'Notes'
     };
     const titleEl = document.getElementById('page-title');
     if (titleEl) titleEl.innerText = titles[view] || 'Stellar';
 
+    // 4. Update Nav Active State
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
     const navBtn = document.getElementById(`nav-${view}`);
     if (navBtn) navBtn.classList.add('active');
 
+    // 4b. Update Bottom Nav Active State
     document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
-    const bottomNavBtn = Array.from(document.querySelectorAll('.bottom-nav-item')).find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${view}'`));
+    const bottomNavBtn = Array.from(document.querySelectorAll('.bottom-nav-item')).find(btn => btn.getAttribute('onclick').includes(`'${view}'`));
     if (bottomNavBtn) bottomNavBtn.classList.add('active');
     
+    // 5. Toggle Global Actions
+    const globalActions = document.getElementById('global-reminder-actions');
+    if (globalActions) {
+        if (view === 'reminders') globalActions.classList.remove('hidden');
+        else globalActions.classList.add('hidden');
+    }
+    
+    const headerAddBtn = document.getElementById('header-add-btn');
+    if (headerAddBtn) {
+        // HIDE on specific pages (Dashboard & Academy Tracker)
+        const hideOn = ['dashboard', 'attendance'];
+        const shouldHide = hideOn.includes(view);
+        headerAddBtn.style.display = shouldHide ? "none" : "flex";
+    }
+
+    // 5b. Expiry Alert Visibility (v61.0)
     const alertContainer = document.getElementById('priority-alert-container');
     if (alertContainer && view !== 'dashboard' && view !== 'expiry') {
         alertContainer.innerHTML = '';
     }
     
+    // 6. Refresh Data
     if (view === 'dashboard') { renderDashboard(); renderReminders(); }
-    if (view === 'habits') renderDailyRituals();
+    if (view === 'habits') renderHabits();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
     if (view === 'notes') renderNotesBoard();
 
+    // 7. Toggle Mobile Header Action Button (Legacy FAB cleanup)
     const mobileFAB = document.getElementById('mobile-add-btn');
     if (mobileFAB) mobileFAB.classList.add('hidden');
 }
 
-function openAddRitual() {
-    console.log("Opening Add Ritual Modal");
-    const modal = document.getElementById('habit-modal');
-    if (!modal) {
-        // Fallback or re-create if it was removed (though index.html has it)
-        console.error("Modal not found - possibly removed by save logic");
-        location.reload(); // Safer fallback for high-risk UI removal
-        return;
-    }
-    // Specific Input Clear for Ritual Modal
-    const input = document.querySelector(".ritual-modal input");
-    if (input) input.value = '';
+/** 
+ * Context-aware Add function for Mobile Header (v45.0)
+ */
+function handleAdd() {
+    const view = String(currentView).trim().toLowerCase();
+    console.log("handleAdd Contextual Router - View:", view);
     
-    modal.classList.remove('hidden');
-    modal.classList.add('visible');
-}
-
-function handleSaveRitual() {
-    console.log("RITUAL SAVE TRIGGERED");
-    const input = document.querySelector(".ritual-modal input");
-    if (!input) {
-        console.log("INPUT NOT FOUND");
-        return;
-    }
-    const name = input.value.trim();
-    if (!name) {
-        alert("Enter name");
-        return;
-    }
-    let rituals = JSON.parse(localStorage.getItem("rituals")) || [];
-    rituals.push({
-        name: name,
-        completedToday: false,
-        streak: 0
-    });
-    localStorage.setItem("rituals", JSON.stringify(rituals));
-    // REMOVE MODAL COMPLETELY
-    document.querySelector(".ritual-modal").remove();
-    // RE-RENDER ONLY DAILY RITUALS
-    renderDailyRituals();
-}
-
-function renderProgress() {
-    const rituals = JSON.parse(localStorage.getItem("rituals")) || [];
-    const total = rituals.length;
-    const done = rituals.filter(r => r.completedToday).length;
-    return `<div class="progress-text">${done}/${total} DONE TODAY</div>`;
-}
-
-function renderDailyRituals() {
-    console.log("RENDERING DAILY RITUALS");
-    const container = document.getElementById('habit-list');
-    if (!container) return;
-    
-    const rituals = JSON.parse(localStorage.getItem("rituals")) || [];
-    
-    let ritualsHTML = rituals.map((r, index) => `
-        <div class="habit-card-v2 glass-card ${r.completedToday ? 'completed' : ''}">
-            <div class="habit-main-row">
-                <div class="habit-info-group">
-                    <span class="habit-name">${r.name}</span>
-                </div>
-                <div class="habit-stats-group">
-                    <div class="streak-pill">🔥 ${r.streak || 0}</div>
-                </div>
-                <div class="habit-actions-group">
-                    <div class="habit-check-v2 ${r.completedToday ? 'done' : ''}" onclick="toggleRitualStatus(${index})">
-                        <div class="check-inner"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-
-    container.innerHTML = `
-        ${renderProgress()}
-        ${ritualsHTML}
-    `;
-}
-
-async function toggleRitualStatus(index) {
-    let rituals = JSON.parse(localStorage.getItem("rituals")) || [];
-    if (!rituals[index]) return;
-    
-    rituals[index].completedToday = !rituals[index].completedToday;
-    if (rituals[index].completedToday) {
-        rituals[index].streak = (rituals[index].streak || 0) + 1;
+    if (view === 'habits') {
+        openModal();
+    } else if (view === 'notes') {
+        addNote();
+    } else if (view === 'reminders') {
+        openReminderModal();
+    } else if (view === 'stocks') {
+        openStockModal();
+    } else if (view === 'expiry') {
+        openExpiryModal();
     } else {
-        rituals[index].streak = Math.max(0, (rituals[index].streak || 1) - 1);
+        console.warn("No 'Add' action defined for view:", view);
     }
-    
-    localStorage.setItem("rituals", JSON.stringify(rituals));
-    renderDailyRituals();
 }
 
 function handleEdit() {
@@ -1369,7 +1333,15 @@ async function toggleHabit(id) {
 }
 
 function updateStats() {
-    // Legacy support for other views if needed, but Rituals now use renderProgress
+    const total = habits.length; 
+    const today = new Date().toLocaleDateString("en-CA");
+    const done = habits.filter(h => h.completedDates.includes(today)).length;
+    
+    const countEl = document.getElementById('completed-count');
+    const totalEl = document.getElementById('total-count');
+    
+    if (countEl) countEl.innerText = done;
+    if (totalEl) totalEl.innerText = total;
 }
 
 // --- Modal & Calendar ---

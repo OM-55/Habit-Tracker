@@ -17,6 +17,7 @@
     <header id="top-navbar">
         <button id="menu-toggle" class="header-icon-btn" onclick="toggleDrawer()">☰</button>
         <h1 id="page-title">Dashboard</h1>
+        <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
     </header>
 
     <!-- Main App Container -->
@@ -111,11 +112,15 @@
 
             <!-- Habits View -->
             <section id="habits-view" class="view hidden">
-                <div class="page-header">
-                    <h1>Daily Rituals</h1>
-                    <button class="add-btn" onclick="openAddRitual()">+ Add</button>
+                <div class="header-top">
+                    <h2>Daily Rituals</h2>
+                    <div class="header-actions">
+                        <div id="ritual-stats-header" class="stats-header-compact">
+                            <span id="completed-count">0</span>/<span id="total-count">0</span> DONE TODAY
+                        </div>
+                        <button class="circular-plus" onclick="openModal()">+</button>
+                    </div>
                 </div>
-                <div id="ritual-progress-container"></div>
                 <div id="habit-list" class="content-stack"></div>
             </section>
 
@@ -157,9 +162,9 @@
 
             <!-- Reminders View -->
             <section id="reminders-view" class="view hidden">
-                <div class="page-header">
-                    <h1>Reminders</h1>
-                    <button class="add-btn" onclick="openReminderModal()">+ Add</button>
+                <div class="header-top">
+                    <h2>Reminders</h2>
+                    <button class="circular-plus" onclick="openReminderModal()">+</button>
                 </div>
                 <div class="reminders-container" style="position: relative; min-height: 400px;">
                     <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
@@ -172,18 +177,21 @@
 
             <!-- Stocks View -->
             <section id="stocks-view" class="view hidden">
-                <div class="page-header">
-                    <h1>Stocks</h1>
-                    <button class="add-btn" onclick="openStockModal()">+ Add</button>
+                <div class="header-top">
+                    <div>
+                        <h2 style="margin-bottom:0.2rem;">Stock Tracker</h2>
+                        <p style="color:var(--text-dim);font-size:0.9rem;">Live Portfolio Performance</p>
+                    </div>
+                    <button class="circular-plus" onclick="openStockModal()">+</button>
                 </div>
                 <div id="stocks-list" class="stocks-grid"></div>
             </section>
 
             <!-- Expiry Tracker View -->
             <section id="expiry-view" class="view hidden">
-                <div class="page-header">
-                    <h1>Expiry Tracker</h1>
-                    <button class="add-btn" onclick="openExpiryModal()">+ Add</button>
+                <div class="header-top">
+                    <h2>Expiry Tracker</h2>
+                    <button class="circular-plus" onclick="openExpiryModal()">+</button>
                 </div>
                 <div id="expiry-list" class="content-stack"></div>
             </section>
@@ -192,7 +200,7 @@
             <section id="notes-view" class="view hidden">
                 <div class="page-header">
                     <h1>Notes</h1>
-                    <button class="add-btn" onclick="addNote()">+ Add</button>
+                    <button class="mobile-add-btn" onclick="addNote()">+</button>
                 </div>
                 <div id="notes-board-grid" class="dashboard-grid"></div>
             </section>
@@ -200,7 +208,7 @@
     </div>
 
     <!-- Modals (Habit) -->
-    <div id="habit-modal" class="modal ritual-modal hidden">
+    <div id="habit-modal" class="modal hidden">
         <div class="modal-content glass-card dark-modal" style="max-height: 90vh; display: flex; flex-direction: column;">
             <h3 id="habit-modal-title">New Ritual</h3>
             <div class="input-group" style="overflow-y: auto; overflow-x: hidden; padding-right: 8px; flex: 1;">
@@ -224,7 +232,7 @@
             </div>
             <div class="modal-actions" style="margin-top: 15px; flex-shrink: 0;">
                 <button class="secondary modern-btn" onclick="closeModal()">Cancel</button>
-                <button class="primary modern-btn" onclick="handleSaveRitual()">Save</button>
+                <button class="primary modern-btn" onclick="saveHabit()">Save</button>
             </div>
         </div>
     </div>
