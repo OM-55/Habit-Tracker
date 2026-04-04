@@ -2768,12 +2768,36 @@ input:checked + .toggle-slider:before {
 .habit-goal { font-size: 0.85rem !important; color: var(--text-dim) !important; margin-bottom: 0 !important; line-height: 1.2 !important; }
 
 /* Expiry Tracker fix */
-.expiry-card { display: flex !important; justify-content: space-between !important; align-items: center !important; text-align: left !important; padding: 1rem 1.5rem !important; margin-bottom: 0.8rem !important; }
-.exp-info { display: flex !important; flex-direction: column !important; gap: 2px !important; flex: 1 !important; text-align: left !important; align-items: flex-start !important; }
-.exp-name { font-size: 1.1rem !important; font-weight: 800 !important; color: white !important; margin: 0 !important; }
-.exp-days { font-size: 0.85rem !important; color: var(--text-dim) !important; margin: 0 !important; }
-.exp-right { display: flex !important; align-items: center !important; gap: 15px !important; }
-.exp-status-badge { margin: 0 !important; }
+.expiry-card { 
+    display: grid !important; 
+    grid-template-columns: 1fr auto 1fr !important; 
+    align-items: center !important; 
+    text-align: left !important; 
+    padding: 1rem 1.5rem !important; 
+    margin-bottom: 0.8rem !important; 
+    min-height: 80px !important;
+}
+.exp-info { 
+    display: flex !important; 
+    flex-direction: column !important; 
+    gap: 2px !important; 
+    grid-column: 1 !important;
+    text-align: left !important; 
+    align-items: flex-start !important; 
+}
+.exp-name { font-size: 1.2rem !important; font-weight: 800 !important; color: white !important; margin: 0 !important; }
+.exp-days { font-size: 0.9rem !important; color: var(--text-dim) !important; margin: 0 !important; }
+.exp-status-badge { 
+    grid-column: 2 !important; 
+    justify-self: center !important; 
+    margin: 0 !important; 
+    padding: 4px 12px !important;
+    font-size: 0.75rem !important;
+}
+.delete-btn-modern {
+    grid-column: 3 !important;
+    justify-self: flex-end !important;
+}
 
 /* Global Cleanup */
 #app-main { padding: 25px 40px !important; display: flex !important; flex-direction: column !important; }
