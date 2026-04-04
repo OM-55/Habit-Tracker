@@ -1939,41 +1939,27 @@ async function fetchLivePrices() {
 }
 stocks = loadStocks();
 
-// Mobile & Desktop Add Button separation logic
+// Mobile styling fixing gap
 function deviceSpecificAddButtonLogic() {
     const isMobile = window.innerWidth <= 768;
-    
     if (isMobile) {
-        const allAddBtns = document.querySelectorAll(".add-btn, .header-add, .fab-add, #header-add-btn");
-        allAddBtns.forEach(btn => btn.remove());
-    } else {
-        const desktopAddBtn = document.querySelector(".desktop-add-btn");
-        if (desktopAddBtn) {
-            const noAddPages = ["dashboard", "academy", "attendance"];
-            if (noAddPages.includes(currentView)) {
-                desktopAddBtn.style.display = "none";
-            } else {
-                desktopAddBtn.style.display = "flex";
-            }
+        const header = document.querySelector("#top-navbar");
+        if (header) header.style.display = "none";
+        
+        document.body.style.marginTop = "0";
+        document.body.style.paddingTop = "0";
+        const main = document.querySelector("#app-main");
+        if (main) {
+            main.style.marginTop = "0";
+            main.style.paddingTop = "0";
         }
+    } else {
+        const header = document.querySelector("#top-navbar");
+        if (header) header.style.display = "flex"; // Restore desktop header layout
     }
 }
 window.addEventListener('resize', deviceSpecificAddButtonLogic);
 
 document.addEventListener('DOMContentLoaded', () => {
-    const desktopBtn = document.querySelector(".desktop-add-btn");
     deviceSpecificAddButtonLogic(); // Run initial calculation
-
-    if (desktopBtn) {
-        desktopBtn.onclick = () => {
-            switch(currentView) {
-                case "daily":
-                case "habits": openAddRitual(); break;
-                case "notes": openAddNote(); break;
-                case "reminders": openAddReminder(); break;
-                case "stocks": openAddStock(); break;
-                case "expiry": openAddExpiry(); break;
-            }
-        };
-    }
 });

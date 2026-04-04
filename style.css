@@ -3331,21 +3331,44 @@ input:checked + .toggle-slider:before {
     color: var(--error) !important;
 }
 
-/* Desktop Add Button Overlay */
-.desktop-add-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #7c6cff, #5b4bff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 26px;
-  cursor: pointer;
-  z-index: 9999;
-  box-shadow: 0 10px 25px rgba(124,108,255,0.4);
+/* Desktop Add Button Inline */
+.page-header-inline {
+    position: relative;
+    text-align: center;
+    margin: 3rem 0 1.5rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.desktop-inline-add-btn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c6cff, #5b4bff);
+    color: white;
+    font-size: 26px;
+    border: none;
+    cursor: pointer;
+    display: none; /* Desktop only -> handled by CSS media query */
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(124,108,255,0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.desktop-inline-add-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 20px rgba(124,108,255,0.6);
+}
+
+@media (min-width: 769px) {
+    .desktop-inline-add-btn {
+        display: flex;
+    }
 }
