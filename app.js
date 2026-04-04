@@ -359,10 +359,16 @@ function switchView(view) {
     if (view === 'stocks') renderStocks();
     if (view === 'notes') renderNotesBoard();
 
-    // 7. Device-Specific Add Button Logic
-    deviceSpecificAddButtonLogic();
+    // 7. Mobile Add Button Visibility Strategy (Hide on Dashboard & Attendance)
+    const mobileAddBtn = document.getElementById("header-add-btn");
+    if (mobileAddBtn) {
+        if (view === "dashboard" || view === "academy" || view === "attendance") {
+            mobileAddBtn.style.setProperty("display", "none", "important");
+        } else {
+            mobileAddBtn.style.setProperty("display", "flex", "important");
+        }
+    }
 }
-
 
 /**
  * Contextual Add Function Router
