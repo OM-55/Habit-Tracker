@@ -287,21 +287,30 @@ async function fetchInitialData() {
         
         console.log("Sync complete. Habits:", habits.length);
         
-        // Save to local backup
-        saveToLocalStorage();
-        
-        renderHabits();
-        renderAttendanceSummary();
-        renderReminders();
-        renderExpiryTracker();
-        renderDashboard();
-        
-        // Initial Price Fetch
         if (stocks.length > 0) fetchLivePrices();
+        renderPage();
     } catch (e) {
         console.error("Critical Sync Failure:", e);
     }
 }
+
+/**
+ * Universal Page Rendering Engine (v80.0)
+ * Forces immediate UI update after data changes
+ */
+function renderPage(view) {
+    if (!view) view = currentView;
+    console.log(`[UI] Refreshing View: ${view}`);
+    
+    if (view === 'dashboard') { renderDashboard(); renderReminders(); renderStocksDashboard(); }
+    else if (view === 'habits') renderHabits();
+    else if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
+    else if (view === 'reminders') { renderFullReminders(); renderReminders(); }
+    else if (view === 'notes') renderNotesBoard();
+    else if (view === 'stocks') renderStocks();
+    else if (view === 'expiry') renderExpiryTracker();
+}
+
 
 // --- Navigation ---
 function switchView(view) {
@@ -744,16 +753,16 @@ function closeClassSubjectModal() {
 }
 
 function saveClassSubject() {
+    console.log("SAVE TRIGGERED: Class Subject");
     const name = document.getElementById('class-subject-name').value.trim();
     const type = document.getElementById('class-subject-type').value.trim();
     if (!name) return;
     
     customSubjects[editingSubjectOriginalName] = { name, type };
     localStorage.setItem('stellar_custom_subjects', JSON.stringify(customSubjects));
-    closeClassSubjectModal();
-    renderSubjects();
-    renderAttendanceSummary();
-    renderDashboard();
+    closeAllModals();
+    renderPage('attendance');
+    renderPage('dashboard');
 }
 
 function toggleEditMode() {
@@ -835,6 +844,7 @@ function closeReminderModal() {
 }
 
 async function saveReminder() {
+    console.log("SAVE TRIGGERED: Reminder");
     const title = document.getElementById('rem-title').value.trim();
     const date = document.getElementById('rem-date').value;
     if (!title || !date) return;
@@ -842,11 +852,9 @@ async function saveReminder() {
     const newRem = { id: generateId(), title, date, completed: false };
     reminders.push(newRem);
     
-    // Render immediately for UX
-    renderFullReminders();
-    renderReminders();
-    
-    closeReminderModal();
+    closeAllModals();
+    renderPage('reminders');
+    renderPage('dashboard');
     await saveAndSync('reminders', reminders);
 }
 
@@ -1114,8 +1122,11 @@ async function saveExpiryItem() {
         const { error } = await supabaseClient.from('expiry_items').insert([newItem]);
         if (error) throw error;
 
+        console.log("SAVE TRIGGERED: Expiry");
+        closeAllModals();
         await fetchInitialData();
-        closeExpiryModal();
+        renderPage('expiry');
+        renderPage('dashboard');
     } catch (err) {
         console.error("Save expiry item failed:", err);
     }
@@ -1259,7 +1270,6 @@ function renderHabits() {
                 </div>
             </div>
             ${progressHtml}
-            ${meditationHtml}
             ${stepsListHtml}
         `;
         l.appendChild(card);
@@ -1267,56 +1277,13 @@ function renderHabits() {
     updateStats();
 }
 
-function toggleMeditationExpansion(e) {
-    e.stopPropagation();
-    meditationExpanded = !meditationExpanded;
-    renderHabits();
-}
-
-function filterMeditationBy(time) {
-    selectedMeditationTime = time;
-    renderHabits();
-}
-
-function playMeditation(file, title) {
-    const modal = document.getElementById('meditation-player-modal');
-    const video = document.getElementById('meditation-video');
-    const titleEl = document.getElementById('meditation-video-title');
-    
-    titleEl.innerText = title;
-    video.src = file;
-    video.load();
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('visible');
-    
-    video.onended = () => {
-        markMeditationComplete();
-        closeMeditationPlayer();
-    };
-}
-
-function closeMeditationPlayer() {
-    const modal = document.getElementById('meditation-player-modal');
-    const video = document.getElementById('meditation-video');
-    video.pause();
-    modal.classList.remove('visible');
-    modal.classList.add('hidden');
-}
-
-function markMeditationCompleteManually() {
-    markMeditationComplete();
-    closeMeditationPlayer();
-}
-
-function markMeditationComplete() {
-    const meditationHabit = habits.find(h => h.name.toLowerCase() === 'meditation');
-    if (meditationHabit) {
-        const today = new Date().toLocaleDateString("en-CA");
-        if (!meditationHabit.completedDates.includes(today)) {
-            toggleHabit(meditationHabit.id);
-        }
-    }
+// Standard Close for all modals (v81.0)
+function closeAllModals() {
+    console.log("[UI] Closing all modals");
+    document.querySelectorAll('.modal').forEach(m => {
+        m.classList.add('hidden');
+        m.classList.remove('visible');
+    });
 }
 
 async function toggleHabit(id) {
@@ -1393,17 +1360,6 @@ function openModal(id = null) {
             if (streakGroup) streakGroup.classList.remove('hidden');
             if (currentStreakInput) currentStreakInput.value = calculateStreak(h);
             currentModalSteps = habitSteps.filter(s => s.habit_id === id).map(s => ({...s}));
-
-            // Special for Meditation
-            if (h.name.toLowerCase() === 'meditation') {
-                const medDiv = document.createElement('div');
-                medDiv.className = 'habit-modal-meditation-action';
-                medDiv.innerHTML = `
-                    <span>Meditation Ready</span>
-                    <button class="primary modern-btn" onclick="closeModal(); toggleMeditationExpansion(event);">Start Session</button>
-                `;
-                name.parentNode.insertBefore(medDiv, name.nextSibling);
-            }
         }
     } else { 
         if (title) title.innerText = 'New Ritual';
@@ -1608,7 +1564,10 @@ async function saveHabit() {
         });
 
         await saveAndSync('rituals', habits);
+        console.log("SAVE TRIGGERED: Rituals");
         closeModal();
+        renderPage('habits');
+        renderPage('dashboard');
     } catch (err) {
         console.error("Save ritual failed:", err);
     }
@@ -1826,12 +1785,15 @@ async function saveStock() {
     }
 
     try {
+        console.log("SAVE TRIGGERED: Stock");
         const newStock = { id: generateId(), name, buy_price: buyPrice, quantity, current_price: buyPrice };
         stocks.push(newStock);
         saveStocks(stocks);
+        closeAllModals();
+        renderPage('stocks');
+        renderPage('dashboard');
+        
         await saveAndSync('stocks', stocks);
-        closeStockModal();
-        renderStocks(); 
         fetchLivePrices(); // Try to get real price immediately
     } catch (err) {
         console.error("Save stock failed:", err);
