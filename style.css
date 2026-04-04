@@ -3038,4 +3038,38 @@ input:checked + .toggle-slider:before {
     }
 }
 
+/* Global Mobile Ritual Stats (v85.0) */
+.mobile-ritual-stats-pill {
+    display: flex !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    color: white !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    padding: 3px 10px !important;
+    border-radius: 100px !important;
+    margin: 0 10px !important;
+    white-space: nowrap !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    align-items: center !important;
+    order: 2 !important;
+}
+
+/* Ensure Page Title is 1 */
+#page-title { order: 1 !important; flex: 1 !important; text-align: left !important; }
+
+/* Standard Cross Removal UI (v85.0) */
+.simple-delete {
+    background: none !important;
+    border: none !important;
+    color: var(--text-dim) !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    padding: 2px 8px !important;
+    line-height: 1 !important;
+}
+
+.simple-delete:hover {
+    color: var(--error) !important;
+}
+
 

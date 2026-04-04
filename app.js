@@ -52,17 +52,29 @@ let currentModalSteps = [];
 let notes = []; // Notes system v5.0 (Single source of truth)
 let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
 let editingSubjectOriginalName = null;
-let meditationExpanded = false;
-let selectedMeditationTime = 10;
-let expandedRituals = new Set(); // Track expanded rituals for steps
+// Central State Management (v85.0)
+function getData(key) {
+    try {
+        const d = localStorage.getItem(key);
+        return d ? JSON.parse(d) : [];
+    } catch (e) {
+        console.error(`Error loading data for key ${key}`, e);
+        return [];
+    }
+}
 
-const meditationVideos = [
-    { title: "Ocean Calm", duration: 2, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_1.png" },
-    { title: "Zen Breath", duration: 2, file: "https://www.w3schools.com/html/movie.mp4", thumbnail: "meditation_thumb_2.png" },
-    { title: "Deep Forest", duration: 5, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_2.png" },
-    { title: "Inner Peace", duration: 10, file: "https://www.w3schools.com/html/movie.mp4", thumbnail: "meditation_thumb_1.png" },
-    { title: "Night Tranquil", duration: 20, file: "https://www.w3schools.com/html/mov_bbb.mp4", thumbnail: "meditation_thumb_2.png" }
-];
+function setData(key, value) {
+    try {
+        const json = JSON.stringify(value);
+        localStorage.setItem(key, json);
+        console.log(`[Storage] Updated: ${key}`);
+    } catch (e) {
+        console.error(`Error saving data for key ${key}`, e);
+    }
+}
+
+let meditationExpanded = false;
+let expandedRituals = new Set(); // Track expanded rituals for steps
 
 function getSubjectDisplayName(sub, showType = true) {
     if (customSubjects[sub] && customSubjects[sub].name) {
@@ -357,10 +369,10 @@ function switchView(view) {
     
     const headerAddBtn = document.getElementById('header-add-btn');
     if (headerAddBtn) {
-        // Only show add button on these specific views
-        const allowedViews = ['habits', 'notes', 'reminders', 'stocks', 'expiry'];
-        const isAllowed = allowedViews.includes(view);
-        headerAddBtn.style.display = isAllowed ? "flex" : "none";
+        // HIDE on specific pages per user request (Dashboard & Academy Tracker)
+        const hideOn = ['dashboard', 'attendance'];
+        const shouldHide = hideOn.includes(view);
+        headerAddBtn.style.display = shouldHide ? "none" : "flex";
     }
 
     // 5b. Expiry Alert Visibility (v61.0)
@@ -1325,10 +1337,20 @@ function updateStats() {
     const today = new Date().toLocaleDateString("en-CA");
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     
+    // PC & Mobile Header Sync (0/n done today)
     const countEl = document.getElementById('completed-count');
     const totalEl = document.getElementById('total-count');
+    const headerPill = document.getElementById('header-ritual-stats');
+    
     if (countEl) countEl.innerText = done;
     if (totalEl) totalEl.innerText = total;
+    if (headerPill) {
+        headerPill.innerText = `${done}/${total} Done`;
+        // Only show pill on Rituals, Dashboard or Academy for mobile clarity
+        const showPillOn = ['habits', 'dashboard'];
+        const isVisible = showPillOn.includes(currentView);
+        headerPill.style.display = isVisible ? "flex" : "none";
+    }
 }
 
 // --- Modal & Calendar ---
@@ -1565,7 +1587,7 @@ async function saveHabit() {
 
         await saveAndSync('rituals', habits);
         console.log("SAVE TRIGGERED: Rituals");
-        closeModal();
+        closeAllModals();
         renderPage('habits');
         renderPage('dashboard');
     } catch (err) {
@@ -1703,12 +1725,11 @@ function renderStocks() {
         const div = document.createElement('div');
         div.className = `stock-card ${profit >= 0 ? 'profit' : 'loss'}`;
         div.innerHTML = `
-            <div class="stock-card-header">
                 <div>
                     <span class="symbol">${stock.name}</span>
                     <span class="qty">${stock.quantity} Shares</span>
                 </div>
-                <button class="delete-btn" onclick="deleteStock('${stock.id}')">×</button>
+                <button class="simple-delete" onclick="deleteStock('${stock.id}')">×</button>
             </div>
             <div class="stock-prices">
                 <div class="price-row"><span>Buy</span> <strong>₹${stock.buy_price}</strong></div>
@@ -1913,18 +1934,22 @@ function renderNotesBoard() {
 notes = loadNotes();
 
 // --- Stocks Persistence Fix ---
-function loadStocks() {
-    const saved = localStorage.getItem("stocks");
-    try {
-        return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-        console.error("Failed to load stocks", e);
-        return [];
-    }
+function saveNotes(notes) {
+    if (!notes) return;
+    setData("notes", notes);
+}
+
+function loadNotes() {
+    return getData("notes") || [];
 }
 
 function saveStocks(stocksList) {
-    localStorage.setItem("stocks", JSON.stringify(stocksList));
+    if (!stocksList) return;
+    setData("stocks", stocksList);
+}
+
+function loadStocks() {
+    return getData("stocks") || [];
 }
 
 async function fetchLivePrices() {
