@@ -3372,3 +3372,36 @@ input:checked + .toggle-slider:before {
         display: flex;
     }
 }
+
+/* --- Master Black Bar Gap Eliminator (PC & Mobile) --- */
+/* For Desktop: Kill #top-navbar completely */
+@media (min-width: 769px) {
+    #top-navbar {
+        display: none !important;
+    }
+    #app-main {
+        margin-top: 0 !important;
+        padding-top: 25px !important;
+    }
+}
+
+/* For Mobile: Make it transparent & floating so it doesn't push content down */
+@media (max-width: 768px) {
+    #top-navbar {
+        position: absolute !important;
+        background: transparent !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        pointer-events: none !important; /* Allow clicks to pass through empty spaces */
+    }
+    #menu-toggle, #header-add-btn {
+        pointer-events: auto !important; /* Keep buttons clickable */
+    }
+    #page-title {
+        display: none !important; /* Hide duplicate header title to prevent overlap with native titles */
+    }
+    #app-main {
+        margin-top: 0 !important;
+    }
+}

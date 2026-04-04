@@ -1959,28 +1959,3 @@ async function fetchLivePrices() {
     renderStocksDashboard();
 }
 stocks = loadStocks();
-
-// Mobile styling fixing gap
-function deviceSpecificAddButtonLogic() {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        const header = document.querySelector("#top-navbar");
-        if (header) header.style.display = "none";
-        
-        document.body.style.marginTop = "0";
-        document.body.style.paddingTop = "0";
-        const main = document.querySelector("#app-main");
-        if (main) {
-            main.style.marginTop = "0";
-            main.style.paddingTop = "0";
-        }
-    } else {
-        const header = document.querySelector("#top-navbar");
-        if (header) header.style.display = "flex"; // Restore desktop header layout
-    }
-}
-window.addEventListener('resize', deviceSpecificAddButtonLogic);
-
-document.addEventListener('DOMContentLoaded', () => {
-    deviceSpecificAddButtonLogic(); // Run initial calculation
-});
