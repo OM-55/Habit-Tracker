@@ -2901,78 +2901,104 @@ input:checked + .toggle-slider:before {
     }
 }
 
-/* --- Mobile UI/UX Cleanup Full Implementation (v72.0) --- */
+/* --- Mobile UI/UX Cleanup Full Implementation (v73.0) --- */
 @media (max-width: 768px) {
     /* 1. Remove Bottom Navigation Bar */
     #bottom-nav {
         display: none !important;
     }
 
-    /* 2. Remove Floating Action Button from bottom-right */
+    /* 2. Hide circular-plus (FAB) on mobile - replaced by header button */
     .circular-plus {
         display: none !important;
     }
 
-    /* 3. Handle Header Add Button Repositioning */
+    /* 3. Global Mobile Header Setup */
     #top-navbar {
         display: flex !important;
-        justify-content: flex-start !important;
+        justify-content: space-between !important;
         align-items: center !important;
         padding: 0 16px !important;
-        gap: 12px !important;
+        height: 60px !important;
+        background: #0b0b0b !important;
+        border-bottom: 1px solid var(--glass-border);
+        z-index: 2000;
     }
 
+    /* Hamburger Menu (Left) */
+    #menu-toggle {
+        display: flex !important;
+        order: 1 !important;
+        background: none !important;
+        border: none !important;
+        color: white !important;
+        font-size: 1.6rem !important;
+        width: 44px !important;
+        height: 44px !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Page Title (Middle) */
+    #page-title {
+        display: block !important;
+        order: 2 !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        flex-grow: 1 !important;
+        margin: 0 !important;
+    }
+
+    /* Add Button (Right) */
     #header-add-btn {
         display: flex !important;
-        order: -1 !important; /* Move to the left of the header */
-        background: rgba(255, 255, 255, 0.1) !important;
+        order: 3 !important;
+        background: none !important;
         border: none !important;
-        border-radius: 12px !important;
-        width: 40px !important;
-        height: 40px !important;
-        justify-content: center !important;
+        color: white !important;
+        font-size: 22px !important;
+        width: 44px !important;
+        height: 44px !important;
         align-items: center !important;
-        transition: background 0.2s !important;
-        margin-right: 8px !important;
-    }
-
-    #header-add-btn:active {
-        background: rgba(255, 255, 255, 0.2) !important;
+        justify-content: flex-end !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     #header-add-btn span {
-        font-size: 24px !important;
-        color: white !important;
-        font-weight: 300 !important;
+        font-size: 22px !important;
+        line-height: 1 !important;
     }
 
-    #page-title {
-        font-size: 1.25rem !important;
-        font-weight: 600 !important;
+    /* 4. Support for local view headers (cleanup) */
+    .page-header, .header-top {
+        display: flex !important;
+        justify-content: center !important; /* Title stays centered */
+        position: relative !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .page-header h1, .header-top h2 {
+        font-size: 1.8rem !important;
         margin: 0 !important;
-        flex-grow: 1 !important;
     }
 
-    /* Force Hide the menu toggle as it is unused and space-consuming */
-    #menu-toggle {
-        display: none !important;
+    .mobile-add-btn {
+        display: none !important; /* Hide local buttons in favor of top header */
     }
 
-    /* 4. Adjust layout padding for mobile since bottom-nav is gone */
+    /* 5. Adjust layout padding for mobile since bottom-nav is gone */
     #app-main {
         padding-bottom: 24px !important;
         height: calc(100vh - 60px) !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
+        margin-top: 60px !important;
     }
 
-    /* 5. Mobile Dashboard Grid Alignment */
-    .dashboard-grid {
-        grid-template-columns: 1fr !important;
-        gap: 1rem !important;
-        padding: 1rem !important;
-    }
-    
     /* 6. Section Specific FAB overrides just in case */
     .fab-container, .btn-float {
         display: none !important;

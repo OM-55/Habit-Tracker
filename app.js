@@ -349,9 +349,10 @@ function switchView(view) {
     
     const headerAddBtn = document.getElementById('header-add-btn');
     if (headerAddBtn) {
-        const allowedViews = ['habits', 'reminders', 'notes'];
+        // Only show add button on these specific views
+        const allowedViews = ['habits', 'notes', 'reminders', 'stocks', 'expiry'];
         const isAllowed = allowedViews.includes(view);
-        headerAddBtn.classList.toggle('hidden', !isAllowed);
+        headerAddBtn.style.display = isAllowed ? "flex" : "none";
     }
 
     // 5b. Expiry Alert Visibility (v61.0)
@@ -377,15 +378,20 @@ function switchView(view) {
  */
 function handleAdd() {
     const view = String(currentView).trim().toLowerCase();
-    console.log("handleAdd START. View:", view);
+    console.log("handleAdd Contextual Router - View:", view);
+    
     if (view === 'habits') {
         openModal();
     } else if (view === 'notes') {
         addNote();
     } else if (view === 'reminders') {
         openReminderModal();
+    } else if (view === 'stocks') {
+        openStockModal();
+    } else if (view === 'expiry') {
+        openExpiryModal();
     } else {
-        console.warn("handleAdd called on an unsupported view:", view);
+        console.warn("No 'Add' action defined for view:", view);
     }
 }
 
