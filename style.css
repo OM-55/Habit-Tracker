@@ -3131,6 +3131,201 @@ input:checked + .toggle-slider:before {
     padding: 2px 8px !important;
     line-height: 1 !important;
 }
+.page-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 2rem !important;
+}
+
+.page-header h1 {
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+}
+
+.mobile-add-btn {
+    width: 48px !important;
+    height: 48px !important;
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 1.8rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    box-shadow: 0 4px 15px var(--primary-glow) !important;
+}
+
+.mobile-add-btn:hover {
+    transform: scale(1.05) !important;
+}
+
+#notes-board-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: 1.5rem !important;
+    padding-bottom: 50px !important;
+}
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 1.8rem !important;
+    }
+    
+    .mobile-add-btn {
+        position: absolute !important;
+        top: 24px !important; /* Adjusted for mobile header alignment */
+        right: 16px !important;
+        bottom: unset !important;
+    }
+}
+
+/* --- Mobile UI/UX Cleanup Full Implementation (v73.0) --- */
+@media (max-width: 768px) {
+    /* 1. Remove Bottom Navigation Bar */
+    #bottom-nav {
+        display: none !important;
+    }
+
+    /* 2. Hide circular-plus (FAB) on mobile - replaced by header button */
+    .circular-plus {
+        display: none !important;
+    }
+
+    /* 3. Global Mobile Header Setup */
+    #top-navbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 16px !important;
+        height: 60px !important;
+        background: #0b0b0b !important;
+        border-bottom: 1px solid var(--glass-border);
+        z-index: 2000;
+    }
+
+    /* Hamburger Menu (Left) */
+    #menu-toggle {
+        display: flex !important;
+        order: 1 !important;
+        background: none !important;
+        border: none !important;
+        color: white !important;
+        font-size: 1.6rem !important;
+        width: 44px !important;
+        height: 44px !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Page Title (Middle) */
+    #page-title {
+        display: block !important;
+        order: 2 !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        flex-grow: 1 !important;
+        margin: 0 !important;
+    }
+
+    /* Add Button (Right) - Purple Circular Modern Style */
+    #header-add-btn {
+        display: flex !important;
+        order: 3 !important;
+        background: linear-gradient(135deg, #6c63ff, #8b7fff) !important;
+        border: none !important;
+        color: white !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4) !important;
+        transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+
+    #header-add-btn:active {
+        transform: scale(0.9) !important;
+        box-shadow: 0 2px 10px rgba(108, 99, 255, 0.2) !important;
+    }
+
+    #header-add-btn span {
+        font-size: 22px !important;
+        line-height: 1 !important;
+        font-weight: 700 !important;
+        margin-bottom: 2px !important; /* Visual optical centering */
+    }
+
+    /* 4. Support for local view headers (cleanup) */
+    .page-header, .header-top {
+        display: flex !important;
+        justify-content: center !important; /* Title stays centered */
+        position: relative !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .page-header h1, .header-top h2 {
+        font-size: 1.8rem !important;
+        margin: 0 !important;
+    }
+
+    .mobile-add-btn {
+        display: none !important; /* Hide local buttons in favor of top header */
+    }
+
+    /* 5. Adjust layout padding for mobile since bottom-nav is gone */
+    #app-main {
+        padding-bottom: 24px !important;
+        height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 60px !important;
+    }
+
+    /* 6. Section Specific FAB overrides just in case */
+    .fab-container, .btn-float {
+        display: none !important;
+    }
+}
+
+/* Global Mobile Ritual Stats (v85.0) */
+.mobile-ritual-stats-pill {
+    display: flex !important;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    color: white !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    padding: 3px 10px !important;
+    border-radius: 100px !important;
+    margin: 0 10px !important;
+    white-space: nowrap !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    align-items: center !important;
+    order: 2 !important;
+}
+
+/* Ensure Page Title is 1 */
+#page-title { order: 1 !important; flex: 1 !important; text-align: left !important; }
+
+/* Standard Cross Removal UI (v85.0) */
+.simple-delete {
+    background: none !important;
+    border: none !important;
+    color: var(--text-dim) !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
+    padding: 2px 8px !important;
+    line-height: 1 !important;
+}
 
 .simple-delete:hover {
     color: var(--error) !important;
@@ -3141,15 +3336,16 @@ input:checked + .toggle-slider:before {
   position: fixed;
   top: 20px;
   right: 20px;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: linear-gradient(135deg, #7c6cff, #5b4bff);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 24px;
+  font-size: 26px;
   cursor: pointer;
-  z-index: 999;
+  z-index: 9999;
+  box-shadow: 0 10px 25px rgba(124,108,255,0.4);
 }
