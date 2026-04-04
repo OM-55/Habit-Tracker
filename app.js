@@ -359,13 +359,8 @@ function switchView(view) {
     if (view === 'stocks') renderStocks();
     if (view === 'notes') renderNotesBoard();
 
-    // 7. Toggle Mobile Header Action Button
-    const headerAddBtn = document.getElementById('header-add-btn');
-    if (headerAddBtn) {
-        const pagesWithAdd = ["habits", "notes", "reminders", "stocks", "expiry"];
-        const shouldShow = pagesWithAdd.includes(view);
-        headerAddBtn.classList.toggle('hidden', !shouldShow);
-    }
+    // 7. Device-Specific Add Button Logic
+    deviceSpecificAddButtonLogic();
 }
 
 
@@ -1943,3 +1938,42 @@ async function fetchLivePrices() {
     renderStocksDashboard();
 }
 stocks = loadStocks();
+
+// Mobile & Desktop Add Button separation logic
+function deviceSpecificAddButtonLogic() {
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        const allAddBtns = document.querySelectorAll(".add-btn, .header-add, .fab-add, #header-add-btn");
+        allAddBtns.forEach(btn => btn.remove());
+    } else {
+        const desktopAddBtn = document.querySelector(".desktop-add-btn");
+        if (desktopAddBtn) {
+            const noAddPages = ["dashboard", "academy", "attendance"];
+            if (noAddPages.includes(currentView)) {
+                desktopAddBtn.style.display = "none";
+            } else {
+                desktopAddBtn.style.display = "flex";
+            }
+        }
+    }
+}
+window.addEventListener('resize', deviceSpecificAddButtonLogic);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const desktopBtn = document.querySelector(".desktop-add-btn");
+    deviceSpecificAddButtonLogic(); // Run initial calculation
+
+    if (desktopBtn) {
+        desktopBtn.onclick = () => {
+            switch(currentView) {
+                case "daily":
+                case "habits": openAddRitual(); break;
+                case "notes": openAddNote(); break;
+                case "reminders": openAddReminder(); break;
+                case "stocks": openAddStock(); break;
+                case "expiry": openAddExpiry(); break;
+            }
+        };
+    }
+});
