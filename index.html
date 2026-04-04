@@ -17,7 +17,6 @@
     <header id="top-navbar">
         <button id="menu-toggle" class="header-icon-btn" onclick="toggleDrawer()">☰</button>
         <h1 id="page-title">Dashboard</h1>
-        <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
     </header>
 
     <!-- Main App Container -->
@@ -110,15 +109,15 @@
                 </div>
             </section>
 
-            <!-- Habits View -->
             <section id="habits-view" class="view hidden">
-                <div class="header-top">
-                    <h2>Daily Rituals</h2>
-                    <div class="header-actions">
-                        <div id="ritual-stats-header" class="stats-header-compact">
-                            <span id="completed-count">0</span>/<span id="total-count">0</span> DONE TODAY
-                        </div>
-                        <button class="circular-plus" onclick="openModal()">+</button>
+                <div class="daily-rituals-container">
+                    <div class="page-header">
+                        <h2>Daily Rituals</h2>
+                        <button class="circular-plus" onclick="openModal()">+ Add</button>
+                    </div>
+
+                    <div id="habit-progress-mobile" class="progress-container">
+                        0/0 DONE TODAY
                     </div>
                 </div>
                 <div id="habit-list" class="content-stack"></div>

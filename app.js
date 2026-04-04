@@ -209,12 +209,7 @@ function navigate(view, params = {}) {
     
     currentView = view;
 
-    const headerAddBtn = document.getElementById('header-add-btn');
-    if (headerAddBtn) {
-        const allowedViews = ['habits', 'reminders', 'notes'];
-        const isAllowed = allowedViews.includes(view);
-        headerAddBtn.classList.toggle('hidden', !isAllowed);
-    }
+    // Navigate handleAddBtn removed for global cleanup
 }
 
 async function fetchInitialData() {
@@ -367,13 +362,7 @@ function switchView(view) {
         else globalActions.classList.add('hidden');
     }
     
-    const headerAddBtn = document.getElementById('header-add-btn');
-    if (headerAddBtn) {
-        // HIDE on specific pages (Dashboard & Academy Tracker)
-        const hideOn = ['dashboard', 'attendance'];
-        const shouldHide = hideOn.includes(view);
-        headerAddBtn.style.display = shouldHide ? "none" : "flex";
-    }
+    // header-add-btn removed from global header
 
     // 5b. Expiry Alert Visibility (v61.0)
     const alertContainer = document.getElementById('priority-alert-container');
@@ -393,27 +382,6 @@ function switchView(view) {
     if (mobileFAB) mobileFAB.classList.add('hidden');
 }
 
-/** 
- * Context-aware Add function for Mobile Header (v45.0)
- */
-function handleAdd() {
-    const view = String(currentView).trim().toLowerCase();
-    console.log("handleAdd Contextual Router - View:", view);
-    
-    if (view === 'habits') {
-        openModal();
-    } else if (view === 'notes') {
-        addNote();
-    } else if (view === 'reminders') {
-        openReminderModal();
-    } else if (view === 'stocks') {
-        openStockModal();
-    } else if (view === 'expiry') {
-        openExpiryModal();
-    } else {
-        console.warn("No 'Add' action defined for view:", view);
-    }
-}
 
 function handleEdit() {
     if (currentView === 'attendance') {
@@ -1337,11 +1305,10 @@ function updateStats() {
     const today = new Date().toLocaleDateString("en-CA");
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     
-    const countEl = document.getElementById('completed-count');
-    const totalEl = document.getElementById('total-count');
-    
-    if (countEl) countEl.innerText = done;
-    if (totalEl) totalEl.innerText = total;
+    const progressEl = document.getElementById('habit-progress-mobile');
+    if (progressEl) {
+        progressEl.innerText = `${done}/${total} DONE TODAY`;
+    }
 }
 
 // --- Modal & Calendar ---
