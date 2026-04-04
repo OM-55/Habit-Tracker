@@ -1092,24 +1092,37 @@ async function saveExpiryItem() {
     if (!name || isNaN(days)) return;
 
     try {
-        const newItem = {
+        const dbItem = {
             id: generateId(),
             user_id: USER_ID,
             name: name,
             days_left: days,
             created_at: new Date().toISOString()
         };
-
-        const { error } = await supabaseClient.from('expiry_items').insert([newItem]);
-        if (error) throw error;
-
-        console.log("SAVE CLICKED: Expiry");
         
-        // FORCE CLOSE & RELOAD (Critical Fix)
-        document.querySelectorAll(".modal").forEach(m => m.remove());
-        location.reload();
+        const localItem = {
+            id: dbItem.id,
+            name: dbItem.name,
+            initialDays: dbItem.days_left,
+            createdAt: dbItem.created_at
+        };
+
+        expiryItems.push(localItem);
+        closeExpiryModal();
+        saveToLocalStorage(); 
+        renderPage();
+
+        try {
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from('expiry_items').insert([dbItem]);
+                if (error) throw error;
+            }
+        } catch (syncErr) {
+            console.warn("Backend sync failed for expiry", syncErr);
+        }
     } catch (err) {
         console.error("Save expiry item failed:", err);
+        closeExpiryModal();
     }
 }
 
@@ -1525,8 +1538,6 @@ async function saveHabit() {
 
         const dbHabitId = h.id;
         
-        await supabaseClient.from('habit_steps').delete().eq('habit_id', dbHabitId);
-        
         const stepsToInsert = currentModalSteps.map(st => ({
             id: generateId(), // Refresh ID to avoid stale reference
             habit_id: dbHabitId,
@@ -1534,24 +1545,34 @@ async function saveHabit() {
             completed: st.completed || false
         }));
 
-        if (stepsToInsert.length > 0) {
-            await supabaseClient.from('habit_steps').insert(stepsToInsert);
-        }
-        
         // Rebuild local list safely
         habitSteps = habitSteps.filter(s => s.habit_id !== dbHabitId);
         stepsToInsert.forEach(st => {
             habitSteps.push(st);
         });
 
-        await saveAndSync('rituals', habits);
-        console.log("SAVE CLICKED: Rituals");
+        // 1. Instantly Close and Update UI
+        closeModal();
+        renderPage();
         
-        // FORCE CLOSE & RELOAD (Critical Fix)
-        document.querySelectorAll(".modal").forEach(m => m.remove());
-        location.reload();
+        // 2. Safely sync to backend
+        try {
+            await saveAndSync('rituals', habits);
+            saveToLocalStorage(); // Full local backup ensure
+            
+            if (supabaseClient) {
+                await supabaseClient.from('habit_steps').delete().eq('habit_id', dbHabitId);
+                if (stepsToInsert.length > 0) {
+                    await supabaseClient.from('habit_steps').insert(stepsToInsert);
+                }
+            }
+            console.log("SAVE CLICKED: Rituals synced safely");
+        } catch (syncErr) {
+            console.warn("Backend sync failed, saved locally", syncErr);
+        }
     } catch (err) {
         console.error("Save ritual failed:", err);
+        closeModal();
     }
 }
 function openCalendarFor(id) { 

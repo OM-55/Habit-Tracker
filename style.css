@@ -595,7 +595,7 @@ html, body {
     font-size: 2.6rem;
     font-weight: 800;
     text-align: center;
-    margin: 3rem 0 1.5rem 0;
+    margin: 0 0 1.5rem 0;
     color: var(--text-white);
     letter-spacing: -0.04em;
     line-height: 1.1;
@@ -3335,7 +3335,7 @@ input:checked + .toggle-slider:before {
 .page-header-inline {
     position: relative;
     text-align: center;
-    margin: 3rem 0 1.5rem 0;
+    margin: 0 0 1.5rem 0;
     display: flex;
     justify-content: center;
     align-items: center;
