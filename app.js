@@ -49,8 +49,7 @@ let editMode = false;
 let expiryItems = []; // v50.0 NEW
 let habitSteps = []; // Compound habits
 let currentModalSteps = [];
-let taskLists = []; // Tasks v70.0
-let taskItems = [];
+let notes = []; // Notes system v5.0 (Single source of truth)
 let customSubjects = JSON.parse(localStorage.getItem('stellar_custom_subjects') || '{}');
 let editingSubjectOriginalName = null;
 let meditationExpanded = false;
@@ -140,11 +139,10 @@ function loadFromLocalStorage() {
             if (parsed.manualStats) manualStats = parsed.manualStats;
             if (parsed.expiryItems) expiryItems = parsed.expiryItems;
             if (parsed.habitSteps) habitSteps = parsed.habitSteps;
-            if (parsed.taskLists) taskLists = parsed.taskLists;
-            if (parsed.taskItems) taskItems = parsed.taskItems;
+            notes = loadNotes();
             
             console.log("Restored all modules from local backup.");
-            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard(); renderTasksBoard();
+            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard(); renderNotesBoard();
         } catch (e) { console.error("Local load failed", e); }
     }
 }
@@ -170,7 +168,7 @@ function navigate(view, params = {}) {
         'attendance': 'Academy Tracker',
         'reminders': 'Reminders',
         'stocks': 'Stock Tracker',
-        'tasks': 'Tasks & Notes',
+        'notes': 'Notes',
         'expiry': 'Expiry Tracker'
     };
     document.getElementById('page-title').innerText = titles[view] || 'Stellar';
@@ -196,19 +194,13 @@ function navigate(view, params = {}) {
     if (view === 'habits') renderHabits();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
-    if (view === 'tasks') {
-        renderTasksBoard();
-        if (params.id) {
-            setTimeout(() => openTaskListEditor(params.id), 100);
-        }
-    }
+    if (view === 'notes') renderNotesBoard();
     
     currentView = view;
 
-    // Toggle Mobile Header Action Button (Header ADD)
     const headerAddBtn = document.getElementById('header-add-btn');
     if (headerAddBtn) {
-        const allowedViews = ['habits', 'reminders', 'stocks', 'expiry', 'tasks'];
+        const allowedViews = ['habits', 'reminders', 'notes'];
         const isAllowed = allowedViews.includes(view);
         headerAddBtn.classList.toggle('hidden', !isAllowed);
     }
@@ -333,7 +325,7 @@ function switchView(view) {
         'attendance': 'Academy Tracker',
         'reminders': 'Reminders',
         'stocks': 'Stock Tracker',
-        'tasks': 'Tasks & Notes'
+        'notes': 'Notes'
     };
     const titleEl = document.getElementById('page-title');
     if (titleEl) titleEl.innerText = titles[view] || 'Stellar';
@@ -355,10 +347,9 @@ function switchView(view) {
         else globalActions.classList.add('hidden');
     }
     
-    // 5a. Conditional Header Action Button (v70.0)
     const headerAddBtn = document.getElementById('header-add-btn');
     if (headerAddBtn) {
-        const allowedViews = ['habits', 'reminders', 'stocks', 'expiry', 'tasks'];
+        const allowedViews = ['habits', 'reminders', 'notes'];
         const isAllowed = allowedViews.includes(view);
         headerAddBtn.classList.toggle('hidden', !isAllowed);
     }
@@ -374,7 +365,7 @@ function switchView(view) {
     if (view === 'habits') renderHabits();
     if (view === 'attendance') { renderSubjects(); renderAttendanceSummary(); }
     if (view === 'stocks') renderStocks();
-    if (view === 'tasks') renderTasksBoard();
+    if (view === 'notes') renderNotesBoard();
 
     // 7. Toggle Mobile Header Action Button (Legacy FAB cleanup)
     const mobileFAB = document.getElementById('mobile-add-btn');
@@ -387,18 +378,14 @@ function switchView(view) {
 function handleAdd() {
     const view = String(currentView).trim().toLowerCase();
     console.log("handleAdd START. View:", view);
-    if (view === 'habits' || view === 'dashboard' || view === 'stellar') {
+    if (view === 'habits') {
         openModal();
+    } else if (view === 'notes') {
+        addNote();
     } else if (view === 'reminders') {
         openReminderModal();
-    } else if (view === 'stocks') {
-        openStockModal();
-    } else if (view === 'expiry') {
-        openExpiryModal();
-    } else if (view === 'tasks') {
-        createNewTaskList();
     } else {
-        openModal();
+        console.warn("handleAdd called on an unsupported view:", view);
     }
 }
 
@@ -412,10 +399,6 @@ function handleEdit() {
     } else {
         console.log("Edit mode only available in Academy Tracker.");
     }
-}
-
-function handleMenu() {
-    console.log("More options coming soon!");
 }
 
 function toggleMobileClassTracker() {
@@ -535,7 +518,7 @@ function renderDashboard() {
 
     renderReminders();
     renderStocksDashboard();
-    renderTasksBoard();
+    renderNotesBoard();
 }
 
 function renderStocksDashboard() {
@@ -1870,206 +1853,90 @@ async function manualEditStreak(id) {
     }
 }
 
-// --- Tasks & Notes (v70.0) ---
-let currentTaskInputType = 'task'; // 'task' or 'note'
-let activeTaskListId = null;
+// --- Notes System (v5.0) ---
+function loadNotes() {
+    const saved = localStorage.getItem("notes");
+    try {
+        return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+        console.error("Failed to load notes", e);
+        return [];
+    }
+}
 
-function renderTasksBoard() {
-    const grid = document.getElementById('tasks-board-grid');
+function saveNotes(notes) {
+    localStorage.setItem("notes", JSON.stringify(notes));
+}
+
+function addNote() {
+    const newNote = {
+        id: generateId(),
+        title: "",
+        content: "",
+        created_at: new Date().toISOString()
+    };
+    notes.unshift(newNote);
+    saveNotes(notes);
+    renderNotesBoard();
+}
+
+function deleteNote(id) {
+    if (!confirm("Delete this note?")) return;
+    notes = notes.filter(n => n.id !== id);
+    saveNotes(notes);
+    renderNotesBoard();
+}
+
+function updateNote(id, field, value) {
+    const note = notes.find(n => n.id === id);
+    if (note) {
+        note[field] = value;
+        saveNotes(notes);
+    }
+}
+
+function renderNotesBoard() {
+    const grid = document.getElementById('notes-board-grid');
+    const dashList = document.getElementById('dashboard-notes-list');
     const isDashboard = currentView === 'dashboard';
-    const targetGrid = isDashboard ? document.getElementById('dashboard-tasks-list') : grid;
-    
-    if (!targetGrid) return;
-    targetGrid.innerHTML = '';
-    
-    const sortedLists = [...taskLists].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-    const finalLists = isDashboard ? sortedLists.slice(0, 4) : sortedLists;
-    
-    if (finalLists.length === 0) {
-        targetGrid.innerHTML = '<div class="empty-state-modern" style="grid-column:1/-1;">No task lists yet.</div>';
+    const target = isDashboard ? dashList : grid;
+
+    if (!target) return;
+    target.innerHTML = '';
+
+    if (notes.length === 0) {
+        target.innerHTML = '<div class="empty-state-modern" style="grid-column:1/-1;">No notes yet. Click + to add one.</div>';
         return;
     }
-    
-    finalLists.forEach(list => {
+
+    const notesToRender = isDashboard ? notes.slice(0, 4) : notes;
+
+    notesToRender.forEach(note => {
         if (isDashboard) {
             const el = document.createElement('div');
-            el.className = 'ritual-card-mini task-preview-item';
+            el.className = 'ritual-card-mini note-preview-item';
             el.innerHTML = `
                 <div class="ritual-info">
-                    <span class="ritual-name" style="font-weight:700;">${list.title}</span>
+                    <span class="ritual-name" style="font-weight:700;">${note.title || 'Untitled Note'}</span>
                 </div>
                 <div style="font-size:1.1rem; color:var(--text-dim); opacity:0.4;">→</div>
             `;
-            el.onclick = () => navigate('tasks', { id: list.id });
-            targetGrid.appendChild(el);
+            el.onclick = () => switchView('notes');
+            dashList.appendChild(el);
             return;
         }
 
-        const items = taskItems.filter(i => i.list_id === list.id).sort((a,b) => {
-            if (a.is_checked === b.is_checked) return new Date(a.created_at) - new Date(b.created_at);
-            return a.is_checked ? 1 : -1;
-        });
-        
         const card = document.createElement('div');
-        card.className = 'habit-card-v2 glass-card task-card-v2';
-        card.style.cursor = 'pointer';
-        card.onclick = () => openTaskListEditor(list.id);
-        
+        card.className = 'note-card';
         card.innerHTML = `
-            <div class="habit-main-row">
-                <div class="habit-info-group">
-                    <span class="habit-name" style="font-size:1.2rem;">${list.title}</span>
-                    <span class="habit-goal">${items.length} items</span>
-                </div>
-                <div style="font-size:1.1rem; color:var(--text-dim); opacity:0.4;">→</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <input class="note-title" placeholder="Note Title" value="${note.title}" oninput="updateNote('${note.id}', 'title', this.value)" />
+                <button class="delete-btn-modern" onclick="deleteNote('${note.id}')">✕</button>
             </div>
-            <div class="task-card-content" style="margin-top:10px; display:flex; flex-direction:column; gap:5px;">
-                ${items.slice(0, 3).map(it => `
-                    <div style="display:flex; align-items:center; gap:8px; opacity:${it.is_checked ? '0.5' : '1'};">
-                        <div style="width:6px; height:6px; border-radius:50%; background:var(--primary);"></div>
-                        <span style="font-size:0.9rem; ${it.is_checked ? 'text-decoration:line-through' : ''}; color:white;">${it.content}</span>
-                    </div>
-                `).join('')}
-                ${items.length === 0 ? '<span style="color:var(--text-dim); font-size:0.85rem; font-style:italic;">Empty list</span>' : ''}
-            </div>
+            <div class="note-content" contenteditable="true" oninput="updateNote('${note.id}', 'content', this.innerText)">${note.content}</div>
         `;
         grid.appendChild(card);
     });
-
 }
-
-function createNewTaskList() {
-    const modal = document.getElementById('create-task-list-modal');
-    document.getElementById('new-list-title').value = '';
-    modal.classList.remove('hidden');
-    modal.classList.add('visible');
-}
-
-function closeCreateTaskModal() {
-    document.getElementById('create-task-list-modal').classList.replace('visible','hidden');
-}
-
-async function confirmCreateTaskList() {
-    const title = document.getElementById('new-list-title').value.trim();
-    if (!title) return;
-    const newList = { id: generateId(), title, created_at: new Date().toISOString(), user_id: USER_ID };
-    taskLists.push(newList);
-    supabaseClient.from('task_lists').insert(newList).then();
-    renderTasksBoard();
-    closeCreateTaskModal();
-    openTaskListEditor(newList.id);
-}
-
-async function renameActiveTaskList(newTitle) {
-    if (!newTitle || !newTitle.trim()) return;
-    const list = taskLists.find(l => l.id === activeTaskListId);
-    if (!list || list.title === newTitle.trim()) return;
-    list.title = newTitle.trim();
-    await supabaseClient.from('task_lists').update({ title: list.title }).eq('id', activeTaskListId);
-}
-
-function openTaskListEditor(id) {
-    const list = taskLists.find(l => l.id === id);
-    if (!list) return;
-    activeTaskListId = id;
-    
-    const titleInput = document.getElementById('task-editor-title-input');
-    if (titleInput) titleInput.value = list.title;
-    currentTaskInputType = 'task';
-    updateTaskTypeToggleUI();
-    renderTaskItemsEditor();
-    
-    const m = document.getElementById('task-editor-modal');
-    m.classList.remove('hidden');
-    m.classList.add('visible');
-    setTimeout(() => { document.getElementById('new-task-input').focus(); }, 100);
-}
-
-function closeTaskEditor() {
-    const m = document.getElementById('task-editor-modal');
-    m.classList.remove('visible');
-    m.classList.add('hidden');
-    activeTaskListId = null;
-    renderTasksBoard();
-}
-
-function renderTaskItemsEditor() {
-    const container = document.getElementById('task-editor-items');
-    if (!container) return;
-    container.innerHTML = '';
-    
-    const items = taskItems.filter(i => i.list_id === activeTaskListId).sort((a,b) => {
-        if (a.is_checked === b.is_checked) return new Date(a.created_at) - new Date(b.created_at);
-        return a.is_checked ? 1 : -1;
-    });
-    
-    items.forEach(it => {
-        const row = document.createElement('div');
-        row.className = 'task-input-row';
-        row.style.transition = 'all 0.3s ease';
-        row.style.opacity = it.is_checked ? '0.6' : '1';
-        
-        row.innerHTML = `
-            <div class="task-checkbox-mock ${it.is_checked ? 'checked' : ''}" style="cursor:pointer; flex-shrink:0; transition: all 0.2s;" onclick="toggleTaskItemCheck('${it.id}')">
-                ${it.is_checked ? '✓' : ''}
-            </div>
-            <input type="text" class="task-item-edit-input" value="${it.content.replace(/"/g, '&quot;')}" 
-                style="flex:1; background:transparent; border:none; color:${it.is_checked ? 'var(--text-dim)' : 'white'}; text-decoration:${it.is_checked ? 'line-through' : 'none'}; font-size:1rem; padding:4px 8px; font-family:inherit; outline:none; transition: all 0.3s;"
-                onblur="editTaskItemContent('${it.id}', this.value)"
-                onkeydown="if(event.key === 'Enter') { this.blur(); }">
-            <button class="delete-btn-modern" style="padding:4px; flex-shrink:0;" onclick="deleteTaskItem('${it.id}')">✕</button>
-        `;
-        container.appendChild(row);
-    });
-}
-
-// Task types removed
-
-
-async function addTaskItem() {
-    const input = document.getElementById('new-task-input');
-    const content = input.value.trim();
-    if (!content) {
-        alert("Task cannot be empty!");
-        return;
-    }
-    
-    const newItem = {
-        id: generateId(),
-        list_id: activeTaskListId,
-        content: content,
-        is_checked: false,
-        type: 'task',
-        created_at: new Date().toISOString()
-    };
-    taskItems.push(newItem);
-    input.value = '';
-    renderTaskItemsEditor();
-    
-    console.log("Task added locally, syncing...");
-    await saveAndSync('task_items', taskItems);
-}
-
-async function toggleTaskItemCheck(id) {
-    const it = taskItems.find(i => i.id === id);
-    if (!it) return;
-    it.is_checked = !it.is_checked;
-    renderTaskItemsEditor();
-    await supabaseClient.from('task_items').update({ is_checked: it.is_checked }).eq('id', id);
-}
-
-async function editTaskItemContent(id, newContent) {
-    if (!newContent || !newContent.trim()) return;
-    const it = taskItems.find(i => i.id === id);
-    if (!it || it.content === newContent.trim()) return;
-    
-    it.content = newContent.trim();
-    renderTaskItemsEditor(); // visually confirm change
-    await supabaseClient.from('task_items').update({ content: it.content }).eq('id', id);
-}
-
-async function deleteTaskItem(id) {
-    taskItems = taskItems.filter(i => i.id !== id);
-    renderTaskItemsEditor();
-    await supabaseClient.from('task_items').delete().eq('id', id);
-}
+// Initialize notes on load
+notes = loadNotes();

@@ -18,7 +18,6 @@
     <header id="top-navbar">
         <button id="header-add-btn" class="header-icon-btn" onclick="handleAdd()"><span>+</span></button>
         <h1 id="page-title">Dashboard</h1>
-        <button id="menu-toggle" onclick="toggleDrawer()">☰</button>
     </header>
 
     <!-- Main App Container -->
@@ -39,8 +38,8 @@
                 <button id="nav-attendance" class="nav-item" onclick="navigate('attendance')">
                     <span class="icon">🎓</span> Attendance
                 </button>
-                <button id="nav-tasks" class="nav-item" onclick="navigate('tasks')">
-                    <span class="icon">📝</span> Tasks
+                <button id="nav-notes" class="nav-item" onclick="navigate('notes')">
+                    <span class="icon">📝</span> Notes
                 </button>
                 <button id="nav-reminders" class="nav-item" onclick="navigate('reminders')">
                     <span class="icon">🔔</span> Reminders
@@ -85,11 +84,11 @@
                         <div class="card-footer"><button class="text-link" onclick="navigate('expiry')">Manage Items →</button></div>
                     </div>
 
-                    <!-- 4. Tasks -->
-                    <div class="dashboard-card glass-card" id="dash-tasks">
-                        <div class="card-header"><h3>Tasks & Notes</h3></div>
-                        <div id="dashboard-tasks-list" class="summary-list preview-list"></div>
-                        <div class="card-footer"><button class="text-link" onclick="navigate('tasks')">View All →</button></div>
+                    <!-- 4. Notes -->
+                    <div class="dashboard-card glass-card" id="dash-notes">
+                        <div class="card-header"><h3>Notes</h3></div>
+                        <div id="dashboard-notes-list" class="summary-list preview-list"></div>
+                        <div class="card-footer"><button class="text-link" onclick="navigate('notes')">View All →</button></div>
                     </div>
 
                     <!-- 5. Academy -->
@@ -197,16 +196,13 @@
                 <div id="expiry-list" class="content-stack"></div>
             </section>
 
-            <!-- Tasks View -->
-            <section id="tasks-view" class="view hidden">
-                <div class="header-top">
-                    <div>
-                        <h2 style="margin-bottom:0.2rem;">Tasks & Notes</h2>
-                        <p style="color:var(--text-dim);font-size:0.9rem;">Hybrid Lists</p>
-                    </div>
-                    <button class="circular-plus" onclick="createNewTaskList()">+</button>
+            <!-- Notes View -->
+            <section id="notes-view" class="view hidden">
+                <div class="page-header">
+                    <h1>Notes</h1>
+                    <button class="mobile-add-btn" onclick="addNote()">+</button>
                 </div>
-                <div id="tasks-board-grid" class="dashboard-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+                <div id="notes-board-grid" class="dashboard-grid"></div>
             </section>
         </main>
     </div>
@@ -364,9 +360,9 @@
             <span>🎓</span>
             <label>Academy</label>
         </button>
-        <button class="bottom-nav-item" onclick="navigate('tasks')">
+        <button class="bottom-nav-item" onclick="navigate('notes')">
             <span>📝</span>
-            <label>Tasks</label>
+            <label>Notes</label>
         </button>
         <button class="bottom-nav-item" onclick="navigate('reminders')">
             <span>🔔</span>

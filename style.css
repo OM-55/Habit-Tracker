@@ -2848,10 +2848,135 @@ input:checked + .toggle-slider:before {
     pointer-events: none;
 }
 
+.page-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 2rem !important;
+}
+
+.page-header h1 {
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+}
+
+.mobile-add-btn {
+    width: 48px !important;
+    height: 48px !important;
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 1.8rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    box-shadow: 0 4px 15px var(--primary-glow) !important;
+}
+
+.mobile-add-btn:hover {
+    transform: scale(1.05) !important;
+}
+
 #notes-board-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
     gap: 1.5rem !important;
     padding-bottom: 50px !important;
 }
+
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 1.8rem !important;
+    }
+    
+    .mobile-add-btn {
+        position: absolute !important;
+        top: 24px !important; /* Adjusted for mobile header alignment */
+        right: 16px !important;
+        bottom: unset !important;
+    }
+}
+
+/* --- Mobile UI/UX Cleanup Full Implementation (v72.0) --- */
+@media (max-width: 768px) {
+    /* 1. Remove Bottom Navigation Bar */
+    #bottom-nav {
+        display: none !important;
+    }
+
+    /* 2. Remove Floating Action Button from bottom-right */
+    .circular-plus {
+        display: none !important;
+    }
+
+    /* 3. Handle Header Add Button Repositioning */
+    #top-navbar {
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        padding: 0 16px !important;
+        gap: 12px !important;
+    }
+
+    #header-add-btn {
+        display: flex !important;
+        order: -1 !important; /* Move to the left of the header */
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        width: 40px !important;
+        height: 40px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        transition: background 0.2s !important;
+        margin-right: 8px !important;
+    }
+
+    #header-add-btn:active {
+        background: rgba(255, 255, 255, 0.2) !important;
+    }
+
+    #header-add-btn span {
+        font-size: 24px !important;
+        color: white !important;
+        font-weight: 300 !important;
+    }
+
+    #page-title {
+        font-size: 1.25rem !important;
+        font-weight: 600 !important;
+        margin: 0 !important;
+        flex-grow: 1 !important;
+    }
+
+    /* Force Hide the menu toggle as it is unused and space-consuming */
+    #menu-toggle {
+        display: none !important;
+    }
+
+    /* 4. Adjust layout padding for mobile since bottom-nav is gone */
+    #app-main {
+        padding-bottom: 24px !important;
+        height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 5. Mobile Dashboard Grid Alignment */
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        padding: 1rem !important;
+    }
+    
+    /* 6. Section Specific FAB overrides just in case */
+    .fab-container, .btn-float {
+        display: none !important;
+    }
+}
+
 
