@@ -369,7 +369,7 @@ function switchView(view) {
     
     const headerAddBtn = document.getElementById('header-add-btn');
     if (headerAddBtn) {
-        // HIDE on specific pages per user request (Dashboard & Academy Tracker)
+        // HIDE on specific pages (Dashboard & Academy Tracker)
         const hideOn = ['dashboard', 'attendance'];
         const shouldHide = hideOn.includes(view);
         headerAddBtn.style.display = shouldHide ? "none" : "flex";
@@ -1134,11 +1134,11 @@ async function saveExpiryItem() {
         const { error } = await supabaseClient.from('expiry_items').insert([newItem]);
         if (error) throw error;
 
-        console.log("SAVE TRIGGERED: Expiry");
-        closeAllModals();
-        await fetchInitialData();
-        renderPage('expiry');
-        renderPage('dashboard');
+        console.log("SAVE CLICKED: Expiry");
+        
+        // FORCE CLOSE & RELOAD (Critical Fix)
+        document.querySelectorAll(".modal").forEach(m => m.remove());
+        location.reload();
     } catch (err) {
         console.error("Save expiry item failed:", err);
     }
@@ -1337,20 +1337,11 @@ function updateStats() {
     const today = new Date().toLocaleDateString("en-CA");
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     
-    // PC & Mobile Header Sync (0/n done today)
     const countEl = document.getElementById('completed-count');
     const totalEl = document.getElementById('total-count');
-    const headerPill = document.getElementById('header-ritual-stats');
     
     if (countEl) countEl.innerText = done;
     if (totalEl) totalEl.innerText = total;
-    if (headerPill) {
-        headerPill.innerText = `${done}/${total} Done`;
-        // Only show pill on Rituals, Dashboard or Academy for mobile clarity
-        const showPillOn = ['habits', 'dashboard'];
-        const isVisible = showPillOn.includes(currentView);
-        headerPill.style.display = isVisible ? "flex" : "none";
-    }
 }
 
 // --- Modal & Calendar ---
@@ -1586,10 +1577,11 @@ async function saveHabit() {
         });
 
         await saveAndSync('rituals', habits);
-        console.log("SAVE TRIGGERED: Rituals");
-        closeAllModals();
-        renderPage('habits');
-        renderPage('dashboard');
+        console.log("SAVE CLICKED: Rituals");
+        
+        // FORCE CLOSE & RELOAD (Critical Fix)
+        document.querySelectorAll(".modal").forEach(m => m.remove());
+        location.reload();
     } catch (err) {
         console.error("Save ritual failed:", err);
     }
