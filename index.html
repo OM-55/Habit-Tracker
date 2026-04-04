@@ -16,7 +16,7 @@
 <body>
     <header id="top-navbar">
         <button id="menu-toggle" class="header-icon-btn" onclick="toggleDrawer()">☰</button>
-        <h1 id="page-title">Dashboard</h1>
+        <button id="header-add-btn" class="add-btn hidden" onclick="handleAdd()">+</button>
     </header>
 
     <!-- Main App Container -->
@@ -61,6 +61,7 @@
 
             <!-- Dashboard View -->
             <section id="dashboard-view" class="view">
+                <h1 class="page-title-center">Dashboard</h1>
                 <div class="dashboard-grid">
                     <!-- 1. Daily Rituals -->
                     <div class="dashboard-card glass-card" id="dash-rituals">
@@ -110,21 +111,18 @@
             </section>
 
             <section id="habits-view" class="view hidden">
-                <div class="daily-rituals-container">
-                    <div class="page-header">
-                        <h2>Daily Rituals</h2>
-                        <button class="circular-plus" onclick="openModal()">+ Add</button>
-                    </div>
-
-                    <div id="habit-progress-mobile" class="progress-container">
-                        0/0 DONE TODAY
-                    </div>
+                <h1 class="page-title-center">Daily Rituals</h1>
+                
+                <div id="habit-progress-mobile" class="progress-container">
+                    0/0 DONE TODAY
                 </div>
+                
                 <div id="habit-list" class="content-stack"></div>
             </section>
 
             <!-- Attendance View -->
             <section id="attendance-view" class="view hidden">
+                <h1 class="page-title-center">Academy Tracker</h1>
                 <button id="toggle-class-tracker" class="modern-btn mobile-only" onclick="toggleMobileClassTracker()">
                     <span>📅</span> Edit Class Tracker
                 </button>
@@ -161,10 +159,7 @@
 
             <!-- Reminders View -->
             <section id="reminders-view" class="view hidden">
-                <div class="header-top">
-                    <h2>Reminders</h2>
-                    <button class="circular-plus" onclick="openReminderModal()">+</button>
-                </div>
+                <h1 class="page-title-center">Reminders</h1>
                 <div class="reminders-container" style="position: relative; min-height: 400px;">
                     <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
                     <div id="completed-reminders-section" class="reminders-section hidden">
@@ -176,31 +171,19 @@
 
             <!-- Stocks View -->
             <section id="stocks-view" class="view hidden">
-                <div class="header-top">
-                    <div>
-                        <h2 style="margin-bottom:0.2rem;">Stock Tracker</h2>
-                        <p style="color:var(--text-dim);font-size:0.9rem;">Live Portfolio Performance</p>
-                    </div>
-                    <button class="circular-plus" onclick="openStockModal()">+</button>
-                </div>
+                <h1 class="page-title-center">Stock Tracker</h1>
                 <div id="stocks-list" class="stocks-grid"></div>
             </section>
 
             <!-- Expiry Tracker View -->
             <section id="expiry-view" class="view hidden">
-                <div class="header-top">
-                    <h2>Expiry Tracker</h2>
-                    <button class="circular-plus" onclick="openExpiryModal()">+</button>
-                </div>
+                <h1 class="page-title-center">Expiry Tracker</h1>
                 <div id="expiry-list" class="content-stack"></div>
             </section>
 
             <!-- Notes View -->
             <section id="notes-view" class="view hidden">
-                <div class="page-header">
-                    <h1>Notes</h1>
-                    <button class="mobile-add-btn" onclick="addNote()">+</button>
-                </div>
+                <h1 class="page-title-center">Notes</h1>
                 <div id="notes-board-grid" class="dashboard-grid"></div>
             </section>
         </main>

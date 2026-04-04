@@ -173,16 +173,8 @@ function navigate(view, params = {}) {
     document.getElementById(`${view}-view`).classList.remove('hidden');
 
     // Update Title
-    const titles = {
-        'dashboard': 'Dashboard',
-        'habits': 'Daily Rituals',
-        'attendance': 'Academy Tracker',
-        'reminders': 'Reminders',
-        'stocks': 'Stock Tracker',
-        'notes': 'Notes',
-        'expiry': 'Expiry Tracker'
-    };
-    document.getElementById('page-title').innerText = titles[view] || 'Stellar';
+    // Navigation titles are handled by page-title-center in the view structure
+
 
     // Update Nav Active State
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -333,17 +325,7 @@ function switchView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(`${view}-view`).classList.remove('hidden');
 
-    // 3. Update Mobile Header Title
-    const titles = {
-        'dashboard': 'Dashboard',
-        'habits': 'Daily Rituals',
-        'attendance': 'Academy Tracker',
-        'reminders': 'Reminders',
-        'stocks': 'Stock Tracker',
-        'notes': 'Notes'
-    };
-    const titleEl = document.getElementById('page-title');
-    if (titleEl) titleEl.innerText = titles[view] || 'Stellar';
+    // Mobile Title handling removed in favor of page-title-center
 
     // 4. Update Nav Active State
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -377,11 +359,35 @@ function switchView(view) {
     if (view === 'stocks') renderStocks();
     if (view === 'notes') renderNotesBoard();
 
-    // 7. Toggle Mobile Header Action Button (Legacy FAB cleanup)
-    const mobileFAB = document.getElementById('mobile-add-btn');
-    if (mobileFAB) mobileFAB.classList.add('hidden');
+    // 7. Toggle Mobile Header Action Button
+    const headerAddBtn = document.getElementById('header-add-btn');
+    if (headerAddBtn) {
+        const pagesWithAdd = ["habits", "notes", "reminders", "stocks", "expiry"];
+        const shouldShow = pagesWithAdd.includes(view);
+        headerAddBtn.classList.toggle('hidden', !shouldShow);
+    }
 }
 
+
+/**
+ * Contextual Add Function Router
+ */
+function handleAdd() {
+    const view = String(currentView).trim().toLowerCase();
+    
+    if (view === 'habits') openAddRitual();
+    else if (view === 'notes') openAddNote();
+    else if (view === 'reminders') openAddReminder();
+    else if (view === 'stocks') openAddStock();
+    else if (view === 'expiry') openAddExpiry();
+    else console.warn("No 'Add' action defined for view:", view);
+}
+
+function openAddRitual() { openModal(); }
+function openAddNote() { addNote(); }
+function openAddReminder() { openReminderModal(); }
+function openAddStock() { openStockModal(); }
+function openAddExpiry() { openExpiryModal(); }
 
 function handleEdit() {
     if (currentView === 'attendance') {
