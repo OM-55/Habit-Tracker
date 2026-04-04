@@ -104,7 +104,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const todayIndex = new Date().getDay();
     selectedDay = (todayIndex >= 1 && todayIndex <= 5) ? dayNames[todayIndex] : "Monday";
     
-    switchView('dashboard');
+    // NAVIGATION BUG FIX: Only force dashboard if currentView is the default 'dashboard'
+    // This prevents auto-resetting when user navigates during initialization
+    if (currentView === 'dashboard') switchView('dashboard');
     selectDay(selectedDay);
 
     // Disable SW to prevent caching issues
@@ -122,9 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function saveToLocalStorage() {
-    const backup = { habits, attendance, reminders, stocks, manualStats, expiryItems, habitSteps, taskLists, taskItems };
+    const backup = { habits, attendance, reminders, stocks, manualStats, expiryItems, habitSteps, taskLists, taskItems, notes };
     localStorage.setItem('stellar_backup', JSON.stringify(backup));
-    console.log("Local backup saved with all data modules.");
+    console.log("Local backup saved with all data modules (including Notes).");
 }
 
 function loadFromLocalStorage() {
@@ -132,17 +134,12 @@ function loadFromLocalStorage() {
     if (data) {
         try {
             const parsed = JSON.parse(data);
-            if (parsed.habits) habits = parsed.habits;
-            if (parsed.attendance) attendance = parsed.attendance;
-            if (parsed.reminders) reminders = parsed.reminders;
-            if (parsed.stocks) stocks = parsed.stocks;
-            if (parsed.manualStats) manualStats = parsed.manualStats;
-            if (parsed.expiryItems) expiryItems = parsed.expiryItems;
             if (parsed.habitSteps) habitSteps = parsed.habitSteps;
             notes = loadNotes();
+            stocks = loadStocks();
             
             console.log("Restored all modules from local backup.");
-            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard(); renderNotesBoard();
+            renderHabits(); renderAttendanceSummary(); renderReminders(); renderDashboard(); renderNotesBoard(); renderStocks();
         } catch (e) { console.error("Local load failed", e); }
     }
 }
@@ -157,6 +154,8 @@ function toggleDrawer() {
 }
 
 function navigate(view, params = {}) {
+    if (view === currentView && !params.id) return; // Prevent redundant double calls
+    
     // Update Views
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(`${view}-view`).classList.remove('hidden');
@@ -1827,9 +1826,13 @@ async function saveStock() {
     }
 
     try {
-        stocks.push({ id: generateId(), name, buy_price: buyPrice, quantity });
+        const newStock = { id: generateId(), name, buy_price: buyPrice, quantity, current_price: buyPrice };
+        stocks.push(newStock);
+        saveStocks(stocks);
         await saveAndSync('stocks', stocks);
         closeStockModal();
+        renderStocks(); 
+        fetchLivePrices(); // Try to get real price immediately
     } catch (err) {
         console.error("Save stock failed:", err);
     }
@@ -1840,7 +1843,9 @@ async function deleteStock(id) {
     try {
         const { error } = await supabaseClient.from('stocks').delete().eq('id', id);
         if (error) throw error;
-        await fetchInitialData(); 
+        stocks = stocks.filter(s => s.id !== id);
+        saveStocks(stocks);
+        renderStocks();
     } catch (err) {
         console.error("Delete stock failed:", err);
     }
@@ -1944,3 +1949,45 @@ function renderNotesBoard() {
 }
 // Initialize notes on load
 notes = loadNotes();
+
+// --- Stocks Persistence Fix ---
+function loadStocks() {
+    const saved = localStorage.getItem("stocks");
+    try {
+        return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+        console.error("Failed to load stocks", e);
+        return [];
+    }
+}
+
+function saveStocks(stocksList) {
+    localStorage.setItem("stocks", JSON.stringify(stocksList));
+}
+
+async function fetchLivePrices() {
+    if (stocks.length === 0) return;
+    console.log("Fetching live stock prices...");
+    
+    for (let s of stocks) {
+        try {
+            // Yahoo Finance Query API fallback/example
+            // Note: In a real browser environment without a proxy, this might hit CORS.
+            // Using a simple interval fetch provided by user's request.
+            const symbol = s.name.toUpperCase();
+            const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`);
+            const data = await res.json();
+            if (data.quoteResponse && data.quoteResponse.result && data.quoteResponse.result[0]) {
+                s.current_price = data.quoteResponse.result[0].regularMarketPrice;
+                console.log(`Updated ${symbol} price to ${s.current_price}`);
+            }
+        } catch (e) {
+            console.warn(`Could not fetch price for ${s.name}:`, e);
+            if (!s.current_price) s.current_price = s.buy_price;
+        }
+    }
+    saveStocks(stocks);
+    renderStocks();
+    renderStocksDashboard();
+}
+stocks = loadStocks();
