@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stellar Habits</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="theme-color" content="#070708">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png-flaticon.com/512/3248/3248443.png">
+</head>
+<body>
+    <header id="top-navbar">
+        <button id="menu-toggle" class="header-icon-btn" onclick="toggleDrawer()">☰</button>
+        <div id="sync-status" class="sync-status-indicator" title="Sync Status"></div>
+        <button id="header-add-btn" class="add-btn hidden" onclick="handleAdd()">+</button>
+    </header>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="app-layout">
+        <!-- Sidebar Drawer -->
+        <aside id="sidebar" class="drawer">
+            <div class="sidebar-header">
+                <h2>Stellar</h2>
+                <button class="close-drawer" onclick="toggleDrawer()">×</button>
+            </div>
+            <nav id="main-nav">
+                <button id="nav-dashboard" class="nav-item active" onclick="navigate('dashboard')">
+                    <span class="icon">📊</span> Dashboard
+                </button>
+                <button id="nav-habits" class="nav-item" onclick="navigate('habits')">
+                    <span class="icon">✨</span> Daily Rituals
+                </button>
+                <button id="nav-attendance" class="nav-item" onclick="navigate('attendance')">
+                    <span class="icon">🎓</span> Attendance
+                </button>
+                <button id="nav-notes" class="nav-item" onclick="navigate('notes')">
+                    <span class="icon">📝</span> Notes
+                </button>
+                <button id="nav-reminders" class="nav-item" onclick="navigate('reminders')">
+                    <span class="icon">🔔</span> Reminders
+                </button>
+                <button id="nav-stocks" class="nav-item" onclick="navigate('stocks')">
+                    <span class="icon">📈</span> Stocks
+                </button>
+                <button id="nav-expiry" class="nav-item" onclick="navigate('expiry')">
+                    <span class="icon">⏳</span> Expiry Tracker
+                </button>
+                <button id="nav-timetable" class="nav-item" onclick="navigate('timetable')">
+                    <span class="icon">📅</span> Timetable
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Overlay for Drawer -->
+        <div id="drawer-overlay" class="hidden" onclick="toggleDrawer()"></div>
+
+        <main id="app-main">
+            <!-- Priority Alerter (v10.0) -->
+            <div id="priority-alert-container"></div>
+
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view">
+                <h1 class="page-title-center">Dashboard</h1>
+                <div class="dashboard-grid">
+                    <!-- 1. Daily Rituals -->
+                    <div class="dashboard-card glass-card" id="dash-rituals">
+                        <div class="card-header"><h3>DAILY RITUALS</h3></div>
+                        <div id="habits-preview-list" class="ritual-cards-container"></div>
+                    </div>
+
+                    <!-- 2. Reminders -->
+                    <div class="dashboard-card glass-card" id="dashboard-reminder-card">
+                        <div class="card-header"><h3>REMINDERS</h3></div>
+                        <div id="dashboard-reminders" class="summary-list preview-list"></div>
+                    </div>
+
+                    <!-- 3. Expiry Tracker -->
+                    <div class="dashboard-card glass-card" id="dashboard-expiry-card">
+                        <div class="card-header"><h3>EXPIRY TRACKER</h3></div>
+                        <div id="dashboard-expiry-list" class="summary-list preview-list"></div>
+                    </div>
+
+                    <!-- 4. Notes -->
+                    <div class="dashboard-card glass-card" id="dash-notes">
+                        <div class="card-header"><h3>NOTES</h3></div>
+                        <div id="dashboard-notes-list" class="summary-list preview-list"></div>
+                    </div>
+
+                    <!-- 5. Academy -->
+                    <div class="dashboard-card glass-card" id="dash-academy">
+                        <div class="card-header">
+                            <h3>ACADEMY TRACKER</h3>
+                            <span id="overall-attendance-badge" class="badge">0% Overall</span>
+                        </div>
+                        <div id="attendance-preview-list" class="preview-list academy-list"></div>
+                    </div>
+
+                    <!-- 6. Stocks -->
+                    <div class="dashboard-card glass-card" id="dash-stocks">
+                        <div class="card-header"><h3>STOCKS</h3></div>
+                        <div id="stocks-summary" class="summary-list preview-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="habits-view" class="view hidden">
+                <div class="page-header-inline">
+                    <h1 class="page-title-center" style="margin: 0;">Daily Rituals</h1>
+                    <button class="desktop-inline-add-btn" onclick="openAddRitual()">+</button>
+                </div>
+                
+                <div id="habit-progress-mobile" class="progress-container">
+                    0/0 DONE TODAY
+                </div>
+                
+                <div id="habit-list" class="content-stack"></div>
+            </section>
+
+            <!-- Attendance View -->
+            <section id="attendance-view" class="view hidden">
+                <h1 class="page-title-center">Academy Tracker</h1>
+                <button id="toggle-class-tracker" class="modern-btn mobile-only" onclick="toggleMobileClassTracker()">
+                    <span>📅</span> Edit Class Tracker
+                </button>
+                <div class="content-stack">
+                    <div id="class-tracker-wrapper" class="mobile-collapsible">
+                        <div class="attendance-tracker-card glass-card class-tracker">
+                            <div class="card-header">
+                                <h3 style="margin:0;">Class Tracker</h3>
+                                <div class="toggle-control">
+                                    <span class="toggle-label">Edit</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="edit-mode-toggle" onchange="toggleEditMode()">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="day-selector">
+                                <button onclick="selectDay('Monday')" class="day-btn" id="day-Monday">M</button>
+                                <button onclick="selectDay('Tuesday')" class="day-btn" id="day-Tuesday">T</button>
+                                <button onclick="selectDay('Wednesday')" class="day-btn" id="day-Wednesday">W</button>
+                                <button onclick="selectDay('Thursday')" class="day-btn" id="day-Thursday">T</button>
+                                <button onclick="selectDay('Friday')" class="day-btn" id="day-Friday">F</button>
+                            </div>
+                            <div id="subjects-container" class="subject-list"></div>
+                            <button id="save-attendance-btn" class="primary modern-btn save-btn" onclick="saveAttendanceDay()">Save Day</button>
+                        </div>
+                    </div>
+                    <div class="summary-card glass-card">
+                        <div class="card-header"><h3>Academy Summary</h3></div>
+                        <div id="attendance-summary" class="summary-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reminders View -->
+            <section id="reminders-view" class="view hidden">
+                <div class="page-header-inline">
+                    <h1 class="page-title-center" style="margin: 0;">Reminders</h1>
+                    <button class="desktop-inline-add-btn" onclick="openAddReminder()">+</button>
+                </div>
+                <div class="reminders-container" style="position: relative; min-height: 400px;">
+                    <div id="full-reminders-list" class="reminders-full-list content-stack"></div>
+                    <div id="completed-reminders-section" class="reminders-section hidden">
+                        <h3 onclick="toggleCompletedReminders()" style="cursor: pointer;">✅ Completed <span id="completed-toggle-icon">▼</span></h3>
+                        <div id="completed-reminders-list" class="content-stack"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stocks View -->
+            <section id="stocks-view" class="view hidden">
+                <div class="page-header-inline">
+                    <h1 class="page-title-center" style="margin: 0;">Stock Tracker</h1>
+                    <button class="desktop-inline-add-btn" onclick="openAddStock()">+</button>
+                </div>
+                <div id="stocks-list" class="stocks-grid"></div>
+            </section>
+
+            <!-- Expiry Tracker View -->
+            <section id="expiry-view" class="view hidden">
+                <div class="page-header-inline">
+                    <h1 class="page-title-center" style="margin: 0;">Expiry Tracker</h1>
+                    <button class="desktop-inline-add-btn" onclick="openAddExpiry()">+</button>
+                </div>
+                <div id="expiry-list" class="content-stack"></div>
+            </section>
+
+            <!-- Notes View -->
+            <section id="notes-view" class="view hidden">
+                <div class="page-header-inline">
+                    <h1 class="page-title-center" style="margin: 0;">Notes</h1>
+                    <button class="desktop-inline-add-btn" onclick="openAddNote()">+</button>
+                </div>
+                <div id="notes-board-grid" class="dashboard-grid"></div>
+            </section>
+
+            <!-- Timetable View -->
+            <section id="timetable-view" class="view hidden">
+                <div class="timetable-desktop-layout">
+                    <div class="tt-left-panel glass-card desktop-only-flex">
+                        <div class="tt-calendar-header">
+                            <button class="secondary modern-btn" onclick="ttPrevMonth()">&lt;</button>
+                            <h3 id="tt-calendar-month-year"></h3>
+                            <button class="secondary modern-btn" onclick="ttNextMonth()">&gt;</button>
+                        </div>
+                        <div id="tt-calendar-grid" class="calendar-grid tt-cal"></div>
+                    </div>
+                    <div class="tt-right-panel">
+                        <div class="page-header-inline">
+                            <h1 class="page-title-center" style="margin: 0;">Timetable</h1>
+                            <button class="desktop-inline-add-btn" onclick="openAddTimetableEvent()">+ Add Event</button>
+                        </div>
+                        <h3 id="tt-selected-date-display" class="tt-date-display">Sunday, 5 April</h3>
+                        
+                        <div id="timetable-events-list" class="content-stack tt-events-container"></div>
+                        
+                        <!-- Floating + Button for mobile -->
+                        <button class="mobile-floating-add-btn mobile-only-flex" onclick="openAddTimetableEvent()">+</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals (Habit) -->
+    <div id="habit-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal" style="max-height: 90vh; display: flex; flex-direction: column;">
+            <button class="modal-delete-btn" id="delete-habit-btn" title="Delete Ritual">
+                <span>🗑️</span>
+            </button>
+            <h3 id="habit-modal-title">New Ritual</h3>
+            <div class="input-group" style="overflow-y: auto; overflow-x: hidden; padding-right: 8px; flex: 1;">
+                <input type="text" id="habit-name" placeholder="Ritual Name" class="full-input">
+                <input type="text" id="habit-goal" placeholder="Daily Goal (e.g., 10m)" class="full-input">
+                <div class="input-group" id="streak-edit-group" style="display:flex; gap:12px; margin-top:20px;">
+                <div style="flex:1;">
+                    <label style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Current Streak (🔥)</label>
+                    <input type="number" id="habit-current-streak" value="0" class="full-input" style="margin-top:4px;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Best Streak (⭐)</label>
+                    <input type="number" id="habit-best-streak" value="0" class="full-input" style="margin-top:4px;">
+                </div>
+            </div>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 0.85rem; color: var(--text-dim); padding-left: 5px;">Steps (optional)</label>
+                    <div id="habit-steps-container" style="display:flex; flex-direction:column; gap:8px; margin-top:5px; margin-bottom:10px;">
+                        <!-- dynamic steps go here -->
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="habit-new-step-name" placeholder="Step name" class="full-input" style="flex:1;">
+                        <button class="secondary modern-btn" onclick="addStepToHabitModal()" style="padding: 0 1rem; flex-shrink: 0;">+ Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top: 15px; flex-shrink: 0;">
+                <button class="secondary modern-btn" onclick="closeModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveHabit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Habit Detail) -->
+    <div id="habit-detail-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="detail-habit-name">Ritual</h3>
+                <button class="secondary modern-btn" id="edit-habit-btn" style="padding:5px 12px; font-size:0.85rem;">Edit</button>
+            </div>
+            <div id="detail-steps-list" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;"></div>
+            <div class="modal-actions" style="margin-top: 20px;">
+                <button class="primary modern-btn" onclick="closeDetailModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Meditation special modal removed -->
+
+    <!-- Modals (Calendar) -->
+    <div id="calendar-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <div class="calendar-header">
+                <button onclick="prevMonth()">&lt;</button>
+                <h3 id="calendar-month-year"></h3>
+                <button onclick="nextMonth()">&gt;</button>
+            </div>
+            <div id="calendar-grid" class="calendar-grid"></div>
+            <button class="primary modern-btn" onclick="closeCalendar()">Close</button>
+        </div>
+    </div>
+
+    <!-- Modals (Reminder) -->
+    <div id="reminder-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>New Reminder</h3>
+            <div class="input-group">
+                <input type="text" id="rem-title" placeholder="Reminder title" class="full-input">
+                <input type="date" id="rem-date" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeReminderModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveReminder()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Expiry) -->
+    <div id="expiry-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>Add Expiry Item</h3>
+            <div class="input-group">
+                <input type="text" id="exp-name" placeholder="Item Name (e.g., Tomato)" class="full-input">
+                <input type="number" id="exp-days" placeholder="Days until expiry" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeExpiryModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveExpiryItem()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Stock) -->
+    <div id="stock-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3 id="stock-modal-title">Add New Stock</h3>
+            <div class="input-group">
+                <label>Stock Symbol</label>
+                <input type="text" id="stock-name" placeholder="Enter Symbol" class="full-input">
+                <label>Avg Buy Price</label>
+                <input type="number" id="stock-buy-price" placeholder="0.00" class="full-input">
+                <label>Quantity</label>
+                <input type="number" id="stock-quantity" placeholder="0" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeStockModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveStock()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Timetable) -->
+    <div id="timetable-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal tt-modal-content">
+            <h3 id="tt-modal-title">Add Event</h3>
+            
+            <div class="input-group tt-input-group">
+                <label>Subject</label>
+                <input type="text" id="tt-subject" list="tt-subjects-list" placeholder="E.g., Python" class="full-input">
+                <datalist id="tt-subjects-list"></datalist>
+
+                <label>Event Type</label>
+                <input type="text" id="tt-event-type" list="tt-event-types-list" placeholder="E.g., Practice, Lecture" class="full-input">
+                <datalist id="tt-event-types-list"></datalist>
+
+                <label>Repeat</label>
+                <select id="tt-repeat" class="full-input styled-select">
+                    <option value="none">None</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Biweekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+
+                <label>Date</label>
+                <input type="date" id="tt-date" class="full-input">
+
+                <div style="display:flex; gap: 10px;">
+                    <div style="flex:1;">
+                        <label>Start Time</label>
+                        <input type="time" id="tt-start-time" class="full-input">
+                    </div>
+                    <div style="flex:1;">
+                        <label>End Time</label>
+                        <input type="time" id="tt-end-time" class="full-input">
+                    </div>
+                </div>
+
+                <label>Color</label>
+                <div class="tt-color-picker">
+                    <div class="tt-color-swatch custom-color-wrapper">
+                        <input type="color" id="tt-custom-color" value="#818cf8">
+                    </div>
+                    <div class="tt-color-swatch" style="background:#ef4444;" onclick="selectTtColor('#ef4444', this)"></div>
+                    <div class="tt-color-swatch" style="background:#f59e0b;" onclick="selectTtColor('#f59e0b', this)"></div>
+                    <div class="tt-color-swatch" style="background:#10b981;" onclick="selectTtColor('#10b981', this)"></div>
+                    <div class="tt-color-swatch" style="background:#3b82f6;" onclick="selectTtColor('#3b82f6', this)"></div>
+                    <div class="tt-color-swatch" style="background:#8b5cf6;" onclick="selectTtColor('#8b5cf6', this)"></div>
+                    <div class="tt-color-swatch" style="background:#ec4899;" onclick="selectTtColor('#ec4899', this)"></div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="secondary modern-btn cancel-btn" onclick="closeTimetableModal()">Cancel</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="tt-delete-btn" class="secondary modern-btn delete-btn" onclick="deleteTimetableEvent()" style="display:none; color:var(--error); border-color:var(--error);">Delete</button>
+                    <button class="primary modern-btn" onclick="saveTimetableEvent()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Class Tracker) -->
+    <div id="class-subject-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>Edit Class/Subject</h3>
+            <div class="input-group">
+                <label>Subject Name</label>
+                <input type="text" id="class-subject-name" placeholder="E.g. AP Lab" class="full-input">
+                <label>Type</label>
+                <input type="text" id="class-subject-type" placeholder="E.g. Lecture, Lab" class="full-input">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary modern-btn" onclick="closeClassSubjectModal()">Cancel</button>
+                <button class="primary modern-btn" onclick="saveClassSubject()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation (v50.0 restored) -->
+    <nav id="bottom-nav" class="mobile-nav">
+        <button class="bottom-nav-item active" onclick="navigate('dashboard')">
+            <span>📊</span>
+            <label>Dash</label>
+        </button>
+        <button class="bottom-nav-item" onclick="navigate('habits')">
+            <span>✨</span>
+            <label>Rituals</label>
+        </button>
+        <button class="bottom-nav-item" onclick="navigate('attendance')">
+            <span>🎓</span>
+            <label>Academy</label>
+        </button>
+        <button class="bottom-nav-item" onclick="navigate('notes')">
+            <span>📝</span>
+            <label>Notes</label>
+        </button>
+        <button class="bottom-nav-item" onclick="navigate('reminders')">
+            <span>🔔</span>
+            <label>Alerts</label>
+        </button>
+        <button class="bottom-nav-item" onclick="navigate('timetable')">
+            <span>📅</span>
+            <label>Time</label>
+        </button>
+    </nav>
+
+    <!-- Modals (Task Editor) -->
+    <!-- Create Task List Modal -->
+    <div id="create-task-list-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3 style="margin-top:0;">Create New List</h3>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <input type="text" id="new-list-title" class="full-input" placeholder="List name (e.g., Grocery)">
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="secondary modern-btn" onclick="closeCreateTaskModal()">Cancel</button>
+                    <button class="primary modern-btn" onclick="confirmCreateTaskList()">Create List</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="task-editor-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal" style="display:flex; flex-direction:column; max-height: 90vh; max-width: 700px; width: 100%; padding: 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <input type="text" id="task-editor-title-input" 
+                    style="background:transparent; border:none; color:white; font-size:1.5rem; font-weight:800; font-family:inherit; outline:none; margin:0; flex:1;" 
+                    onblur="renameActiveTaskList(this.value)"
+                    onkeydown="if(event.key === 'Enter') this.blur();">
+                <button class="secondary modern-btn" style="padding:4px 8px; margin-left:15px;" onclick="closeTaskEditor()">Close</button>
+            </div>
+            
+            <div id="task-editor-items" style="flex:1; overflow-y:auto; margin: 15px 0; display:flex; flex-direction:column; gap:8px;"></div>
+            
+            <div class="add-task-bar" style="display:flex; flex-direction:column; gap:8px; margin-top:auto; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05);">
+                <textarea id="new-task-input" placeholder="Enter task or note..." class="full-input" style="min-height: 80px; resize: vertical; margin-bottom:0; width:100%;" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); addTaskItem(); }"></textarea>
+                <button class="primary modern-btn" onclick="addTaskItem()" style="align-self: flex-end; padding: 0.8rem 2rem;">Add Item</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
