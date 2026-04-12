@@ -1307,8 +1307,15 @@ function updateStats() {
     const done = habits.filter(h => h.completedDates.includes(today)).length;
     
     const progressEl = document.getElementById('habit-progress-mobile');
+    const desktopEl = document.getElementById('habit-progress-desktop') 
+    const text = `${done}/${total} DONE TODAY`
+    
     if (progressEl) {
-        progressEl.innerText = `${done}/${total} DONE TODAY`;
+        progressEl.innerText = text;
+    }
+
+    if(desktopEl){
+        desktopEl.innerText = text;
     }
 }
 
