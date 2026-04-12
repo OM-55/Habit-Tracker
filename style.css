@@ -3595,6 +3595,15 @@ input:checked + .toggle-slider:before {
 }
 .mobile-floating-add-btn:active { transform: scale(0.9); }
 
+#habit-progress-desktop {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    opacity: 0.8;
+}
+
 /* Desktop overrides */
 @media (min-width: 769px) {
     .timetable-desktop-layout { flex-direction: row; height: calc(100vh - 120px) !important; align-items: stretch; margin-top: 10px; }
