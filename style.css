@@ -3638,10 +3638,26 @@ input:checked + .toggle-slider:before {
     #habit-progress-mobile{
         display: none !important;
     }
+
+    #habit-progress-desktop{
+        display: block !important;
+    }
 }
 
 @media (min-width: 768px){
+
+    #hbit-progress-mobile{
+        display: block !important;
+    }
     #habit-progress-desktop{
         display: none !important;
     }
 }
+
+#habit-progress-desktop{
+        display: none ;
+    }
+
+#habit-progress-mobile{
+        display: none;
+    }
