@@ -3645,10 +3645,29 @@ input:checked + .toggle-slider:before {
 
 @media (min-width: 768px){
 
-    #hbit-progress-mobile{
-        display: none;
+    #habit-progress-mobile{
+        display: none !important;
     }
     #habit-progress-desktop{
         display: block;
     }
 }
+
+
+#habit-progress-desktop{
+    font-size: 16px;
+    padding: 10px 18px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    display: inline-block;
+    position: absolute;
+    right: 70px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.page-header-inline{
+    position: relative;
+}
+
+
