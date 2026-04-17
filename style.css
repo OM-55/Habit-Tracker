@@ -3633,3 +3633,15 @@ input:checked + .toggle-slider:before {
 .tt-cal-date.active { background: var(--primary); color: white; box-shadow: 0 4px 12px var(--primary-glow); }
 .tt-cal-date.has-events:after { content: ''; display: block; width: 6px; height: 6px; background: #fff; border-radius: 50%; margin: 4px auto 0; opacity: 0.8; }
 .tt-cal-date.different-month { color: rgba(255,255,255,0.2); pointer-events: none; }
+
+@media (min-width: 769px){
+    #habit-progress-mobile{
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px){
+    #habit-progress-desktop{
+        display: none !important;
+    }
+}
