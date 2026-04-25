@@ -177,7 +177,7 @@ async function deleteHabit(id) {
 
 // PWA Service Worker (v43.0)
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
 // Initial Load Consolidation (v46.0)
@@ -186,9 +186,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load from LocalStorage first for instant UI (v46.0 Fallback)
     loadFromLocalStorage();
+    renderPage();
     
     // Then sync with Supabase
+   try {
     await fetchInitialData();
+} catch (e) {
+    console.warn("Cloud fetch failed, using local data");
+}
     
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const todayIndex = new Date().getDay();
@@ -199,18 +204,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (currentView === 'dashboard') switchView('dashboard');
     selectDay(selectedDay);
 
-    // Disable SW to prevent caching issues
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => {
-            regs.forEach(r => r.unregister());
-        });
-    }
+ 
 
     // Auto-refresh stocks every 60s
-    setInterval(async () => {
-        await fetchInitialData(); 
-        if (stocks.length > 0) fetchLivePrices(); 
-    }, 60000);
+    //setInterval(async () => {
+       // await fetchInitialData(); 
+      //  if (stocks.length > 0) fetchLivePrices(); 
+  //  }, 60000);
 });
 
 function saveToLocalStorage() {
@@ -220,13 +220,13 @@ function saveToLocalStorage() {
 }
 
 // --- Background Sync Polling (v26.0) ---
-setInterval(async () => {
-    if (document.visibilityState === 'visible') {
-        console.log("[SYNC] Background syncing with cloud...");
-        await fetchInitialData(); 
-        if (stocks.length > 0) fetchLivePrices(); 
-    }
-}, 60000); // 1 minute auto-sync
+//setInterval(async () => {
+  //  if (document.visibilityState === 'visible') {
+       // console.log("[SYNC] Background syncing with cloud...");
+       // await fetchInitialData(); 
+       // if (stocks.length > 0) fetchLivePrices(); 
+  //  }
+//}, 60000); // 1 minute auto-sync
 
 function loadFromLocalStorage() {
     const data = localStorage.getItem('stellar_backup');
@@ -1967,6 +1967,7 @@ async function fetchLivePrices() {
 }
 stocks = loadStocks();
 loadFromLocalStorage();
+renderPage();
 fetchInitialData();
 
 // ==========================================
