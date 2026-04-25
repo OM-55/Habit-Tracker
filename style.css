@@ -598,7 +598,7 @@ html, body {
     font-size: 2.2rem;
     font-weight: 800;
     text-align: center;
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 0.8rem 0;
     color: var(--text-white);
     letter-spacing: -0.04em;
     line-height: 1.1;
@@ -623,6 +623,8 @@ html, body {
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(124, 108, 255, 0.4);
     transition: all 0.3s ease;
+    
+
 }
 
 .add-btn:hover {
@@ -806,13 +808,7 @@ html, body {
     font-weight: 400;
 }
 
-.habit-stats-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    flex: 1; /* Center it */
-}
+
 
 .streak-pill {
     background: rgba(255,255,255,0.06);
@@ -3154,8 +3150,8 @@ input:checked + .toggle-slider:before {
 }
 
 #habit-progress-mobile {
-    margin: 10px auto;
-    text-align: center;
+    margin: 10px 16px 10px auto; /* pushes it to right */
+    text-align: right;
 }
 }
 
@@ -3656,6 +3652,8 @@ input:checked + .toggle-slider:before {
 
     #habit-progress-mobile{
         display: none !important;
+        margin: 6px 16px 16px auto; /* more space below */
+    text-align: right;
     }
     #habit-progress-desktop{
         display: block;
@@ -3678,5 +3676,15 @@ input:checked + .toggle-slider:before {
 .page-header-inline{
     position: relative;
 }
+#header-add-btn {
+    margin-top: -6px;
+}
 
+@media (min-width: 1025px) {
+    .habit-stats-group {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+}
 
