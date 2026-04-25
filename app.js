@@ -290,6 +290,13 @@ function navigate(view) {
 function renderPage(view) {
     if (!view) view = currentView;
     console.log(`[UI] Refreshing View: ${view}`);
+    const addBtn = document.getElementById('header-add-btn');
+
+if (view === 'notes') {
+    addBtn.style.display = 'flex';
+} else {
+    addBtn.style.display = 'none';
+}
     
     if (view === 'dashboard') { renderDashboard(); renderReminders(); renderStocksDashboard(); }
     else if (view === 'habits') renderHabits();
