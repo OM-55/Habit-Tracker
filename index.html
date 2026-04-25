@@ -286,6 +286,20 @@
         </div>
     </div>
 
+    
+    <div id="note-modal" class="modal hidden">
+        <div class="modal-content glass-card dark-modal">
+            <h3>Add Note</h3>
+
+            <input id="note-title" placeholder="Title" class="full-input">
+            <textarea id="note-content" placeholder="Write note..." class="full-input"></textarea>
+
+            <div class="modal-actions">
+                <button onclick="closeModal()">Cancel</button>
+                <button onclick="addNote()">Save</button>
+            </div>
+        </div>
+    </div>
 <!-- Meditation special modal removed -->
 
     <!-- Modals (Calendar) -->
@@ -428,19 +442,6 @@
         </div>
     </div>
 
-    <div id="note-modal" class="modal hidden">
-        <div class="modal-content glass-card dark-modal">
-            <h3>Add Note</h3>
-
-            <input id="note-title" placeholder="Title" class="full-input">
-            <textarea id="note-content" placeholder="Write note..." class="full-input"></textarea>
-
-            <div class="modal-actions">
-                <button onclick="closeModal()">Cancel</button>
-                <button onclick="addNote()">Save</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Mobile Bottom Navigation (v50.0 restored) -->
     <nav id="bottom-nav" class="mobile-nav">
