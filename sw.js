@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stellar-v1';
+const CACHE_NAME = 'stellar-v2';
 const ASSETS = [
   '/',
   '/index.html',
