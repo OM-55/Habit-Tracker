@@ -290,13 +290,6 @@ function navigate(view) {
 function renderPage(view) {
     if (!view) view = currentView;
     console.log(`[UI] Refreshing View: ${view}`);
-    const addBtn = document.getElementById('header-add-btn');
-
-if (view === 'notes') {
-    addBtn.style.display = 'flex';
-} else {
-    addBtn.style.display = 'none';
-}
     
     if (view === 'dashboard') { renderDashboard(); renderReminders(); renderStocksDashboard(); }
     else if (view === 'habits') renderHabits();
@@ -340,10 +333,10 @@ function switchView(view) {
         const showOn = ['habits', 'notes', 'reminders', 'stocks', 'expiry', 'timetable'];
         if (showOn.includes(view)) {
             headerAddBtn.classList.remove('hidden');
-            headerAddBtn.style.setProperty("display", "flex", "important");
+            headerAddBtn.style.display = 'flex';
         } else {
             headerAddBtn.classList.add('hidden');
-            headerAddBtn.style.setProperty("display", "none", "important");
+            headerAddBtn.style.display = 'none';
         }
     }
 
@@ -1866,7 +1859,7 @@ async function addNote() {
 
     if (!content) return;
 
-    const note = {
+    const newNote = {
         id: generateId(),
         title: title,
         content: content,
@@ -1874,11 +1867,14 @@ async function addNote() {
         user_id: USER_ID
     };
 
-    notes.push(note);
+    notes.unshift(newNote);
 
     renderNotesBoard(); // instant UI
 
-    await saveAndSync('notes', notes); // 🔥 THIS WAS MISSING
+    // 🔥 THIS IS THE MOST IMPORTANT LINE
+    await saveAndSync('notes', notes);
+
+    saveToLocalStorage(); // backup
 }
 
 function deleteNote(id) {
