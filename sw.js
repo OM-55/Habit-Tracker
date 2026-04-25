@@ -1,8 +1,8 @@
 const CACHE_NAME = 'stellar-v3';
 
 const ASSETS = [
-  '/',
-  '/index.html',
+  './',
+  './index.html',
   '/style.css',
   '/app.js',
   '/manifest.json',

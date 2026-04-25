@@ -3148,6 +3148,15 @@ input:checked + .toggle-slider:before {
     #subjects-container { max-height: none !important; }
     #app-main { padding: 1.2rem !important; }
     .dashboard-grid { display: grid !important; grid-template-columns: 1fr !important; }
+
+    #habit-progress-desktop {
+    display: none !important;
+}
+
+#habit-progress-mobile {
+    margin: 10px auto;
+    text-align: center;
+}
 }
 
 /* --- NOTES SYSTEM (V5.0) --- */
