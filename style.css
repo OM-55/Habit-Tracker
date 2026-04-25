@@ -584,13 +584,16 @@ html, body {
 
 /* Progress Indicator style */
 .progress-container {
-    margin: 12px 16px;
+    margin: 10px 16px 22px 16px; /* more bottom space */
     padding: 8px 14px;
     border-radius: 999px;
     background: rgba(255,255,255,0.05);
     color: #ccc;
     font-size: 12px;
     width: fit-content;
+}
+.ritual-cards-container {
+    margin-top: 16px;
 }
 
 /* Part 2: Centered Page Title style */
@@ -776,14 +779,6 @@ html, body {
     min-height: auto !important;
 }
 
-.habit-main-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2.5rem;
-    width: 100%;
-}
-
 .habit-info-group {
     flex: 1;
     display: flex;
@@ -830,14 +825,6 @@ html, body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-
-.habit-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    justify-content: flex-end;
-}
-
 .meditation-btn { 
     padding: 8px 16px; 
     font-size: 0.8rem; 
@@ -905,13 +892,6 @@ html, body {
     to { opacity: 1; }
 }
 
-.habit-main-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-    width: 100%;
-}
 
 .habit-info-group {
     flex: 1;
@@ -963,14 +943,6 @@ transition: var(--transition);
     margin-bottom: 1.25rem !important;
     height: auto !important;
     min-height: auto !important;
-}
-
-.habit-main-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2.5rem;
-    width: 100%;
 }
 
 .habit-info-group {
@@ -1026,12 +998,6 @@ transition: var(--transition);
     letter-spacing: 0.5px;
 }
 
-.habit-actions-group {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    justify-content: flex-end;
-}
 
 .meditation-btn { 
     padding: 8px 16px; 
@@ -1100,13 +1066,7 @@ transition: var(--transition);
     to { opacity: 1; }
 }
 
-.habit-main-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
-    width: 100%;
-}
+
 
 .habit-info-group {
     flex: 1;
@@ -1138,14 +1098,6 @@ transition: var(--transition);
     color: var(--text-dim);
 }
 
-.habit-stats-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    min-width: 100px; /* Reduced from 140px for mobile */
-}
-
 @media (min-width: 600px) {
     .habit-stats-group {
         min-width: 140px;
@@ -1175,8 +1127,8 @@ transition: var(--transition);
 
 .habit-actions-group {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
-    gap: 2rem;
 }
 
 .meditation-btn { padding: 8px 20px; font-size: 0.85rem; border-radius: 10px; }
@@ -1700,6 +1652,13 @@ input:checked + .toggle-slider:before {
     border-radius: var(--radius-lg);
     border: 1px solid var(--glass-border);
     transition: var(--transition);
+}
+
+.ritual-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 14px; /* 🔥 THIS adds space before first card */
 }
 .full-width-rem {
     margin-bottom: 1.2rem;
@@ -2878,28 +2837,13 @@ input:checked + .toggle-slider:before {
     font-size: 0.9rem;
 }
 
-/* Final Overrides for Centering and Layout */
-.habit-main-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 1.5rem !important;
-    width: 100% !important;
-}
+
 
 .habit-info-group {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 4px !important;
-}
-
-.habit-stats-group {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 6px !important;
-    flex: 1 !important;
 }
 
 /* --- FINAL UI FIXES (V4.4): SPATIAL BALANCE & HEADER RESTORATION --- */
@@ -3060,14 +3004,18 @@ input:checked + .toggle-slider:before {
         padding: 1.5rem 2rem !important;
     }
 }
-.habit-main-row { 
-    display: flex !important; 
-    justify-content: space-between !important; 
-    align-items: center !important; 
-    gap: 1rem !important; 
-    width: 100% !important; 
-    cursor: pointer !important; 
+
+
+.habit-main-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: 100%;
 }
+.habit-stats-group {
+    justify-self: center;
+}
+
 .habit-info-group { 
     flex: 2 !important; 
     display: flex !important; 
@@ -3092,10 +3040,12 @@ input:checked + .toggle-slider:before {
     line-height: 1.2 !important; 
 }
 .habit-stats-group {
-    flex: 1 !important;
-    min-width: 100px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 120px;
 }
-
 /* Expiry Tracker fix */
 .expiry-card { 
     display: grid !important; 

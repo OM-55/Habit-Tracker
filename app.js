@@ -360,7 +360,9 @@ function handleAdd() {
 }
 
 function openAddRitual() { openModal(); }
-function openAddNote() { addNote(); }
+function openAddNote() {
+    document.getElementById('note-modal').classList.remove('hidden');
+}
 function openAddReminder() { openReminderModal(); }
 function openAddStock() { openStockModal(); }
 function openAddExpiry() { openExpiryModal(); }
@@ -1848,16 +1850,28 @@ function saveNotes(notes) {
     localStorage.setItem("notes", JSON.stringify(notes));
 }
 
-function addNote() {
-    const newNote = {
+async function addNote() {
+    const titleInput = document.getElementById('note-title');
+    const contentInput = document.getElementById('note-content');
+
+    const title = titleInput?.value.trim() || "Untitled";
+    const content = contentInput?.value.trim();
+
+    if (!content) return;
+
+    const note = {
         id: generateId(),
-        title: "",
-        content: "",
-        created_at: new Date().toISOString()
+        title: title,
+        content: content,
+        created_at: new Date().toISOString(),
+        user_id: USER_ID
     };
-    notes.unshift(newNote);
-    saveNotes(notes);
-    renderNotesBoard();
+
+    notes.push(note);
+
+    renderNotesBoard(); // instant UI
+
+    await saveAndSync('notes', notes); // 🔥 THIS WAS MISSING
 }
 
 function deleteNote(id) {
